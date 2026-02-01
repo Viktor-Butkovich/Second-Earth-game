@@ -1077,7 +1077,7 @@ class switch_theatre_button(buttons.button):
                     constants.TRAVELING_PERMISSION, False
                 )
                 current_mob.add_to_turn_queue()
-                flags.choosing_destination = True
+                constants.SelectorManager.start(constants.DESTINATION_SELECTOR)
             else:
                 text_utility.print_to_screen(
                     "Traveling through space requires all remaining movement points, at least 1."
@@ -1516,7 +1516,7 @@ class automatic_route_button(buttons.button):
                         return ()
                     attached_mob.clear_automatic_route()
                     attached_mob.add_to_automatic_route(attached_mob.location)
-                    flags.drawing_automatic_route = True
+                    constants.SelectorManager.start(constants.AUTOMATIC_ROUTE_SELECTOR)
 
                 elif self.button_type == constants.EXECUTE_AUTOMATIC_ROUTE_BUTTON:
                     if attached_mob.can_follow_automatic_route():

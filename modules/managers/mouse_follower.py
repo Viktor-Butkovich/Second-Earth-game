@@ -39,10 +39,6 @@ class mouse_follower(free_image):
         """
         Draws this image if the player is currently choosing a movement destination
         """
-        if (
-            flags.choosing_destination
-            or flags.choosing_advertised_item
-            or flags.drawing_automatic_route
-        ):
+        if constants.SelectorManager.any_active():
             self.update()
             super().draw()

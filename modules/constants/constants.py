@@ -17,6 +17,7 @@ from modules.managers import (
     help_manager,
     mouse_follower,
     event_bus,
+    selector_manager,
     content_provider,
     uuid_manager,
     supply_chain_request_engine,
@@ -187,6 +188,7 @@ FlavorTextManager: flavor_text_manager.flavor_text_manager = (
     flavor_text_manager.flavor_text_manager()
 )
 InputManager: input_manager.input_manager = input_manager.input_manager()
+SelectorManager: selector_manager.selector_manager = selector_manager.selector_manager()
 ActorCreationManager: actor_creation_manager.actor_creation_manager = (
     None  # requires additional setup before initialization
 )
@@ -1163,3 +1165,7 @@ TABLECOL_PRESENT: str = "present"
 TABLECOL_DELIVERING: str = "delivering"
 TABLECOL_CONSUMING: str = "consuming"
 TABLECOL_EXPECTED: str = "expected"
+
+DESTINATION_SELECTOR: str = "destination_selector"
+ADVERTISING_SELECTOR: str = "advertising_selector"
+AUTOMATIC_ROUTE_SELECTOR: str = "automatic_route_selector"

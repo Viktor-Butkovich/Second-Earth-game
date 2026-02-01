@@ -688,7 +688,7 @@ class button(interface_elements.interface_element):
         """
         Controls this button's behavior when right clicked. By default, the button's right click behavior is the same as its left click behavior.
         """
-        self.on_click()
+        return self.on_click()
 
     def on_click(self, override_action_possible: bool = False):
         """
@@ -1972,7 +1972,7 @@ class sellable_item_button(button):
         """
         Controls this button's behavior when clicked. When the player is choosing a target for an advertising campaign, clicking on this button starts an advertising campaign for this button's item
         """
-        if flags.choosing_advertised_item:
+        if constants.SelectorManager.is_active(constants.ADVERTISING_SELECTOR):
             if self.item_type.key == constants.CONSUMER_GOODS_ITEM:
                 text_utility.print_to_screen("You cannot advertise consumer goods.")
             else:

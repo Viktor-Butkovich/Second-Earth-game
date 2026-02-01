@@ -1,7 +1,7 @@
 # Contains functionality for panels
 
 from __future__ import annotations
-from modules.util import actor_utility, main_loop_utility
+from modules.util import actor_utility
 from modules.interface_components.buttons import button
 from modules.constants import constants, status, flags
 
@@ -41,8 +41,7 @@ class panel(button):
         Output:
             string: Returns None to designate that this click did nothing - still prevents units from deselected but also allows other buttons to be clicked
         """
-        flags.choosing_advertised_item = False
-        flags.choosing_destination = False
+        constants.SelectorManager.stop()
         return None
 
     def can_show_tooltip(self):
@@ -81,18 +80,11 @@ class safe_click_panel(panel):
         )
 
     def on_click(self) -> None:
-        if status.focused_location_grid.cell_list[0][0].touching_mouse():
-            main_loop_utility.manage_lmb_down(clicked_button=False)
-            return
         actor_utility.calibrate_actor_info_display(
             status.mob_inventory_info_display, None
         )
         actor_utility.calibrate_actor_info_display(
             status.location_inventory_info_display, None
         )
-
-    def on_rmb_click(self) -> None:
-        if status.focused_location_grid.cell_list[0][0].touching_mouse():
-            main_loop_utility.manage_rmb_down(clicked_button=False)
-            return
-        super().on_rmb_click()
+        constants.SelectorManager.stop()
+        return True

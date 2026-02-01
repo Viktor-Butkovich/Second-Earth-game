@@ -239,7 +239,7 @@ class advertising_campaign(action.campaign):
                 text_utility.print_to_screen(
                     "Select an item to advertise, or click elsewhere to cancel: "
                 )
-                flags.choosing_advertised_item = True
+                constants.SelectorManager.start(constants.ADVERTISING_SELECTOR)
             else:
                 text_utility.print_to_screen(
                     f"{self.name.capitalize()}s are only possible on Earth"
@@ -255,7 +255,7 @@ class advertising_campaign(action.campaign):
         Output:
             None
         """
-        flags.choosing_advertised_item = False
+        constants.SelectorManager.stop()
         self.target_item = target_item
         self.target_unadvertised_item = random.choice(
             [

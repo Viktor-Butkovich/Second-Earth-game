@@ -150,87 +150,15 @@ def main_loop():
         )
         flags.lmb_down, flags.mmb_down, flags.rmb_down = pygame.mouse.get_pressed()
 
-        if flags.old_rmb_down != flags.rmb_down:  # if rmb changes
-            if not flags.rmb_down:  # if user just released rmb
-                clicked_button = False
-                stopping = False
-                if status.current_instructions_page == None:
-                    for current_button in status.button_list:  # here
-                        if (
-                            current_button.touching_mouse()
-                            and current_button.showing
-                            and (current_button.in_notification)
-                            and not stopping
-                        ):  # if notification, click before other buttons
-                            current_button.on_rmb_click()
-                            current_button.on_rmb_release()
-                            clicked_button = True
-                            stopping = True
-                            break
-                else:
-                    if (
-                        status.current_instructions_page.touching_mouse()
-                        and status.current_instructions_page.showing
-                    ):
-                        status.current_instructions_page.on_rmb_click()
-                        clicked_button = True
-                        stopping = True
-                if not stopping:
-                    for current_button in status.button_list:
-                        if current_button.touching_mouse() and current_button.showing:
-                            current_button.on_rmb_click()
-                            current_button.on_rmb_release()
-                            clicked_button = True
-                manage_rmb_down(clicked_button)
+        if (
+            flags.old_rmb_down == True and flags.rmb_down == False
+        ):  # if rmb just released
+            manage_mouse_down(lmb=False)
 
-        if flags.old_lmb_down != flags.lmb_down:  # if lmb changes
-            if not flags.lmb_down:  # If user just released lmb
-                clicked_button = False  # If any button, including a panel, is clicked, do not deselect units
-                allow_on_click = True  # Certain buttons, like panels, allow clicking on another button at the same time
-                stopping = False
-                if status.current_instructions_page == None:
-                    for current_button in status.button_list:
-                        if (
-                            current_button.touching_mouse()
-                            and current_button.showing
-                            and (current_button.in_notification)
-                            and not stopping
-                        ):  # If notification, click before other buttons
-                            current_button.on_click()
-                            current_button.on_release()
-                            clicked_button = True
-                            allow_on_click = False
-                            stopping = True
-                            break
-                else:
-                    if (
-                        status.current_instructions_page.touching_mouse()
-                        and status.current_instructions_page.showing
-                    ):  # if instructions, click before other buttons
-                        status.current_instructions_page.on_click()
-                        clicked_button = True
-                        allow_on_click = False
-                        stopping = True
-                        break
-
-                if not stopping:
-                    for current_button in reversed(status.button_list):
-                        if (
-                            current_button.touching_mouse()
-                            and current_button.showing
-                            and allow_on_click
-                        ):  # Only click 1 button at a time
-                            if (
-                                current_button.on_click()
-                            ):  # If on_click has return value, nothing happened - allow other buttons to click but do not deselect units
-                                allow_on_click = True
-                            else:
-                                allow_on_click = False
-                            current_button.on_release()
-                            clicked_button = True
-                manage_lmb_down(
-                    clicked_button
-                )  # Whether button was clicked or not determines whether characters are deselected
+        if (
+            flags.old_lmb_down == True and flags.lmb_down == False
+        ):  # if lmb just released
+            manage_mouse_down(lmb=True)
 
         if flags.lmb_down or flags.rmb_down:
             for current_button in status.button_list:
@@ -267,6 +195,69 @@ def main_loop():
                 constants.end_turn_wait_time = 0
             constants.previous_turn_time = constants.current_time
     pygame.quit()
+
+
+def manage_mouse_down(lmb: bool) -> None:
+    """
+    Description:
+        If the player is choosing a movement destination and the player clicks on a cell, chooses that cell as the movement destination. If the player is choosing a movement destination but did not click a cell, cancels the movement
+            destination selection process. Otherwise, if the player clicks on a cell, selects the top mob in that cell if any are present and moves the minimap to that cell. If the player clicks on a button, calls the on_click function
+            of that button. If nothing was clicked, deselects the selected mob if any is selected
+    Input:
+        bool lmb: True if this mouse down event was a left mouse button down, otherwise False for right mouse button down
+    Output:
+        None
+    """
+    clicked_button = False
+    for current_button in [
+        button
+        for button in reversed(status.button_list)
+        if button.showing and button.in_notification
+    ] + [
+        button
+        for button in reversed(status.button_list)
+        if button.showing and not button.in_notification
+    ]:  # Iterate through foreground notifications before other buttons
+        if current_button.touching_mouse():
+            click_result = None
+            clicked_button = True
+            if lmb:
+                click_result = current_button.on_click()
+                current_button.on_release()
+            else:
+                click_result = current_button.on_rmb_click()
+                current_button.on_rmb_release()
+            if click_result != True:
+                # When on_click returns True, it indicates that it should still allow other buttons to be clicked
+                #   This is utilized by safe click panel to prevent deselecting units while allowing other buttons to be clicked
+                return
+
+    if (
+        action_possible() or constants.SelectorManager.any_active()
+    ):  # Only executes if no buttons were clicked
+        if constants.SelectorManager.none_active():
+            # Do not do selecting operations if user was trying to click a button # and action_possible()
+            if constants.current_game_mode == constants.MINISTERS_MODE:
+                minister_utility.calibrate_minister_info_display(None)
+            else:
+                current_cell = actor_utility.get_clicked_cell()
+                if (
+                    current_cell
+                    and current_cell.source.actor_type == constants.LOCATION_ACTOR_TYPE
+                ):
+                    if lmb or len(current_cell.source.subscribed_mobs) < 2:
+                        actor_utility.click_move_minimap(current_cell, select_unit=True)
+                    else:  # Rmb on at least 2 units
+                        actor_utility.cycle_units(current_cell)
+                elif (
+                    current_cell
+                    and current_cell.source.actor_type == constants.ZONE_ACTOR_TYPE
+                ):
+                    actor_utility.click_move_minimap(current_cell, select_unit=True)
+                elif not clicked_button:
+                    actor_utility.click_move_minimap(None)
+        else:
+            constants.SelectorManager.on_click(lmb)
 
 
 def complete_globe_projection_rotation():
@@ -476,9 +467,7 @@ def action_possible():
     return not (
         status.displayed_notification
         or (not flags.player_turn)
-        or flags.choosing_destination
-        or flags.choosing_advertised_item
-        or flags.drawing_automatic_route
+        or constants.SelectorManager.any_active()
     )
 
 
@@ -710,288 +699,6 @@ def draw_text_box():
             constants.display_height - (font.size + scaling.scale_height(5)),
         ),
     )
-
-
-def manage_rmb_down(clicked_button):
-    """
-    Description:
-        If the player is right clicking on a grid cell, cycles the order of the units in the cell. Otherwise, has same functionality as manage_lmb_down
-    Input:
-        boolean clicked_button: True if this click clicked a button, otherwise False
-    Output:
-        None
-    """
-    stopping = False
-    if (not clicked_button) and action_possible():
-        for current_grid in status.location_grid_list:
-            if current_grid.showing:
-                for current_cell in current_grid.get_flat_cell_list():
-                    if current_cell.touching_mouse():
-                        stopping = True  # if doesn't reach this point, do same as lmb
-                        current_location = current_cell.source
-                        if len(current_location.subscribed_mobs) > 1:
-                            moved_mob = current_location.subscribed_mobs[1]
-                            while moved_mob != current_location.subscribed_mobs[0]:
-                                current_location.subscribed_mobs.append(
-                                    current_location.subscribed_mobs.pop(0)
-                                )
-                            current_location.update_image_bundle(update_mob_only=True)
-                            flags.show_selection_outlines = True
-                            constants.last_selection_outline_switch = (
-                                constants.current_time
-                            )
-                            actor_utility.focus_minimap_grids(current_location)
-                            moved_mob.select()
-                            moved_mob.selection_sound()
-                        else:
-                            manage_lmb_down(clicked_button)
-                            return
-    elif flags.drawing_automatic_route:
-        stopping = True
-        flags.drawing_automatic_route = False
-        if len(status.displayed_mob.base_automatic_route) > 1:
-            destination_location = (
-                status.displayed_mob.location.world_handler.find_location(
-                    status.displayed_mob.base_automatic_route[-1][0],
-                    status.displayed_mob.base_automatic_route[-1][1],
-                )
-            )
-            if status.displayed_mob.all_permissions(
-                constants.VEHICLE_PERMISSION, constants.TRAIN_PERMISSION
-            ) and not destination_location.has_intact_building(constants.TRAIN_STATION):
-                status.displayed_mob.clear_automatic_route()
-                text_utility.print_to_screen(
-                    "A train's automatic route must start and end at a train station."
-                )
-                text_utility.print_to_screen("The invalid route has been erased.")
-            else:
-                text_utility.print_to_screen("Route saved")
-        else:
-            status.displayed_mob.clear_automatic_route()
-            text_utility.print_to_screen(
-                "The created route must go between at least 2 locations"
-            )
-        actor_utility.focus_minimap_grids(status.displayed_mob.location)
-        actor_utility.calibrate_actor_info_display(
-            status.location_info_display, status.displayed_mob.location
-        )
-    if not stopping:
-        manage_lmb_down(clicked_button)
-
-
-def manage_lmb_down(clicked_button):
-    """
-    Description:
-        If the player is choosing a movement destination and the player clicks on a cell, chooses that cell as the movement destination. If the player is choosing a movement destination but did not click a cell, cancels the movement
-            destination selection process. Otherwise, if the player clicks on a cell, selects the top mob in that cell if any are present and moves the minimap to that cell. If the player clicks on a button, calls the on_click function
-            of that button. If nothing was clicked, deselects the selected mob if any is selected
-    Input:
-        boolean clicked_button: True if this click clicked a button, otherwise False
-    Output:
-        None
-    """
-    if (
-        action_possible()
-        or flags.choosing_destination
-        or flags.choosing_advertised_item
-        or flags.drawing_automatic_route
-    ):
-        if not clicked_button and (
-            not (
-                flags.choosing_destination
-                or flags.choosing_advertised_item
-                or flags.drawing_automatic_route
-            )
-        ):  # Do not do selecting operations if user was trying to click a button # and action_possible()
-            if constants.current_game_mode == constants.MINISTERS_MODE:
-                minister_utility.calibrate_minister_info_display(None)
-            click_move_minimap(select_unit=True)
-
-        elif (
-            not clicked_button
-        ) and flags.choosing_destination:  # if clicking to move somewhere
-            for current_grid in status.location_grid_list:
-                if current_grid.can_show():
-                    for current_cell in current_grid.get_flat_cell_list():
-                        if current_cell.touching_mouse():
-                            click_move_minimap(select_unit=False)
-                            target_location = None
-                            if current_cell.source.is_abstract_location:
-                                target_location = current_cell.source
-                            else:
-                                target_location = (
-                                    current_cell.source.world_handler.find_location(
-                                        status.minimap_grid.center_x,
-                                        status.minimap_grid.center_y,
-                                    )
-                                )
-                            if (
-                                current_grid.world_handler
-                                != status.displayed_mob.location.world_handler
-                            ):
-                                status.displayed_mob.end_turn_destination = (
-                                    target_location
-                                )
-                                status.displayed_mob.set_permission(
-                                    constants.TRAVELING_PERMISSION, True
-                                )
-                                status.displayed_mob.travel_sound()
-                                flags.show_selection_outlines = True
-                                constants.last_selection_outline_switch = (
-                                    constants.current_time
-                                )  # Outlines should be shown immediately once destination is chosen
-                                status.displayed_mob.remove_from_turn_queue()
-                                status.displayed_mob.select()
-                                status.displayed_mob.location.select()
-                            else:  # Cannot move to same world
-                                actor_utility.calibrate_actor_info_display(
-                                    status.mob_info_display, None
-                                )
-                                text_utility.print_to_screen(
-                                    "You can only send ships to other theatres."
-                                )
-            flags.choosing_destination = False
-
-        elif (not clicked_button) and flags.choosing_advertised_item:
-            flags.choosing_advertised_item = False
-
-        elif (not clicked_button) and flags.drawing_automatic_route:
-            for current_grid in status.location_grid_list:
-                for current_cell in current_grid.get_flat_cell_list():
-                    if current_cell.touching_mouse():
-                        if current_cell.source.is_abstract_location:
-                            text_utility.print_to_screen(
-                                "Only locations adjacent to the most recently chosen destination can be added to the movement route."
-                            )
-                        else:
-                            target_location = current_cell.source
-                            previous_location = (
-                                status.displayed_mob.base_automatic_route[-1]
-                            )
-                            current_world = target_location.world_handler
-                            if (
-                                current_world.manhattan_distance(
-                                    target_location, previous_location
-                                )
-                                == 1
-                            ):
-                                destination_infrastructure = (
-                                    target_location.get_building(
-                                        constants.INFRASTRUCTURE
-                                    )
-                                )
-                                if not target_location.visible:
-                                    text_utility.print_to_screen(
-                                        "Movement routes cannot be created through unexplored locations."
-                                    )
-                                    return ()
-                                elif (
-                                    status.displayed_mob.get_permission(
-                                        constants.VEHICLE_PERMISSION
-                                    )
-                                    and status.displayed_mob.get_permission(
-                                        constants.TRAIN_PERMISSION
-                                    )
-                                    and not target_location.has_building(
-                                        constants.RAILROAD
-                                    )
-                                ):
-                                    text_utility.print_to_screen(
-                                        "Trains can only create movement routes along railroads."
-                                    )
-                                    return ()
-                                elif not status.displayed_mob.get_permission(
-                                    constants.WALK_PERMISSION
-                                ) and not target_location.has_intact_building(
-                                    constants.SPACEPORT
-                                ):
-                                    text_utility.print_to_screen(
-                                        "This unit cannot create movement routes on land, except through ports."
-                                    )
-                                    return ()
-
-                                status.displayed_mob.add_to_automatic_route(
-                                    target_location
-                                )
-                                click_move_minimap()
-                                flags.show_selection_outlines = True
-                                constants.last_selection_outline_switch = (
-                                    constants.current_time
-                                )
-                            else:
-                                text_utility.print_to_screen(
-                                    "Only locations adjacent to the most recently chosen destination can be added to the movement route."
-                                )
-
-        elif not clicked_button:
-            click_move_minimap()
-
-
-def click_move_minimap(select_unit: bool = True):
-    """
-    Description:
-        When a cell on the strategic map grid is clicked, centers the minimap on that cell
-    Input:
-        None
-    Output:
-        None
-    """
-    for current_grid in (
-        status.location_grid_list + status.zone_grid_list
-    ):  # If grid clicked, move minimap to location clicked
-        if current_grid.showing:
-            for current_cell in current_grid.get_flat_cell_list():
-                if current_cell.touching_mouse():
-                    current_source = current_cell.source
-
-                    if current_source.actor_type == constants.ZONE_ACTOR_TYPE:
-                        actor_utility.calibrate_actor_info_display(
-                            status.zone_info_display, current_source
-                        )
-                    elif current_source.actor_type == constants.LOCATION_ACTOR_TYPE:
-                        if (
-                            status.displayed_mob
-                            and status.displayed_mob.location != current_source
-                        ):
-                            actor_utility.calibrate_actor_info_display(
-                                status.mob_info_display, None, override_exempt=True
-                            )
-                        if select_unit and current_source.subscribed_mobs:
-                            if (
-                                status.displayed_zone
-                                and current_source.subscribed_mobs[0]
-                                == status.displayed_mob
-                            ):
-                                actor_utility.calibrate_actor_info_display(
-                                    status.location_info_display,
-                                    current_source,
-                                )
-                                """
-                                When on the zone game mode and clicking on the location cell:
-                                    If nothing is selected, select the mob and the location
-                                    If a zone is selected but a different mob/no mob is selected, select the mob
-                                    If a zone is selected and the same mob is selected, select the location instead
-                                        This has the effect that clicking on a zone then the mob selects both, but
-                                        double-clicking once the mob is already selected would select the location again
-                                """
-                            current_source.subscribed_mobs[0].select()
-                            status.displayed_mob.selection_sound()
-                        else:
-                            actor_utility.calibrate_actor_info_display(
-                                status.location_info_display, current_source
-                            )
-                        actor_utility.focus_minimap_grids(current_source)
-                    return
-    actor_utility.calibrate_actor_info_display(
-        status.location_info_display, None, override_exempt=True
-    )
-    actor_utility.calibrate_actor_info_display(
-        status.mob_info_display, None, override_exempt=True
-    )
-    actor_utility.calibrate_actor_info_display(
-        status.zone_info_display, None, override_exempt=True
-    )
-    # If nothing was selected, deselect mob, location, and zone
 
 
 def debug_print():

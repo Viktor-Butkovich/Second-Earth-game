@@ -8,7 +8,7 @@ from typing import List, Tuple, Dict, Iterable, Any
 from modules.util import utility, text_utility
 from modules.constants import constants, status, flags
 from modules.constructs.actor_types import actors, locations, mobs
-from modules.interface_components import interface_elements
+from modules.interface_components import interface_elements, cells
 
 
 def press_button(button_type: str) -> None:
@@ -148,7 +148,9 @@ def calibrate_actor_info_display(
     """
     if flags.loading:
         return
-    if skip_calibrate(info_display, new_actor): # Skip calibration if deselecting will not cause a change
+    if skip_calibrate(
+        info_display, new_actor
+    ):  # Skip calibration if deselecting will not cause a change
         return
 
     if info_display == status.location_info_display and status.displayed_zone:
@@ -226,7 +228,7 @@ def calibrate_actor_info_display(
         calibrate_actor_info_display(status.mob_inventory_info_display, None)
     # Deselect other inventory if one inventory is being displayed
 
-    if not flags.choosing_destination:  # Don't change tabs while choosing destination
+    if not constants.SelectorManager.any_active():  # Don't change tabs during selection
         if info_display == status.mob_info_display:
             select_default_tab(status.mob_tabbed_collection, status.displayed_mob)
         elif info_display == status.location_info_display:
@@ -863,3 +865,103 @@ def all_locations() -> Iterable[locations.location]:
     for current_world in status.world_list:
         for current_location in current_world.get_flat_location_list():
             yield current_location
+
+
+def cycle_units(current_cell: cells.cell) -> None:
+    """
+    Description:
+        Rotates the order of units in the inputted cell
+    Input:
+        cell current_cell: The cell whose units should be cycled
+    Output:
+        None
+    """
+    current_location = current_cell.source
+    moved_mob = current_location.subscribed_mobs[1]
+    while moved_mob != current_location.subscribed_mobs[0]:
+        current_location.subscribed_mobs.append(current_location.subscribed_mobs.pop(0))
+    current_location.update_image_bundle(update_mob_only=True)
+    flags.show_selection_outlines = True
+    constants.last_selection_outline_switch = constants.current_time
+    focus_minimap_grids(current_location)
+    moved_mob.select()
+    moved_mob.selection_sound()
+
+
+def get_clicked_cell() -> cells.cell:
+    """
+    Description:
+        Gets the cell the mouse is currently pointing to, if any
+    Input:
+        None
+    Output:
+        cells.cell: The cell the mouse is currently pointing to, if any
+    """
+    for current_grid in (
+        status.location_grid_list + status.zone_grid_list
+    ):  # If grid clicked, move minimap to location clicked
+        if current_grid.showing:
+            for current_cell in current_grid.get_flat_cell_list():
+                if current_cell.touching_mouse():
+                    return current_cell
+    return None
+
+
+def click_move_minimap(current_cell, select_unit: bool = True):
+    """
+    Description:
+        When a cell on the strategic map grid is clicked, centers the minimap on that cell
+    Input:
+        cell current_cell: The cell that was clicked on the strategic map grid, if any
+        bool select_unit: True if this should focus on the cell and select the top unit, otherwise False to just focus on the cell
+    Output:
+        None
+    """
+    if current_cell is None:
+        calibrate_actor_info_display(
+            status.location_info_display, None, override_exempt=True
+        )
+        calibrate_actor_info_display(
+            status.mob_info_display, None, override_exempt=True
+        )
+        calibrate_actor_info_display(
+            status.zone_info_display, None, override_exempt=True
+        )
+    else:
+        current_source = current_cell.source
+
+        if current_source.actor_type == constants.ZONE_ACTOR_TYPE:
+            calibrate_actor_info_display(status.zone_info_display, current_source)
+        elif current_source.actor_type == constants.LOCATION_ACTOR_TYPE:
+            if select_unit:
+                if (
+                    status.displayed_mob
+                    and status.displayed_mob.location != current_source
+                ):
+                    calibrate_actor_info_display(
+                        status.mob_info_display, None, override_exempt=True
+                    )
+                if current_source.subscribed_mobs:
+                    if (
+                        status.displayed_zone
+                        and current_source.subscribed_mobs[0] == status.displayed_mob
+                    ):
+                        calibrate_actor_info_display(
+                            status.location_info_display,
+                            current_source,
+                        )
+                        """
+                        When on the zone game mode and clicking on the location cell:
+                            If nothing is selected, select the mob and the location
+                            If a zone is selected but a different mob/no mob is selected, select the mob
+                            If a zone is selected and the same mob is selected, select the location instead
+                                This has the effect that clicking on a zone then the mob selects both, but
+                                double-clicking once the mob is already selected would select the location again
+                        """
+                    current_source.subscribed_mobs[0].select()
+                    status.displayed_mob.selection_sound()
+                else:
+                    calibrate_actor_info_display(
+                        status.location_info_display, current_source
+                    )
+            focus_minimap_grids(current_source)
