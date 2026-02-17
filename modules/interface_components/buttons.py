@@ -852,18 +852,23 @@ class button(interface_elements.interface_element):
                 text_utility.print_to_screen("You are busy and cannot move units.")
 
         elif self.button_type == constants.REMOVE_WORK_CREW_BUTTON:
-            if self.attached_label.attached_building:
-                if (
-                    not len(self.attached_label.attached_building.contained_workers)
-                    == 0
-                ):
-                    self.attached_label.attached_building.contained_workers[
-                        0
-                    ].leave_building(self.attached_label.attached_building)
-                else:
-                    text_utility.print_to_screen(
-                        "There are no workers to remove from this building."
-                    )
+            if main_loop_utility.action_possible():
+                if self.attached_label.attached_building:
+                    if (
+                        not len(self.attached_label.attached_building.contained_workers)
+                        == 0
+                    ):
+                        self.attached_label.attached_building.contained_workers[
+                            0
+                        ].leave_building(self.attached_label.attached_building)
+                    else:
+                        text_utility.print_to_screen(
+                            "There are no workers to unassign from this building."
+                        )
+            else:
+                text_utility.print_to_screen(
+                    "You are busy and cannot unassign work crews."
+                )
 
         elif self.button_type == constants.END_TURN_BUTTON:
             if main_loop_utility.action_possible():
@@ -892,60 +897,66 @@ class button(interface_elements.interface_element):
             constants.PICK_UP_EACH_ITEM_BUTTON,
             constants.DROP_EACH_ITEM_BUTTON,
         ]:
-            if self.button_type == constants.PICK_UP_EACH_ITEM_BUTTON:
-                source_type = constants.LOCATION_INVENTORY_ACTOR_TYPE
+            if main_loop_utility.action_possible():
+                if self.button_type == constants.PICK_UP_EACH_ITEM_BUTTON:
+                    source_type = constants.LOCATION_INVENTORY_ACTOR_TYPE
+                else:
+                    source_type = constants.MOB_INVENTORY_ACTOR_TYPE
+                item_types.transfer(
+                    source_type, transferred_item=None, amount=None
+                )  # Transfer all of each type
             else:
-                source_type = constants.MOB_INVENTORY_ACTOR_TYPE
-            item_types.transfer(
-                source_type, transferred_item=None, amount=None
-            )  # Transfer all of each type
+                text_utility.print_to_screen("You are busy and cannot transfer items.")
 
         elif self.button_type in [
             constants.SELL_ITEM_BUTTON,
             constants.SELL_ALL_ITEM_BUTTON,
             constants.SELL_EACH_ITEM_BUTTON,
         ]:
-            if self.button_type == constants.SELL_EACH_ITEM_BUTTON:
-                sold_item_types = [
-                    current_item_type
-                    for current_item_type in status.item_types.values()
-                    if current_item_type.can_sell
-                ]
-            elif self.button_type in [
-                constants.SELL_ITEM_BUTTON,
-                constants.SELL_ALL_ITEM_BUTTON,
-            ]:
-                sold_item_types = [self.actor.current_item]
-            if minister_utility.positions_filled():
-                for current_item_type in sold_item_types:
-                    num_present: int = status.displayed_location.get_inventory(
+            if main_loop_utility.action_possible():
+                if self.button_type == constants.SELL_EACH_ITEM_BUTTON:
+                    sold_item_types = [
                         current_item_type
-                    )
-                    if num_present > 0:
-                        num_sold: int
-                        if self.button_type == constants.SELL_ITEM_BUTTON:
-                            num_sold = 1
-                        else:
-                            num_sold = num_present
-                        market_utility.sell(
-                            status.displayed_location, current_item_type, num_sold
+                        for current_item_type in status.item_types.values()
+                        if current_item_type.can_sell
+                    ]
+                elif self.button_type in [
+                    constants.SELL_ITEM_BUTTON,
+                    constants.SELL_ALL_ITEM_BUTTON,
+                ]:
+                    sold_item_types = [self.actor.current_item]
+                if minister_utility.positions_filled():
+                    for current_item_type in sold_item_types:
+                        num_present: int = status.displayed_location.get_inventory(
+                            current_item_type
                         )
+                        if num_present > 0:
+                            num_sold: int
+                            if self.button_type == constants.SELL_ITEM_BUTTON:
+                                num_sold = 1
+                            else:
+                                num_sold = num_present
+                            market_utility.sell(
+                                status.displayed_location, current_item_type, num_sold
+                            )
 
-                actor_utility.calibrate_actor_info_display(
-                    status.location_info_display, status.displayed_location
-                )
-                if (
-                    status.displayed_location_inventory
-                    and status.displayed_location_inventory.current_item
-                ):
                     actor_utility.calibrate_actor_info_display(
-                        status.location_inventory_info_display,
-                        status.displayed_location_inventory,
+                        status.location_info_display, status.displayed_location
                     )
-                else:
-                    actor_utility.calibrate_actor_info_display(
-                        status.location_inventory_info_display, None
-                    )
+                    if (
+                        status.displayed_location_inventory
+                        and status.displayed_location_inventory.current_item
+                    ):
+                        actor_utility.calibrate_actor_info_display(
+                            status.location_inventory_info_display,
+                            status.displayed_location_inventory,
+                        )
+                    else:
+                        actor_utility.calibrate_actor_info_display(
+                            status.location_inventory_info_display, None
+                        )
+            else:
+                text_utility.print_to_screen("You are busy and cannot sell items.")
 
         elif self.button_type == constants.USE_EACH_EQUIPMENT_BUTTON:
             if main_loop_utility.action_possible():
@@ -990,6 +1001,10 @@ class button(interface_elements.interface_element):
                                         actor_utility.calibrate_actor_info_display(
                                             status.location_inventory_info_display, None
                                         )
+            else:
+                text_utility.print_to_screen(
+                    "You are busy and cannot transfer equipment."
+                )
 
         elif self.button_type == constants.USE_EQUIPMENT_BUTTON:
             if main_loop_utility.action_possible():
@@ -1147,45 +1162,48 @@ class button(interface_elements.interface_element):
                     )
 
         elif self.button_type == constants.TAB_BUTTON:
-            tabbed_collection = self.parent_collection.parent_collection
-            tabbed_collection.current_tabbed_member = self.linked_element
-            if constants.EffectManager.effect_active("debug_tab_selection"):
-                print(f"Selecting tab: {self.tab_name}")
-            tabbed_collection.record_mru_tab(self.linked_element)
-            if (
-                self.identifier == constants.INVENTORY_PANEL
-                and constants.EffectManager.effect_active("link_inventory_tabs")
-            ):
-                if tabbed_collection == status.mob_tabbed_collection:
-                    alternate_collection = status.location_tabbed_collection
-                else:
-                    alternate_collection = status.mob_tabbed_collection
-                for linked_tab in alternate_collection.tabbed_members:
-                    linked_tab_button = linked_tab.linked_tab_button
-                    if linked_tab_button.identifier == constants.INVENTORY_PANEL:
-                        linked_tab_button.parent_collection.parent_collection.current_tabbed_member = (
-                            linked_tab_button.linked_element
+            if main_loop_utility.action_possible():
+                tabbed_collection = self.parent_collection.parent_collection
+                tabbed_collection.current_tabbed_member = self.linked_element
+                if constants.EffectManager.effect_active("debug_tab_selection"):
+                    print(f"Selecting tab: {self.tab_name}")
+                tabbed_collection.record_mru_tab(self.linked_element)
+                if (
+                    self.identifier == constants.INVENTORY_PANEL
+                    and constants.EffectManager.effect_active("link_inventory_tabs")
+                ):
+                    if tabbed_collection == status.mob_tabbed_collection:
+                        alternate_collection = status.location_tabbed_collection
+                    else:
+                        alternate_collection = status.mob_tabbed_collection
+                    for linked_tab in alternate_collection.tabbed_members:
+                        linked_tab_button = linked_tab.linked_tab_button
+                        if linked_tab_button.identifier == constants.INVENTORY_PANEL:
+                            linked_tab_button.parent_collection.parent_collection.current_tabbed_member = (
+                                linked_tab_button.linked_element
+                            )
+                    if (
+                        alternate_collection == status.mob_tabbed_collection
+                    ):  # Manually calibrate tab name banner label to new tab name
+                        alternate_collection.tabs_collection.members[-1].calibrate(
+                            status.displayed_mob
+                        )
+                    elif alternate_collection == status.location_tabbed_collection:
+                        alternate_collection.tabs_collection.members[-1].calibrate(
+                            status.displayed_location
                         )
                 if (
-                    alternate_collection == status.mob_tabbed_collection
+                    tabbed_collection == status.mob_tabbed_collection
                 ):  # Manually calibrate tab name banner label to new tab name
-                    alternate_collection.tabs_collection.members[-1].calibrate(
+                    tabbed_collection.tabs_collection.members[-1].calibrate(
                         status.displayed_mob
                     )
-                elif alternate_collection == status.location_tabbed_collection:
-                    alternate_collection.tabs_collection.members[-1].calibrate(
+                elif tabbed_collection == status.location_tabbed_collection:
+                    tabbed_collection.tabs_collection.members[-1].calibrate(
                         status.displayed_location
                     )
-            if (
-                tabbed_collection == status.mob_tabbed_collection
-            ):  # Manually calibrate tab name banner label to new tab name
-                tabbed_collection.tabs_collection.members[-1].calibrate(
-                    status.displayed_mob
-                )
-            elif tabbed_collection == status.location_tabbed_collection:
-                tabbed_collection.tabs_collection.members[-1].calibrate(
-                    status.displayed_location
-                )
+            else:
+                text_utility.print_to_screen("You are busy and cannot switch tabs.")
 
         elif self.button_type == constants.RENAME_SETTLEMENT_BUTTON:
             if override_action_possible or main_loop_utility.action_possible():
@@ -1212,10 +1230,16 @@ class button(interface_elements.interface_element):
                 )
 
         elif self.button_type == constants.FOCUS_LOCATION_BUTTON:
-            status.displayed_location.focus_location()
+            if main_loop_utility.action_possible():
+                status.displayed_location.focus_location()
+            else:
+                text_utility.print_to_screen("You are busy and cannot switch screens.")
 
         elif self.button_type == constants.UNFOCUS_LOCATION_BUTTON:
-            game_transitions.set_game_mode(constants.STRATEGIC_MODE)
+            if main_loop_utility.action_possible():
+                game_transitions.set_game_mode(constants.STRATEGIC_MODE)
+            else:
+                text_utility.print_to_screen("You are busy and cannot switch screens.")
 
     def on_rmb_release(self):
         """
@@ -2483,14 +2507,17 @@ class cycle_autofill_button(button):
         Does a certain action when clicked or when corresponding key is pressed, depending on button_type. This type of button cycles the unit in an autofill input
             cell to the next valid alternative - assumes that there is a valid alternative, as on_click is only possible if can_show is True
         """
-        self.parent_collection.search_start_index = (
-            status.displayed_mob.location.subscribed_mobs.index(
-                self.parent_collection.autofill_actors[self.autofill_target_type]
+        if main_loop_utility.action_possible():
+            self.parent_collection.search_start_index = (
+                status.displayed_mob.location.subscribed_mobs.index(
+                    self.parent_collection.autofill_actors[self.autofill_target_type]
+                )
+                + 1
             )
-            + 1
-        )
-        self.parent_collection.calibrate(status.displayed_mob)
-        # Start autofill search for corresponding target type at index right after the current target actor
+            self.parent_collection.calibrate(status.displayed_mob)
+            # Start autofill search for corresponding target type at index right after the current target actor
+        else:
+            text_utility.print_to_screen("You are busy and cannot select this unit.")
 
 
 class action_button(button):
@@ -2697,8 +2724,11 @@ class map_mode_button(button):
         """
         Sets the current map mode to this button's map mode
         """
-        constants.current_map_mode = self.map_mode
-        constants.EventBus.publish(constants.UPDATE_MAP_MODE_ROUTE, self.map_mode)
+        if main_loop_utility.action_possible():
+            constants.current_map_mode = self.map_mode
+            constants.EventBus.publish(constants.UPDATE_MAP_MODE_ROUTE, self.map_mode)
+        else:
+            text_utility.print_to_screen("You are busy and cannot switch map modes.")
 
     @property
     def tooltip_text(self) -> List[List[str]]:

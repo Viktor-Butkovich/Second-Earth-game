@@ -41,7 +41,6 @@ class panel(button):
         Output:
             string: Returns None to designate that this click did nothing - still prevents units from deselected but also allows other buttons to be clicked
         """
-        constants.SelectorManager.stop()
         return None
 
     def can_show_tooltip(self):
@@ -80,11 +79,11 @@ class safe_click_panel(panel):
         )
 
     def on_click(self) -> None:
-        actor_utility.calibrate_actor_info_display(
-            status.mob_inventory_info_display, None
-        )
-        actor_utility.calibrate_actor_info_display(
-            status.location_inventory_info_display, None
-        )
-        constants.SelectorManager.stop()
+        if constants.SelectorManager.none_active():
+            actor_utility.calibrate_actor_info_display(
+                status.mob_inventory_info_display, None
+            )
+            actor_utility.calibrate_actor_info_display(
+                status.location_inventory_info_display, None
+            )
         return True

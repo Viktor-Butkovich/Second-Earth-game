@@ -1594,29 +1594,32 @@ class toggle_button(buttons.button):
         """
         Toggles this button's variable on the attached actor
         """
-        if self.attached_to_actor:
-            setattr(
-                self.attached_label.actor,
-                self.toggle_variable,
-                not self.get_value(),
-            )
-        elif constants.EffectManager.effect_exists(self.toggle_variable):
-            constants.EffectManager.set_effect(
-                self.toggle_variable, not self.get_value()
-            )
-            if self.toggle_variable in ["remove_fog_of_war", "show_clouds"]:
-                constants.update_terrain_knowledge_requirements()
-                constants.EventBus.publish(constants.UPDATE_MAP_MODE_ROUTE)
-            elif self.toggle_variable in [
-                "earth_preset",
-                "mars_preset",
-                "venus_preset",
-            ]:
-                for variable in ["earth_preset", "mars_preset", "venus_preset"]:
-                    if variable != self.toggle_variable:
-                        constants.EffectManager.set_effect(variable, False)
+        if main_loop_utility.action_possible():
+            if self.attached_to_actor:
+                setattr(
+                    self.attached_label.actor,
+                    self.toggle_variable,
+                    not self.get_value(),
+                )
+            elif constants.EffectManager.effect_exists(self.toggle_variable):
+                constants.EffectManager.set_effect(
+                    self.toggle_variable, not self.get_value()
+                )
+                if self.toggle_variable in ["remove_fog_of_war", "show_clouds"]:
+                    constants.update_terrain_knowledge_requirements()
+                    constants.EventBus.publish(constants.UPDATE_MAP_MODE_ROUTE)
+                elif self.toggle_variable in [
+                    "earth_preset",
+                    "mars_preset",
+                    "venus_preset",
+                ]:
+                    for variable in ["earth_preset", "mars_preset", "venus_preset"]:
+                        if variable != self.toggle_variable:
+                            constants.EffectManager.set_effect(variable, False)
+            else:
+                setattr(flags, self.toggle_variable, not self.get_value())
         else:
-            setattr(flags, self.toggle_variable, not self.get_value())
+            text_utility.print_to_screen("You are busy and cannot change this setting.")
 
     def can_show(self, skip_parent_collection=False):
         """
@@ -1866,7 +1869,48 @@ class actor_icon(buttons.button):
             self.calibrate_to or not self.actor
         ):  # If empty or if always bound to the same actor
             return
-        if not main_loop_utility.action_possible():
+        if main_loop_utility.action_possible():
+            if self.actor.actor_type == constants.MOB_ACTOR_TYPE:
+                if self.actor.get_permission(constants.DUMMY_PERMISSION):
+                    if self.actor.get_permission(constants.ACTIVE_VEHICLE_PERMISSION):
+                        status.reorganize_vehicle_right_button.on_click(allow_sound=False)
+                    elif status.displayed_mob.get_permission(
+                        constants.ACTIVE_VEHICLE_PERMISSION
+                    ):
+                        status.reorganize_vehicle_left_button.on_click(allow_sound=False)
+                    elif self.actor.any_permissions(
+                        constants.WORKER_PERMISSION, constants.OFFICER_PERMISSION
+                    ):
+                        status.reorganize_group_left_button.on_click(allow_sound=False)
+                    elif self.actor.get_permission(constants.GROUP_PERMISSION):
+                        status.reorganize_group_right_button.on_click(allow_sound=False)
+
+                    if not self.actor.get_permission(
+                        constants.DUMMY_PERMISSION
+                    ):  # Only select if dummy unit successfully became real
+                        self.actor.cycle_select()
+                        self.actor.selection_sound()
+                else:  # If already existing, simply select unit
+                    self.actor.cycle_select()
+            elif self.actor.actor_type in [
+                constants.LOCATION_ACTOR_TYPE,
+                constants.ZONE_ACTOR_TYPE,
+            ]:
+                actor_utility.calibrate_actor_info_display(
+                    status.mob_info_display, None
+                )  # Focus solely on location/zone info display when clicked
+            elif self.actor_type == constants.MINISTER_ACTOR_TYPE:
+                if constants.current_game_mode != constants.TRIAL_MODE:
+                    selected_minister = (
+                        self.actor
+                    )  # Saved in case switching game modes re-calibrates the icon
+                    if constants.current_game_mode != constants.MINISTERS_MODE:
+                        game_transitions.set_game_mode(constants.MINISTERS_MODE)
+                    actor_utility.calibrate_actor_info_display(
+                        status.minister_info_display, selected_minister
+                    )
+                    selected_minister.play_voice_line("acknowledgement")
+        else:
             conversion = {
                 constants.MOB_ACTOR_TYPE: "unit",
                 constants.LOCATION_ACTOR_TYPE: "location",
@@ -1876,47 +1920,6 @@ class actor_icon(buttons.button):
             text_utility.print_to_screen(
                 f"You are busy and cannot select this {conversion[self.actor.actor_type]}."
             )
-            return
-        if self.actor.actor_type == constants.MOB_ACTOR_TYPE:
-            if self.actor.get_permission(constants.DUMMY_PERMISSION):
-                if self.actor.get_permission(constants.ACTIVE_VEHICLE_PERMISSION):
-                    status.reorganize_vehicle_right_button.on_click(allow_sound=False)
-                elif status.displayed_mob.get_permission(
-                    constants.ACTIVE_VEHICLE_PERMISSION
-                ):
-                    status.reorganize_vehicle_left_button.on_click(allow_sound=False)
-                elif self.actor.any_permissions(
-                    constants.WORKER_PERMISSION, constants.OFFICER_PERMISSION
-                ):
-                    status.reorganize_group_left_button.on_click(allow_sound=False)
-                elif self.actor.get_permission(constants.GROUP_PERMISSION):
-                    status.reorganize_group_right_button.on_click(allow_sound=False)
-
-                if not self.actor.get_permission(
-                    constants.DUMMY_PERMISSION
-                ):  # Only select if dummy unit successfully became real
-                    self.actor.cycle_select()
-                    self.actor.selection_sound()
-            else:  # If already existing, simply select unit
-                self.actor.cycle_select()
-        elif self.actor.actor_type in [
-            constants.LOCATION_ACTOR_TYPE,
-            constants.ZONE_ACTOR_TYPE,
-        ]:
-            actor_utility.calibrate_actor_info_display(
-                status.mob_info_display, None
-            )  # Focus solely on location/zone info display when clicked
-        elif self.actor_type == constants.MINISTER_ACTOR_TYPE:
-            if constants.current_game_mode != constants.TRIAL_MODE:
-                selected_minister = (
-                    self.actor
-                )  # Saved in case switching game modes re-calibrates the icon
-                if constants.current_game_mode != constants.MINISTERS_MODE:
-                    game_transitions.set_game_mode(constants.MINISTERS_MODE)
-                actor_utility.calibrate_actor_info_display(
-                    status.minister_info_display, selected_minister
-                )
-                selected_minister.play_voice_line("acknowledgement")
 
     def calibrate(self, new_actor: actors.actor) -> None:
         """

@@ -4,6 +4,8 @@ from __future__ import annotations
 from modules.constants import constants, status, flags
 from modules.util import main_loop_utility, text_utility, actor_utility
 from modules.interface_components import cells
+from modules.action_types import construction
+from typing import Dict, Any
 
 
 class selector_manager:
@@ -16,6 +18,7 @@ class selector_manager:
         Initializes this object
         """
         self.current_selector: str = None
+        self.config: Dict[str, Any] = {}
 
     def stop(self) -> None:
         """
@@ -23,7 +26,7 @@ class selector_manager:
         """
         self.current_selector = None
 
-    def start(self, selector_type: str) -> None:
+    def start(self, selector_type: str, config: Dict[str, Any] = None) -> None:
         """
         Description:
             Starts a selection of the given type
@@ -33,6 +36,7 @@ class selector_manager:
             None
         """
         self.current_selector = selector_type
+        self.config = config
 
     def is_active(self, selector_type: str) -> bool:
         """
@@ -77,25 +81,59 @@ class selector_manager:
         Output:
             None
         """
+        rmb = not lmb
         if self.is_active(constants.DESTINATION_SELECTOR):
             if lmb:
                 target_cell = actor_utility.get_clicked_cell()
                 if target_cell:
-                    select_destination(target_cell)
+                    if select_destination(target_cell):
+                        self.stop()
                 else:
-                    actor_utility.click_move_minimap(None, select_unit=False)
-            self.stop()
+                    text_utility.print_to_screen(
+                        f"Click on a location to send the {status.displayed_mob.name} there, or right click to cancel."
+                    )
+            elif rmb:
+                self.stop()
 
         elif self.is_active(constants.ADVERTISING_SELECTOR):
-            self.stop()
+            if lmb:
+                text_utility.print_to_screen(
+                    "Click on a commodity to advertise it, or right click to cancel."
+                )
+            elif rmb:
+                self.stop()
 
         elif self.is_active(constants.AUTOMATIC_ROUTE_SELECTOR):
             target_cell = actor_utility.get_clicked_cell()
-            if target_cell and lmb:
-                append_automatic_route(target_cell)
-            if not lmb:
+            if lmb:
+                if target_cell:
+                    append_automatic_route(target_cell)
+                else:
+                    text_utility.print_to_screen(
+                        "Click on a location to add it to the movement route, or right click to finish the route."
+                    )
+            elif rmb:
                 self.stop()
                 complete_automatic_route()
+
+        elif self.is_active(constants.CONSTRUCTION_SELECTOR):
+            construction_action: construction.construction = self.config[
+                constants.SELECTOR_CONFIG_CONSTRUCTION_ACTION
+            ]
+            target_cell = actor_utility.get_clicked_cell()
+            if lmb:
+                if (
+                    target_cell
+                    and target_cell.source.actor_type == constants.ZONE_ACTOR_TYPE
+                ):
+                    self.stop()
+                    construction_action.start(construction_action.current_unit)
+                else:
+                    text_utility.print_to_screen(
+                        f"Click on a zone to start building {construction_action.building_type.name}, or right click to cancel."
+                    )
+            elif rmb:
+                self.stop()
 
         else:
             raise Exception(
@@ -103,17 +141,16 @@ class selector_manager:
             )
 
 
-def select_destination(target_cell: cells.cell) -> None:
+def select_destination(target_cell: cells.cell) -> bool:
     """
     Description:
         Sets the target cell as the current mob's movement destination
     Input:
         cell target_cell: Cell that was clicked to set as the movement destination
     Output:
-        None
+        bool: True if the destination was successfully set, otherwise False
     """
     # If clicking to move somewhere
-    actor_utility.click_move_minimap(target_cell, select_unit=False)
     target_location = None
     if target_cell.source.is_abstract_location:
         target_location = target_cell.source
@@ -123,6 +160,7 @@ def select_destination(target_cell: cells.cell) -> None:
             status.minimap_grid.center_y,
         )
     if target_cell.grid.world_handler != status.displayed_mob.location.world_handler:
+        actor_utility.click_move_minimap(target_cell, select_unit=False)
         status.displayed_mob.end_turn_destination = target_location
         status.displayed_mob.set_permission(constants.TRAVELING_PERMISSION, True)
         status.displayed_mob.travel_sound()
@@ -133,9 +171,10 @@ def select_destination(target_cell: cells.cell) -> None:
         status.displayed_mob.remove_from_turn_queue()
         status.displayed_mob.select()
         status.displayed_mob.location.select()
+        return True
     else:  # Cannot move to same world
-        actor_utility.calibrate_actor_info_display(status.mob_info_display, None)
         text_utility.print_to_screen("You can only send ships to other theatres.")
+        return False
 
 
 def append_automatic_route(target_cell: cells.cell) -> None:

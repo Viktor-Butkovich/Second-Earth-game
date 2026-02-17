@@ -456,6 +456,7 @@ except Exception:  # Displays error message and records error message in crash l
 # If re-factored, an observer pattern with publish and subscribe events could be useful for syncing data, particularly button presses (click the buttons subscribed to this key)
 
 # Upcoming work queue:
+# Modify construction selector to pass the target zone to the construction action
 # Make more zone labels
 # Add zone construction - requires both storing and displaying buildings within zones
 #   Use spaceport as an example building

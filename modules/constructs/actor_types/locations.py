@@ -192,6 +192,8 @@ class location(actors.actor):
         """
         Calibrates the location game mode to this location
         """
+        if status.location_mode_focus == self:
+            return
         status.location_mode_focus = self
         status.focused_location_surface = drawing_utility.image_id_to_surface(
             self.get_image_id_list(

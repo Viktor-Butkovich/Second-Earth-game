@@ -3,8 +3,14 @@
 from __future__ import annotations
 from typing import List
 from modules.action_types import action
-from modules.util import action_utility, utility, actor_utility, text_utility
+from modules.util import (
+    action_utility,
+    utility,
+    actor_utility,
+    text_utility,
+)
 from modules.constructs import building_types, item_types
+from modules.constructs.actor_types.mob_types import pmobs
 from modules.constants import constants, status, flags
 
 
@@ -237,33 +243,39 @@ class construction(action.action):
         Output:
             boolean: Returns the result of any building-specific logic to allow building in the current location
         """
-        return_value = False
-        if self.building_type.key == constants.RESOURCE:
+        if unit.location.is_abstract_location:
+            text_utility.print_to_screen(
+                "This building can only be built on the planet."
+            )
+            return False
+        elif self.building_type.key == constants.RESOURCE:
             if self.attached_resource:
-                return_value = True
+                return True
             else:
                 text_utility.print_to_screen(
                     "This building can only be built in locations with resources."
                 )
+                return False
         elif self.building_type.key == constants.TRAIN_STATION:
             if unit.location.has_intact_building(constants.RAILROAD):
-                return_value = True
+                return True
             else:
                 text_utility.print_to_screen(
                     "This building can only be built on railroads."
                 )
+                return False
         elif self.building_type.key == constants.TRAIN:
             if unit.location.has_intact_building(constants.TRAIN_STATION):
-                return_value = True
+                return True
             else:
                 text_utility.print_to_screen(
                     "This building can only be built on train stations"
                 )
+                return False
         else:
-            return_value = True
-        return return_value
+            return True
 
-    def on_click(self, unit):
+    def on_click(self, unit: pmobs.pmob) -> None:
         """
         Description:
             Used when the player clicks a linked action button - checks if the unit can do the action, proceeding with 'start' if applicable
@@ -272,33 +284,14 @@ class construction(action.action):
         Output:
             None
         """
-        if super().on_click(unit):
-            current_building = unit.location.get_building(self.building_type.key)
-            if not (
-                current_building == None
-                or (
-                    self.building_name in ["railroad", "railroad bridge"]
-                    and current_building.is_road
-                )
-                or (
-                    self.building_name == "road bridge"
-                    and not (current_building.is_road or current_building.is_railroad)
-                )
-            ):
-                if self.building_type.key == constants.INFRASTRUCTURE:
-                    text_utility.print_to_screen(
-                        "This location already contains a railroad."
-                    )
-                else:
-                    text_utility.print_to_screen(
-                        f"This location already contains a {self.building_name} building."
-                    )
-            elif unit.location.is_earth_location:
-                text_utility.print_to_screen(
-                    "This building can only be built on the planet."
-                )
-            elif self.can_build(unit):
-                self.start(unit)
+        if super().on_click(unit) and self.can_build(unit):
+            status.displayed_location.focus_location()
+            constants.SelectorManager.start(
+                constants.CONSTRUCTION_SELECTOR,
+                config={
+                    constants.SELECTOR_CONFIG_CONSTRUCTION_ACTION: self,
+                },
+            )
 
     def start(self, unit):
         """

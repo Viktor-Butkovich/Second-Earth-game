@@ -1168,4 +1168,6 @@ TABLECOL_EXPECTED: str = "expected"
 
 DESTINATION_SELECTOR: str = "destination_selector"
 ADVERTISING_SELECTOR: str = "advertising_selector"
+CONSTRUCTION_SELECTOR: str = "construction_selector"
+SELECTOR_CONFIG_CONSTRUCTION_ACTION: str = "selector_config_construction_action"
 AUTOMATIC_ROUTE_SELECTOR: str = "automatic_route_selector"

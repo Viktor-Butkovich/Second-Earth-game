@@ -5,7 +5,7 @@ import pygame
 import math
 from typing import List
 from modules.interface_components import buttons, interface_elements
-from modules.util import actor_utility
+from modules.util import actor_utility, main_loop_utility, text_utility
 from modules.constructs import item_types
 from modules.constructs.actor_types import actors
 from modules.constants import constants, status, flags
@@ -312,22 +312,25 @@ class item_icon(buttons.button):
         """
         Calibrates mob_inventory_info_display or location_inventory_info_display to this icon, depending on this icon's actor type
         """
-        if not self.can_show(skip_parent_collection=True):
-            self.current_item = None
-        if self.actor_type == "mob_inventory":
-            if self.current_item:
-                actor_utility.calibrate_actor_info_display(
-                    status.mob_inventory_info_display, self
-                )
-            else:
-                status.mob_inventory_info_display.calibrate(None)
-        elif self.actor_type == "location_inventory":
-            if self.current_item:
-                actor_utility.calibrate_actor_info_display(
-                    status.location_inventory_info_display, self
-                )
-            else:
-                status.location_inventory_info_display.calibrate(None)
+        if main_loop_utility.action_possible():
+            if not self.can_show(skip_parent_collection=True):
+                self.current_item = None
+            if self.actor_type == "mob_inventory":
+                if self.current_item:
+                    actor_utility.calibrate_actor_info_display(
+                        status.mob_inventory_info_display, self
+                    )
+                else:
+                    status.mob_inventory_info_display.calibrate(None)
+            elif self.actor_type == "location_inventory":
+                if self.current_item:
+                    actor_utility.calibrate_actor_info_display(
+                        status.location_inventory_info_display, self
+                    )
+                else:
+                    status.location_inventory_info_display.calibrate(None)
+        else:
+            text_utility.print_to_screen("You are busy and cannot select this item.")
 
     def transfer(
         self, amount: int = None
