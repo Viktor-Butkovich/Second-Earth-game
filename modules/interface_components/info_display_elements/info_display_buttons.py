@@ -1475,7 +1475,7 @@ class automatic_route_button(buttons.button):
         if super().can_show(skip_parent_collection=skip_parent_collection):
             attached_mob = status.displayed_mob
             if (
-                attached_mob.inventory_capacity > 0
+                attached_mob.inventory_capacity.value > 0
                 and not attached_mob.any_permissions(
                     constants.CARAVAN_PERMISSION, constants.INACTIVE_VEHICLE_PERMISSION
                 )

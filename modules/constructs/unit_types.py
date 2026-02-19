@@ -26,7 +26,7 @@ class unit_type:
                     'recruitment_verb': string value - Verb to use when recruiting this unit, default of 'recruit'
                     'recruitment_cost': int value - Cost of recruiting this unit, default of 0.0
                     'description': string list value - Description text to display when recruiting this unit
-                'inventory_capacity': int value - Maximum number of items this unit can carry, default of 0
+                'base_inventory_capacity': int value - Maximum number of items this unit can carry, default of 0
                 'controlling_minister_type': minister_type value - Minister type that controls this unit type
                 'number': int value - Number of entities referenced by this unit's name, used in plural declension
                 'name': string value - Default name of this unit type
@@ -58,7 +58,9 @@ class unit_type:
                 self.description: List[str] = input_dict.get("description", [])
                 status.recruitment_types.append(self)
 
-            self.inventory_capacity: int = input_dict.get("inventory_capacity", 0)
+            self.base_inventory_capacity: int = input_dict.get(
+                "base_inventory_capacity", 0
+            )
             self.controlling_minister_type: minister_types.minister_type = input_dict[
                 "controlling_minister_type"
             ]
@@ -273,7 +275,7 @@ class group_type(unit_type):
                     'recruitment_verb': string value - Verb to use when recruiting this unit, default of 'recruit'
                     'recruitment_cost': int value - Cost of recruiting this unit, default of 0.0
                     'description': string list value - Description text to display when recruiting this unit
-                'inventory_capacity': int value - Maximum number of items this unit can carry, default of 0
+                'base_inventory_capacity': int value - Maximum number of items this unit can carry, default of 0
                 'controlling_minister_type': minister_type value - Minister type that controls this unit type
                 'number': int value - Number of entities referenced by this unit's name, used in plural declension
                 'name': string value - Default name of this unit type
@@ -302,7 +304,7 @@ class vehicle_type(unit_type):
                     'recruitment_verb': string value - Verb to use when recruiting this unit, default of 'recruit'
                     'recruitment_cost': int value - Cost of recruiting this unit, default of 0.0
                     'description': string list value - Description text to display when recruiting this unit
-                'inventory_capacity': int value - Maximum number of items this unit can carry, default of 0
+                'base_inventory_capacity': int value - Maximum number of items this unit can carry, default of 0
                 'controlling_minister_type': minister_type value - Minister type that controls this unit type
                 'number': int value - Number of entities referenced by this unit's name, used in plural declension
                 'name': string value - Default name of this unit type

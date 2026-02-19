@@ -127,7 +127,7 @@ class selector_manager:
                     and target_cell.source.actor_type == constants.ZONE_ACTOR_TYPE
                 ):
                     self.stop()
-                    construction_action.start(construction_action.current_unit)
+                    construction_action.start(construction_action.current_unit, target_cell.source)
                 else:
                     text_utility.print_to_screen(
                         f"Click on a zone to start building {construction_action.building_type.name}, or right click to cancel."

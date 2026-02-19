@@ -110,6 +110,13 @@ class grid(interface_elements.interface_element):
                 ].draw_outline(constants.COLOR_WHITE)
             elif status.displayed_location:
                 self.external_line_color = constants.COLOR_WHITE
+
+        if status.displayed_mob and status.displayed_zone:
+            mob_cell = status.focused_location_grid.get_cell(0, 0)
+            mob_cell.draw_outline(constants.COLOR_WHITE)
+            if flags.show_selection_outlines:
+                mob_cell.draw_outline(constants.COLOR_BRIGHT_GREEN)
+
         if (
             status.displayed_mob
             and status.displayed_location

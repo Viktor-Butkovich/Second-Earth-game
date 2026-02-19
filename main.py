@@ -448,15 +448,36 @@ except Exception:  # Displays error message and records error message in crash l
 # Transcribe Super-Earth planet names from https://science.nasa.gov/exoplanets/exoplanet-catalog/?pageno=1&planet_type=Super+Earth&content_list=true
 # God mode changes to make habitabilty deadly/not deadly not correctly calibrating reorganization projection of ship crew - fix if ever relevant outside of god mode
 # Maybe track when locations change habitability, as well as display habitability mode
-# Possibly use fuzzy logic for AI decision-making - relatively easily to convert natural language rules into behavior
-#   Could try making an EC system that trains a set of fuzzy rules - create a set of rules that match a list of i/o specifications
-#   Input would be input and output categories and rules, model just needs to tune the the rules until no specification cases fail
-#       Would likely just require a mutation operator and a genome of the required weights
 # Consider t-test to determine if minister results are statistically significant (reject hypothesis of default behavior)
 # If re-factored, an observer pattern with publish and subscribe events could be useful for syncing data, particularly button presses (click the buttons subscribed to this key)
 
 # Upcoming work queue:
-# Modify construction selector to pass the target zone to the construction action
+# Look into overlaying building icons and other zone images on the location image
+#   Perhaps make a function that assembles a surface out of each of the zone non-terrain images, then overlay these over the
+#   location's image ID
+#   Avoid the location needing to track a complex series of image IDs for each individual zone, and avoid complicating the
+#   rendering of locations that have few or no buildings.
+# Modify maximum movement points to use the managed attribute system.
+# Reconnect zone buildings to settlement system and location labels
+# Update location focus map-mode when zone buildings are modified
+# Test updated warehouse system
+"""
+Develop a system for buildings in zones
+    Some buildings like roads and warehouses update the location-wide infrastructure
+    Some buildings like mines, farms, and spaceports occupy individual zones
+        Perhaps all location-wide buildings could be treated as amorphous "upgrades" that aren't technically buildings, but
+            modify some attribute of the location
+        Meanwhile, true buildings would exist in zones and adapt the existing building interface, replacing locations with zones
+        Figure out an efficient way for the location to check if it has a particular building in any of its zones - perhaps
+            maintain a list of buildings in the location by type
+        For example, a spaceship landing might check for at least 1 intact spaceport in the location
+    First focus on zone buildings before worrying about infrastructure and warehouses
+Try to remove complexity like subscribed work crews from buildings unless they are sub-classes like resource buildings
+Likewise, port over the image generation complexity down to subclasses
+Make the zone worry about maintaining the building data structure, not the building itself
+    Building should use zone.add_building(self)
+Does a building ever have to access the location it is in? Likely not, even for construction costs (which occur before the building is created)
+"""
 # Make more zone labels
 # Add zone construction - requires both storing and displaying buildings within zones
 #   Use spaceport as an example building

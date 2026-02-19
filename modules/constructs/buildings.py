@@ -3,6 +3,7 @@
 from __future__ import annotations
 from typing import Dict, List
 from modules.constructs.actor_types import locations
+from modules.constructs import zones
 from modules.util import utility, actor_utility, text_utility
 from modules.constructs import building_types, item_types
 from modules.constants import constants, status, flags
@@ -32,24 +33,23 @@ class building:
         self.building_type: building_types.building_type = input_dict.get(
             "building_type", status.building_types[input_dict["init_type"]]
         )
-        self.subscribed_location: locations.location = input_dict["location"]
+        self.subscribed_zone: zones.zone = input_dict["zone"]
         self.damaged = False
         self.upgrade_fields: Dict[str, int] = {}
         for upgrade_field in self.building_type.upgrade_fields:
             self.upgrade_fields[upgrade_field] = input_dict.get(upgrade_field, 1)
         status.building_list.append(self)
-        self.subscribed_work_crews = []
+        if self.building_type.warehouse_level > 0:
+            self.location.warehouse_level.set_modifier(
+                self, self.building_type.warehouse_level
+            )
         if from_save:
-            for current_work_crew in input_dict["subscribed_work_crews"]:
-                constants.ActorCreationManager.create(
-                    True, current_work_crew
-                ).work_building(self)
             if self.building_type.can_damage:
                 self.set_damaged(input_dict["damaged"], mid_setup=True)
 
         if (not from_save) and self.building_type.can_damage:
             self.set_damaged(False, True)
-        self.location.add_building(self)
+        self.zone.add_building(self)
 
         if (
             constants.EffectManager.effect_active("damaged_buildings")
@@ -71,6 +71,18 @@ class building:
             )
 
     @property
+    def zone(self) -> zones.zone:
+        """
+        Description:
+            Returns the zone this building is located in
+        Input:
+            None
+        Output:
+            zone: Returns the zone this building is located in
+        """
+        return self.subscribed_zone
+
+    @property
     def location(self) -> locations.location:
         """
         Description:
@@ -80,7 +92,7 @@ class building:
         Output:
             location: Returns the location this location is currently in
         """
-        return self.subscribed_location
+        return self.zone.parent_location
 
     def to_save_dict(self):
         """
@@ -93,17 +105,13 @@ class building:
                 Along with superclass outputs, also saves the following values:
                 'building_type': string value - Type of building, like 'port'
                 'image': string value - File path to the image used by this object
-                'subscribed_work_crews': dictionary list value - list of dictionaries of saved information necessary to recreate each work crew working in this building
                 'damaged': boolean value - whether this building is currently damaged
         """
         return {
             **self.upgrade_fields,
             "init_type": self.building_type.key,
-            "subscribed_work_crews": [
-                current_work_crew.to_save_dict()
-                for current_work_crew in self.subscribed_work_crews
-            ],
             "damaged": self.damaged,
+            "zone_coordinates": (self.zone.x, self.zone.y),
         }
 
     def remove(self):
@@ -130,10 +138,6 @@ class building:
             tooltip_text.append(
                 f"Lets {self.upgrade_fields[constants.RESOURCE_SCALE]} attached work crews each attempt to produce {self.upgrade_fields[constants.RESOURCE_EFFICIENCY]} units of {self.resource_type.name} each turn"
             )
-        elif self.building_type == constants.WAREHOUSES:
-            tooltip_text.append(
-                f"Level {self.upgrade_fields[constants.WAREHOUSE_LEVEL]} warehouses allow an inventory capacity of {9 * self.upgrade_fields[constants.WAREHOUSE_LEVEL]}"
-            )
         else:
             tooltip_text += self.building_type.description
         if self.damaged:
@@ -154,10 +158,16 @@ class building:
         self.damaged = new_value
         if self.building_type == constants.INFRASTRUCTURE:
             actor_utility.update_roads()
-        if self.building_type.warehouse_level > 0 and self.location.has_building(
-            constants.WAREHOUSES
-        ):
-            self.location.get_building(constants.WAREHOUSES).set_damaged(new_value)
+        if self.building_type.warehouse_level > 0:
+            if new_value == True:
+                self.location.warehouse_level.set_modifier(self, 0)
+            else:
+                self.location.warehouse_level.set_modifier(
+                    self, self.building_type.warehouse_level
+                )
+            # The network of managed modifiers means this temporarily sets the warehouse level contribution from this building to
+            #   0, which then decreases inventory capacity by the correct amount. Upon repair, set the modifier back to the
+            #   building type's warehouse level to restore the original state.
         constants.EventBus.publish(self.uuid, constants.BUILDING_SET_DAMAGED_ROUTE)
 
     def get_build_cost(self):
@@ -385,50 +395,6 @@ class infrastructure_building(building):
         return image_id_list
 
 
-class warehouses(building):
-    """
-    Buiding attached to a port, train station, and/or resource production facility that stores items
-    """
-
-    def __init__(self, from_save, input_dict):
-        """
-        Description:
-            Initializes this object
-        Input:
-            boolean from_save: True if this object is being recreated from a save file, False if it is being newly created
-            dictionary input_dict: Keys corresponding to the values needed to initialize this object
-                'location': location value - Where this building is located
-                'image': string/dictionary/list value - String file path/offset image dictionary/combined list used for this object's image bundle
-                    Example of possible image_id: ['buttons/default_button_alt.png', {'image_id': 'mobs/default/default.png', 'size': 0.95, 'x_offset': 0, 'y_offset': 0, 'level': 1}]
-                    - Signifies default button image overlayed by a default mob image scaled to 0.95x size
-                'name': string value - Required if from save, this building's name
-                'subscribed_work_crews': dictionary list value - Required if from save, list of dictionaries of saved information necessary to recreate each work crew working in this building
-                'warehouse_level': int value - Required if from save, size of warehouse (9 inventory capacity per level)
-        Output:
-            None
-        """
-        super().__init__(from_save, input_dict)
-        self.location.set_inventory_capacity(
-            self.upgrade_fields[constants.WAREHOUSE_LEVEL] * 9
-        )
-        if constants.EffectManager.effect_active("damaged_buildings"):
-            if self.building_type.can_damage:
-                self.set_damaged(True, True)
-
-    def get_upgrade_cost(self):
-        """
-        Returns the cost of the next upgrade for this building. The first successful upgrade costs 5 money and each subsequent upgrade costs twice as much as the previous. Building a train station, resource production facility, or
-            port gives a free upgrade that does not affect the costs of future upgrades
-        """
-        return self.location.get_warehouses_cost()
-
-    def upgrade(self, upgrade_type="warehouses_level"):
-        super().upgrade(upgrade_type)
-        self.location.set_inventory_capacity(
-            self.upgrade_fields[constants.WAREHOUSE_LEVEL] * 9
-        )
-
-
 class resource_building(building):
     """
     Building on a resource that allows work crews to attach to this building to produce resources over time
@@ -461,7 +427,6 @@ class resource_building(building):
             self.resource_type: item_types.item_type = input_dict[
                 "resource_type"
             ]  # If during game, uses existing item type
-        # Continue this conversion
         self.num_upgrades = (
             self.upgrade_fields[constants.RESOURCE_SCALE]
             + self.upgrade_fields[constants.RESOURCE_EFFICIENCY]
@@ -469,6 +434,12 @@ class resource_building(building):
         )
         self.ejected_work_crews = []
         super().__init__(from_save, input_dict)
+        self.subscribed_work_crews = []
+        if from_save:
+            for current_work_crew in input_dict["subscribed_work_crews"]:
+                constants.ActorCreationManager.create(
+                    True, current_work_crew
+                ).work_building(self)
         status.resource_building_list.append(self)
 
     def to_save_dict(self):
@@ -585,3 +556,22 @@ class resource_building(building):
         """
         for current_work_crew in self.subscribed_work_crews:
             current_work_crew.attempt_production(self)
+
+    def to_save_dict(self):
+        """
+        Description:
+            Uses this object's values to create a dictionary that can be saved and used as input to recreate it on loading
+        Input:
+            None
+        Output:
+            dictionary: Returns dictionary that can be saved and used as input to recreate it on loading
+                Along with superclass outputs, also saves the following values:
+                'subscribed_work_crews': dictionary list value - list of dictionaries of saved information necessary to recreate each work crew working in this building
+        """
+        return {
+            **super().to_save_dict(),
+            "subscribed_work_crews": [
+                current_work_crew.to_save_dict()
+                for current_work_crew in self.subscribed_work_crews
+            ],
+        }

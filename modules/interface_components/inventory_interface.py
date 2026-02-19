@@ -194,7 +194,7 @@ class item_icon(buttons.button):
         self.actor = new_actor
         if new_actor:
             functional_capacity: int = max(
-                new_actor.get_inventory_used(), new_actor.inventory_capacity
+                new_actor.get_inventory_used(), new_actor.inventory_capacity.value
             )
             display_index: int = self.parent_collection.get_display_order(
                 self.icon_index
@@ -211,7 +211,7 @@ class item_icon(buttons.button):
                 )
                 if self.current_item:
                     if (
-                        new_actor.inventory_capacity >= display_index + 1
+                        new_actor.inventory_capacity.value >= display_index + 1
                         or new_actor.infinite_inventory_capacity
                     ):  # If item in capacity
                         image_id = [

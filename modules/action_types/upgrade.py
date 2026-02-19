@@ -74,10 +74,7 @@ class upgrade(action.action):
             self.current_building = unit.location.get_intact_building(
                 self.building_type.key
             )
-            if self.upgrade_type == constants.WAREHOUSE_LEVEL:
-                noun = "location"
-            else:
-                noun = self.current_building.name
+            noun = self.current_building.name
             value = self.current_building.upgrade_fields[self.upgrade_type]
             message.append(
                 f"Attempts to increase this {noun}'s {self.upgrade_dict['name']} from {value} to {value + 1} for {self.get_price()} money"
@@ -103,9 +100,7 @@ class upgrade(action.action):
         """
         text = super().generate_notification_text(subject)
 
-        if self.building_type == constants.WAREHOUSE_LEVEL:
-            noun = "location"
-        elif self.building_type in [
+        if self.building_type in [
             constants.RESOURCE_EFFICIENCY,
             constants.RESOURCE_SCALE,
         ]:

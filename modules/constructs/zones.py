@@ -1,7 +1,8 @@
 from __future__ import annotations
 from modules.constants import constants, status, flags
 from modules.constructs.actor_types import locations
-from modules.util import drawing_utility
+from modules.constructs import buildings
+from modules.util import drawing_utility, utility
 from typing import Tuple, List, Any, Dict
 
 
@@ -26,6 +27,7 @@ class zone:
         self.y: int = coordinates[1]
         self.parent_location: locations.location = parent_location
         self.actor_type: str = constants.ZONE_ACTOR_TYPE
+        self.zone_buildings: List[buildings.building] = []
 
     def get_image_id_list(self) -> List[Dict[str, Any]]:
         """
@@ -46,7 +48,9 @@ class zone:
                         (self.x, self.y),
                     )
                 }
-            ]
+            ] + utility.combine(
+                *[building.get_image_id_list() for building in self.zone_buildings]
+            )
         else:
             return [{"image_id": "misc/empty.png"}]
 
@@ -65,3 +69,11 @@ class zone:
         """
         tooltip_message = [f"Placeholder Zone Tooltip ({self.x}, {self.y})"]
         return tooltip_message
+
+    def add_building(self, building: buildings.building) -> None:
+        self.zone_buildings.append(building)
+        if not building.building_type.key in self.parent_location.contained_buildings:
+            self.parent_location.contained_buildings[building.building_type.key] = []
+        self.parent_location.contained_buildings[building.building_type.key].append(
+            building
+        )

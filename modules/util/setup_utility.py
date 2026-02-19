@@ -586,10 +586,10 @@ def actions() -> None:
     for building_type in status.building_types.values():
         if building_type.can_construct:
             construction.construction(building_type=building_type)
-        if building_type.can_damage:
-            repair.repair(building_type=building_type)
-        for upgrade_type in building_type.upgrade_fields.keys():
-            upgrade.upgrade(building_type=building_type, upgrade_type=upgrade_type)
+        # if building_type.can_damage:
+        #     repair.repair(building_type=building_type)
+        # for upgrade_type in building_type.upgrade_fields.keys():
+        #     upgrade.upgrade(building_type=building_type, upgrade_type=upgrade_type)
     public_relations_campaign.public_relations_campaign()
     advertising_campaign.advertising_campaign()
     combat.combat()
@@ -715,11 +715,11 @@ def building_types_config() -> None:
             "can_construct": True,
             "can_damage": True,
             "cost": 15,
-            "display_coordinates": (1, -1),
             "attached_settlement": True,
             "build_keybind": pygame.K_p,
         }
     )
+    """
     building_types.building_type(
         {
             "key": constants.TRAIN_STATION,
@@ -740,40 +740,40 @@ def building_types_config() -> None:
             "build_keybind": pygame.K_t,
         }
     )
-    # building_types.building_type(
-    #    {
-    #        "key": constants.RESOURCE,
-    #        "name": "resource production facility",
-    #        "warehouse_level": 1,
-    #        "can_construct": True,
-    #        "can_damage": True,
-    #        "cost": 10,
-    #        "description": [
-    #            "A resource production facility allows attaching work crews to attempt to produce resources each turn, and expands the location's warehouse capacity.",
-    #            "Upgrades can increase the maximum number of attached work crews and the number of production attempts each work crew can make.",
-    #        ],
-    #        "upgrade_fields": {
-    #            constants.RESOURCE_SCALE: {
-    #                "cost": constants.base_upgrade_price,
-    #                "max": 6,
-    #                "name": "scale",
-    #                "description": [
-    #                   "Each increase to scale allows another work crew to work here."
-    #                ]"
-    #            },
-    #            constants.RESOURCE_EFFICIENCY: {
-    #                "cost": constants.base_upgrade_price,
-    #                "max": 6,
-    #                "name": "efficiency",
-    #                "description": [
-    #                    "Each increase to efficiency allows each work crew to make an additional production attempt each turn."
-    #                ],
-    #            },
-    #        },
-    #        "attached_settlement": True,
-    #        "build_keybind": pygame.K_g,
-    #    }
-    # )
+    building_types.building_type(
+       {
+           "key": constants.RESOURCE,
+           "name": "resource production facility",
+           "warehouse_level": 1,
+           "can_construct": True,
+           "can_damage": True,
+           "cost": 10,
+           "description": [
+               "A resource production facility allows attaching work crews to attempt to produce resources each turn, and expands the location's warehouse capacity.",
+               "Upgrades can increase the maximum number of attached work crews and the number of production attempts each work crew can make.",
+           ],
+           "upgrade_fields": {
+               constants.RESOURCE_SCALE: {
+                   "cost": constants.base_upgrade_price,
+                   "max": 6,
+                   "name": "scale",
+                   "description": [
+                      "Each increase to scale allows another work crew to work here."
+                   ]"
+               },
+               constants.RESOURCE_EFFICIENCY: {
+                   "cost": constants.base_upgrade_price,
+                    "max": 6,
+                    "name": "efficiency",
+                    "description": [
+                       "Each increase to efficiency allows each work crew to make an additional production attempt each turn."
+                   ],
+               },
+           },
+           "attached_settlement": True,
+           "build_keybind": pygame.K_g,
+       }
+    )
     building_types.building_type(
         {
             "key": constants.FORT,
@@ -838,17 +838,17 @@ def building_types_config() -> None:
             "image_id": [],
         }
     )
-    # building_types.building_type(
-    #     {
-    #         "key": constants.INFRASTRUCTURE,
-    #         "name": "infrastructure",
-    #         "can_construct": True,
-    #         "can_damage": False,
-    #         "cost": 5, # 15 for railroad, 50 for ferry, 100 for road bridge, 300 for railroad bridge?
-    #         "build_keybind": pygame.K_r,
-    #     }
-    # )
-
+    building_types.building_type(
+        {
+            "key": constants.INFRASTRUCTURE,
+            "name": "infrastructure",
+            "can_construct": True,
+            "can_damage": False,
+            "cost": 5, # 15 for railroad, 50 for ferry, 100 for road bridge, 300 for railroad bridge?
+            "build_keybind": pygame.K_r,
+        }
+    )
+    """
     # Add attrition modifiers
     # add upgrade types
 
@@ -1020,7 +1020,7 @@ def unit_types_config() -> None:
                     constants.PORTERS_PERMISSION: True,
                 },
                 "can_recruit": False,
-                "inventory_capacity": 9,
+                "base_inventory_capacity": 9,
                 "number": 2,
             },
         )
@@ -1192,7 +1192,7 @@ def unit_types_config() -> None:
                 constants.CARAVAN_PERMISSION: True,
             },
             "can_recruit": False,
-            "inventory_capacity": 9,
+            "base_inventory_capacity": 9,
         },
     )
     unit_types.officer_type(
@@ -1272,7 +1272,7 @@ def unit_types_config() -> None:
                 constants.TRAVEL_PERMISSION: True,
                 constants.CONSTANT_MOVEMENT_COST_PERMISSION: True,
             },
-            "inventory_capacity": 81,
+            "base_inventory_capacity": 81,
             "can_recruit": True,
             "recruitment_verb": "purchase",
             "recruitment_cost": 500,
@@ -3474,14 +3474,14 @@ def settlement_interface() -> None:
         )
     )
     for current_actor_label_type in [
-        constants.SETTLEMENT,
-        constants.SPACEPORT,
-        constants.TRAIN_STATION,
-        constants.RESOURCE,
-        constants.BUILDING_EFFICIENCY_LABEL,
-        constants.BUILDING_WORK_CREWS_LABEL,
-        constants.CURRENT_BUILDING_WORK_CREW_LABEL,
-        constants.FORT,
+        # constants.SETTLEMENT,
+        # constants.SPACEPORT,
+        # constants.TRAIN_STATION,
+        # constants.RESOURCE,
+        # constants.BUILDING_EFFICIENCY_LABEL,
+        # constants.BUILDING_WORK_CREWS_LABEL,
+        # constants.CURRENT_BUILDING_WORK_CREW_LABEL,
+        # constants.FORT,
         # constants.INFRASTRUCTURE,
     ]:
         if current_actor_label_type in [

@@ -149,7 +149,7 @@ class vehicle(pmob):
             self.set_permission(
                 constants.INACTIVE_VEHICLE_PERMISSION, False, override=True
             )
-            self.set_inventory_capacity(self.unit_type.inventory_capacity)
+            self.set_inventory_capacity(self.unit_type.base_inventory_capacity)
         else:
             self.set_permission(
                 constants.ACTIVE_PERMISSION, False, override=True, update_image=False

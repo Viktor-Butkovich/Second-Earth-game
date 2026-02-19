@@ -63,13 +63,7 @@ def get_building_cost(builder: mobs.mob, building_type, building_name="n/a") -> 
         building_type = building_name.replace(
             " ", "_"
         )  # Road, railroad, road_bridge, or railroad_bridge
-    if building_type == constants.WAREHOUSES:
-        if builder:
-            base_price = builder.location.get_warehouses_cost()
-        else:
-            base_price = 5
-    else:
-        base_price = status.building_types[building_type].cost
+    base_price = status.building_types[building_type].cost
 
     if building_type in [constants.TRAIN]:
         cost_multiplier = 1

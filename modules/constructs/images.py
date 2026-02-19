@@ -366,70 +366,73 @@ class bundle_image:
         Output:
             None
         """
-        self.bundle = bundle
-        self.image = None
-        self.member_type = member_type
-        self.is_offset = is_offset
-        if not is_offset:
-            self.image_id = image_id
-            self.level = 0
-            self.detail_level = constants.BUNDLE_IMAGE_DETAIL_LEVEL
-        else:
-            self.image_id_dict = image_id
-            self.image_id = image_id["image_id"]
-            self.x_size = image_id.get(
-                "x_size", image_id.get("size", 1)
-            )  # uses inputted x_size if present, otherwise inputted size, otherwise 1
-            self.y_size = image_id.get(
-                "y_size", image_id.get("size", 1)
-            )  # uses inputted y_size if present, otherwise inputted size, otherwise 1
-            self.x_offset = image_id.get("x_offset", 0)
-            self.y_offset = image_id.get("y_offset", 0)
-            self.level = image_id.get("level", 0)
-            self.alpha = image_id.get("alpha", 255)
-            self.detail_level = image_id.get(
-                "detail_level", constants.BUNDLE_IMAGE_DETAIL_LEVEL
-            )
-            self.override_green_screen_colors = image_id.get(
-                "override_green_screen_colors", []
-            )
-            if image_id.get("override_width", None):
-                self.override_width = image_id["override_width"]
-            if image_id.get("override_height", None):
-                self.override_height = image_id["override_height"]
-            if "green_screen" in image_id:
-                self.has_green_screen = True
-                self.green_screen_colors = []
-                if type(image_id["green_screen"]) == list:
-                    for index in range(0, len(image_id["green_screen"])):
-                        self.green_screen_colors.append(image_id["green_screen"][index])
-                elif type(image_id["green_screen"]) == dict:
-                    self.green_screen_colors = image_id["green_screen"]
+        try:
+            self.bundle = bundle
+            self.image = None
+            self.member_type = member_type
+            self.is_offset = is_offset
+            if not is_offset:
+                self.image_id = image_id
+                self.level = 0
+                self.detail_level = constants.BUNDLE_IMAGE_DETAIL_LEVEL
+            else:
+                self.image_id_dict = image_id
+                self.image_id = image_id["image_id"]
+                self.x_size = image_id.get(
+                    "x_size", image_id.get("size", 1)
+                )  # uses inputted x_size if present, otherwise inputted size, otherwise 1
+                self.y_size = image_id.get(
+                    "y_size", image_id.get("size", 1)
+                )  # uses inputted y_size if present, otherwise inputted size, otherwise 1
+                self.x_offset = image_id.get("x_offset", 0)
+                self.y_offset = image_id.get("y_offset", 0)
+                self.level = image_id.get("level", 0)
+                self.alpha = image_id.get("alpha", 255)
+                self.detail_level = image_id.get(
+                    "detail_level", constants.BUNDLE_IMAGE_DETAIL_LEVEL
+                )
+                self.override_green_screen_colors = image_id.get(
+                    "override_green_screen_colors", []
+                )
+                if image_id.get("override_width", None):
+                    self.override_width = image_id["override_width"]
+                if image_id.get("override_height", None):
+                    self.override_height = image_id["override_height"]
+                if "green_screen" in image_id:
+                    self.has_green_screen = True
+                    self.green_screen_colors = []
+                    if type(image_id["green_screen"]) == list:
+                        for index in range(0, len(image_id["green_screen"])):
+                            self.green_screen_colors.append(image_id["green_screen"][index])
+                    elif type(image_id["green_screen"]) == dict:
+                        self.green_screen_colors = image_id["green_screen"]
+                    else:
+                        self.green_screen_colors.append(image_id["green_screen"])
                 else:
-                    self.green_screen_colors.append(image_id["green_screen"])
+                    self.has_green_screen = False
+                if "color_filter" in image_id:
+                    self.has_color_filter = True
+                    self.color_filter = image_id["color_filter"]
+                else:
+                    self.has_color_filter = False
+                self.pixellated = image_id.get("pixellated", False)
+                self.light_pixellated = image_id.get("light_pixellated", False)
+                if "font" in image_id:
+                    self.font = image_id["font"]
+                elif type(self.image_id) == str and not self.image_id.endswith(".png"):
+                    self.font = constants.myfont
+                if "free" in image_id:
+                    self.free = image_id["free"]
+            self.scale()
+            if (
+                type(self.image_id) == pygame.Surface
+            ):  # if given pygame Surface, avoid having to render it again
+                self.image = self.image_id
             else:
-                self.has_green_screen = False
-            if "color_filter" in image_id:
-                self.has_color_filter = True
-                self.color_filter = image_id["color_filter"]
-            else:
-                self.has_color_filter = False
-            self.pixellated = image_id.get("pixellated", False)
-            self.light_pixellated = image_id.get("light_pixellated", False)
-            if "font" in image_id:
-                self.font = image_id["font"]
-            elif type(self.image_id) == str and not self.image_id.endswith(".png"):
-                self.font = constants.myfont
-            if "free" in image_id:
-                self.free = image_id["free"]
-        self.scale()
-        if (
-            type(self.image_id) == pygame.Surface
-        ):  # if given pygame Surface, avoid having to render it again
-            self.image = self.image_id
-        else:
-            self.load()
-        self.image = pygame.transform.scale(self.image, (self.width, self.height))
+                self.load()
+            self.image = pygame.transform.scale(self.image, (self.width, self.height))
+        except Exception as e:
+            raise Exception(f"Error initializing bundle image with image ID {image_id}: {e}")
 
     def get_blit_x_offset(self) -> float:
         """

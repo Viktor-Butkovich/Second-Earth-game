@@ -719,7 +719,7 @@ class actor_display_label(labels.label):
                         f"This unit is currently holding {self.actor.get_inventory_used()} items"
                     )
                     tooltip_text.append(
-                        f"This unit can hold a maximum of {self.actor.inventory_capacity} items"
+                        f"This unit can hold a maximum of {self.actor.inventory_capacity.value} items"
                     )
             elif self.actor_label_type == constants.LOCATION_INVENTORY_CAPACITY_LABEL:
                 if self.actor:
@@ -1303,12 +1303,12 @@ class actor_display_label(labels.label):
                 if self.actor.infinite_inventory_capacity:
                     text = self.message_start + "unlimited"
                 else:
-                    text = f"{self.message_start}{inventory_used}/{self.actor.inventory_capacity}"
+                    text = f"{self.message_start}{inventory_used}/{self.actor.inventory_capacity.value}"
                 inventory_grid = getattr(status, f"{self.actor_type}_inventory_grid")
                 if inventory_grid.inventory_page > 0:
                     minimum = (inventory_grid.inventory_page * 27) + 1
                     functional_capacity = max(
-                        inventory_used, self.actor.inventory_capacity
+                        inventory_used, self.actor.inventory_capacity.value
                     )
                     maximum = min(minimum + 26, functional_capacity)
                     if maximum >= minimum:

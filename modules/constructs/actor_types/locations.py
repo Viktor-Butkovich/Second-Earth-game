@@ -18,6 +18,8 @@ from modules.constructs import (
     hosted_icons,
     terrain_types,
     zones,
+    buildings,
+    managed_attributes,
 )
 from modules.interface_components import cells
 from modules.constants import constants, status, flags
@@ -55,6 +57,15 @@ class location(actors.actor):
         }
         self.x: int = input_dict["coordinates"][0]
         self.y: int = input_dict["coordinates"][1]
+
+        self.warehouse_level: managed_attributes.managed_attribute = (
+            managed_attributes.managed_attribute(0)
+        )
+        self.warehouse_level.add_downstream_dependency(
+            self.inventory_capacity, lambda x: x * 9
+        )
+        self.warehouse_level.set_modifier(self, input_dict.get("warehouses_built", 0))
+
         self.zone_list: List[List[zones.zone]] = None
         if not self.world_handler.is_abstract_world:
             self.name = f"({self.x}, {self.y})"
@@ -106,7 +117,7 @@ class location(actors.actor):
         self.subscribed_mobs: List[actors.actor] = (
             []
         )  # List of top-level contained mobs
-        self.contained_buildings: Dict[str, Any] = {}
+        self.contained_buildings: Dict[str, List[buildings.building]] = {}
         self.settlement: settlements.settlement = None
         if from_save:
             for current_mob_dict in input_dict.get("subscribed_mobs", []):
@@ -117,12 +128,13 @@ class location(actors.actor):
                         "location": self,
                     },
                 )
-            for current_building_dict in input_dict.get("contained_buildings", []):
+            for current_building_dict in input_dict.get("flat_contained_buildings", []):
+                x, y = current_building_dict["zone_coordinates"]
                 constants.ActorCreationManager.create(
                     from_save=True,
                     input_dict={
                         **current_building_dict,
-                        "location": self,
+                        "zone": self.zone_list[x][y],
                     },
                 )
             if input_dict.get("settlement", None):
@@ -153,8 +165,6 @@ class location(actors.actor):
         contained_mobs = []
         for current_mob in self.subscribed_mobs:
             contained_mobs += current_mob.contained_mobs
-        if self.get_building(constants.RESOURCE):
-            contained_mobs += self.get_building(constants.RESOURCE).contained_mobs
         return contained_mobs
 
     @property
@@ -186,7 +196,7 @@ class location(actors.actor):
         """
         return (
             not self.infinite_inventory_capacity
-        ) and self.get_inventory_used() > self.inventory_capacity
+        ) and self.get_inventory_used() > self.inventory_capacity.value
 
     def focus_location(self) -> None:
         """
@@ -378,7 +388,8 @@ class location(actors.actor):
         if building_type in [constants.ROAD, constants.RAILROAD]:
             return self.has_building(constants.INFRASTRUCTURE)
         else:
-            return bool(self.contained_buildings.get(building_type, None))
+            return bool(self.contained_buildings[building_type])
+            # Returns whether then building type list for that building type is non-empty
 
     def has_intact_building(self, building_type: str) -> bool:
         """
@@ -392,8 +403,10 @@ class location(actors.actor):
         if building_type in [constants.ROAD, constants.RAILROAD]:
             return self.has_intact_building(constants.INFRASTRUCTURE)
         else:
-            present_building = self.get_building(building_type)
-            return present_building and not present_building.damaged
+            return any(
+                not building.damaged
+                for building in self.contained_buildings[building_type]
+            )
 
     def add_building(self, building: Any) -> None:
         """
@@ -404,7 +417,7 @@ class location(actors.actor):
         Output:
             None
         """
-        self.contained_buildings[building.building_type.key] = building
+        self.contained_buildings[building.building_type.key].append(building)
 
         constants.EventBus.subscribe(
             self.update_image_bundle,
@@ -425,7 +438,7 @@ class location(actors.actor):
             None
         """
         if self.get_building(building.building_type.key) == building:
-            del self.contained_buildings[building.building_type.key]
+            self.contained_buildings[building.building_type.key].remove(building)
             self.publish_events(constants.LOCATION_REMOVE_BUILDING_ROUTE)
             constants.EventBus.unsubscribe(
                 self.update_image_bundle,
@@ -442,6 +455,9 @@ class location(actors.actor):
         Output:
             building/string: Returns whether this location's building of the inputted type, or None if that building is not present
         """
+        raise Exception(
+            "Deprecated method - refer to zones for building presence instead"
+        )
         if building_type in [constants.ROAD, constants.RAILROAD]:
             return self.get_building(constants.INFRASTRUCTURE)
         else:
@@ -456,6 +472,9 @@ class location(actors.actor):
         Output:
             building/string: Returns this location's undamaged building of the inputted type, or None if that building is damaged or not present
         """
+        raise Exception(
+            "Deprecated method - refer to zones for building presence instead"
+        )
         if building_type in [constants.ROAD, constants.RAILROAD]:
             return self.get_intact_building(constants.INFRASTRUCTURE)
         elif self.has_intact_building(building_type):
@@ -472,11 +491,7 @@ class location(actors.actor):
         Output:
             building list: Buildings contained in this location
         """
-        return [
-            contained_building
-            for contained_building in self.contained_buildings.values()
-            if contained_building
-        ]
+        return utility.combine(*self.contained_buildings.values())
 
     def get_intact_buildings(self) -> List[Any]:
         """
@@ -487,6 +502,9 @@ class location(actors.actor):
         Output:
             building list contained_buildings_list: nondamaged buildings contained in this location
         """
+        raise Exception(
+            "Deprecated method - refer to zones for building presence instead"
+        )
         return [
             contained_building
             for contained_building in self.contained_buildings
@@ -502,6 +520,9 @@ class location(actors.actor):
         Output:
             boolean: Returns if this location has any buildings that can be damaged by enemies
         """
+        raise Exception(
+            "Deprecated method - refer to zones for building presence instead"
+        )
         return any(
             [
                 status.building_types[contained_building.key].can_damage
@@ -512,31 +533,16 @@ class location(actors.actor):
     def get_warehouses_cost(self):
         """
         Description:
-            Calculates and returns the cost of the next warehouses upgrade in this location, based on the number of past warehouses upgrades
+            Calculates and returns the cost of the next warehouses upgrade in this location, based on the number of past
+                warehouses upgrades
+            Uses warehouse level attributed to direct upgrades to the location, excluding any originating from buildings
         Input:
             None
         Output:
             int: Returns the cost of the next warehouses upgrade in this location, based on the number of past warehouse upgrades
         """
-        warehouses = self.get_building(constants.WAREHOUSES)
-        if warehouses:
-            warehouses_built = warehouses.upgrade_fields[constants.WAREHOUSE_LEVEL]
-        else:
-            warehouses_built = 0
-        warehouses_built -= len(
-            [
-                building
-                for building in self.get_buildings()
-                if building.building_type.warehouse_level > 0
-            ]
-        )
-        # Don't include warehouses included with other buildings in the new warehouse cost
-
-        return self.get_building(constants.WAREHOUSES).building_type.upgrade_fields[
-            constants.WAREHOUSE_LEVEL
-        ]["cost"] * (
-            2**warehouses_built
-        )  # 5 * 2^0 = 5 if none built, 5 * 2^1 = 10 if 1 built, 20, 40...
+        return 5 * (2 ** self.warehouse_level.get_modifier_of_source(self))
+        # 5 * 2^0 = 5 if none built, 5 * 2^1 = 10 if 1 built, 20, 40...
 
     def find_adjacent_locations(self):
         """
@@ -934,6 +940,7 @@ class location(actors.actor):
                 'terrain_parameters': string/int dictionary value - Dictionary containing 1-6 parameters for this location, like 'temperature': 1
                 'resource': string value - Item type key of natural resource in this location, like "Gold" or None
                 'local_weather_offset': float value - Temperature offset of this location from expected for the latitude
+                'warehouses_built': int value - Level of warehouses in this location
         """
         return {
             **super().to_save_dict(),
@@ -952,10 +959,13 @@ class location(actors.actor):
                 for current_mob in reversed(self.subscribed_mobs)
             ],
             "settlement": self.settlement.to_save_dict() if self.settlement else None,
-            "contained_buildings": [
+            "flat_contained_buildings": [
                 building.to_save_dict()
-                for building in self.contained_buildings.values()
+                for building_list in self.contained_buildings.values()
+                for building in building_list
             ],
+            "zones": [zone.to_save_dict() for zone in self.zones],
+            "warehouses_built": self.warehouse_level.get_modifier_of_source(self),
         }
 
     def get_parameter(self, parameter_name: str) -> int:
@@ -1387,11 +1397,6 @@ class location(actors.actor):
                     #        image_id_list.append(resource_icon)
                     #    else:
                     #        image_id_list += resource_icon
-                    image_id_list += [
-                        image_id
-                        for current_building in self.get_buildings()
-                        for image_id in current_building.get_image_id_list()
-                    ]  # Add each of each building's images to the image ID list
 
             if constants.current_map_mode != "terrain" and allow_mapmodes:
                 map_mode_image = "misc/map_modes/none.png"
@@ -1728,14 +1733,14 @@ class location(actors.actor):
         held_items: List[item_types.item_type] = self.get_held_items()
         if (
             held_items
-            or self.inventory_capacity > 0
+            or self.inventory_capacity.value > 0
             or self.infinite_inventory_capacity
         ):
             if self.infinite_inventory_capacity:
                 tooltip_message.append(f"Inventory: {self.get_inventory_used()}")
             else:
                 tooltip_message.append(
-                    f"Inventory: {self.get_inventory_used()}/{self.inventory_capacity}"
+                    f"Inventory: {self.get_inventory_used()}/{self.inventory_capacity.value}"
                 )
             if not held_items:
                 tooltip_message.append("    None")
@@ -1896,7 +1901,7 @@ class location(actors.actor):
         """
         lost_items: Dict[str, float] = {}
         if not self.infinite_inventory_capacity:
-            amount_to_remove = self.get_inventory_used() - self.inventory_capacity
+            amount_to_remove = self.get_inventory_used() - self.inventory_capacity.value
             if amount_to_remove > 0:
                 for current_item_type in self.get_held_items():
                     decimal_amount = round(

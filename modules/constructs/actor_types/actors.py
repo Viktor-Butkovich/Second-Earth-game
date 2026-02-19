@@ -8,7 +8,7 @@ from modules.util import (
     market_utility,
     minister_utility,
 )
-from modules.constructs import item_types
+from modules.constructs import item_types, managed_attributes
 from modules.constants import constants, status, flags
 from typing import Dict, List, Tuple
 
@@ -34,7 +34,9 @@ class actor:
         """
         self.uuid: str = constants.UuidManager.assign_uuid()
         self.from_save = from_save
-        self.inventory_capacity = 0
+        self.inventory_capacity: managed_attributes.managed_attribute = (
+            managed_attributes.managed_attribute(0)
+        )
         self.inventory: Dict[str, float] = input_dict.get("inventory", {})
         self.image_dict: Dict[str, List[str]] = {
             constants.IMAGE_ID_LIST_DEFAULT: input_dict.get(
@@ -142,7 +144,7 @@ class actor:
             return 100
         else:
             return (
-                self.inventory_capacity
+                self.inventory_capacity.value
                 - self.get_inventory_used()
                 - possible_amount_added
             )
@@ -183,7 +185,7 @@ class actor:
         Output:
             int: Functional inventory capacity of this actor
         """
-        return max(self.inventory_capacity, self.get_inventory_used())
+        return max(self.inventory_capacity.value, self.get_inventory_used())
 
     def check_inventory(self, index: int) -> item_types.item_type:
         """
@@ -506,7 +508,7 @@ class actor:
         Output:
             None
         """
-        self.inventory_capacity = new_value
+        self.inventory_capacity.set_base_value(new_value)
         if new_value != 0:
             if (
                 hasattr(status, f"displayed_{self.actor_type}")

@@ -1069,9 +1069,9 @@ class mob(actor):
 
         if self.get_permission(constants.PMOB_PERMISSION):
             held_items: List[item_types.item_type] = self.get_held_items()
-            if held_items or self.inventory_capacity > 0:
+            if held_items or self.inventory_capacity.value > 0:
                 tooltip_list.append(
-                    f"Inventory: {self.get_inventory_used()}/{self.inventory_capacity}"
+                    f"Inventory: {self.get_inventory_used()}/{self.inventory_capacity.value}"
                 )
                 for item_type in held_items:
                     tooltip_list.append(

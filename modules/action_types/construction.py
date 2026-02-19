@@ -9,7 +9,7 @@ from modules.util import (
     actor_utility,
     text_utility,
 )
-from modules.constructs import building_types, item_types
+from modules.constructs import building_types, item_types, zones
 from modules.constructs.actor_types.mob_types import pmobs
 from modules.constants import constants, status, flags
 
@@ -44,6 +44,7 @@ class construction(action.action):
             self.building_name = "resource production facility"
         self.name = "construction"
         self.allow_critical_failures = False
+        self.target_zone: zones.zone = None
 
     def button_setup(self, initial_input_dict):
         """
@@ -185,10 +186,6 @@ class construction(action.action):
             boolean: Returns whether a button linked to this action should be drawn
         """
         can_show = super().can_show()
-        if can_show and not self.building_type.key in [constants.TRAIN]:
-            can_show = (self.building_type.key == constants.INFRASTRUCTURE) or (
-                not status.displayed_mob.location.has_building(self.building_type.key)
-            )
         if can_show:
             self.update_info()
         return can_show
@@ -285,7 +282,8 @@ class construction(action.action):
             None
         """
         if super().on_click(unit) and self.can_build(unit):
-            status.displayed_location.focus_location()
+            if constants.current_game_mode != constants.LOCATION_MODE:
+                status.displayed_location.focus_location()
             constants.SelectorManager.start(
                 constants.CONSTRUCTION_SELECTOR,
                 config={
@@ -293,7 +291,7 @@ class construction(action.action):
                 },
             )
 
-    def start(self, unit):
+    def start(self, unit: pmobs.pmob, target_zone: zones.zone) -> None:
         """
         Description:
             Used when the player clicks on the start action button, displays a choice notification that allows the player to start or not
@@ -303,6 +301,10 @@ class construction(action.action):
             None
         """
         if super().start(unit):
+            self.target_zone = target_zone
+            actor_utility.calibrate_actor_info_display(
+                status.zone_info_display, self.target_zone
+            )
             constants.NotificationManager.display_notification(
                 {
                     "message": action_utility.generate_risk_message(self, unit)
@@ -330,6 +332,16 @@ class construction(action.action):
         Output:
             None
         """
+        if self.roll_result >= self.current_min_success:
+            constants.ActorCreationManager.create(
+                from_save=False,
+                input_dict={
+                    "init_type": self.building_type.key,
+                    "zone": self.target_zone,
+                    "name": self.building_name,
+                },
+            )
+        return
         if self.roll_result >= self.current_min_success:
             input_dict = {
                 "init_type": self.building_type.key,
@@ -379,20 +391,6 @@ class construction(action.action):
             else:
                 input_dict["image_id"] = f"buildings/{self.building_type.key}.png"
             new_building = constants.ActorCreationManager.create(False, input_dict)
-
-            if self.building_type.warehouse_level > 0:
-                warehouses = self.current_unit.location.get_building(
-                    constants.WAREHOUSES
-                )  # Create warehouses here
-                if warehouses:
-                    if warehouses.damaged:
-                        warehouses.set_damaged(False)
-                    warehouses.upgrade()
-                else:
-                    input_dict["image_id"] = "misc/empty.png"
-                    input_dict["name"] = "warehouses"
-                    input_dict["init_type"] = constants.WAREHOUSES
-                    constants.ActorCreationManager.create(False, input_dict)
 
             actor_utility.calibrate_actor_info_display(
                 status.location_info_display, self.current_unit.location

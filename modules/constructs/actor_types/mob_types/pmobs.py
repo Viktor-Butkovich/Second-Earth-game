@@ -486,7 +486,8 @@ class pmob(mob):
             if (
                 self.wait_until_full
                 and (
-                    current_location.get_inventory_used() >= self.inventory_capacity
+                    current_location.get_inventory_used()
+                    >= self.inventory_capacity.value
                     or current_location.insufficient_inventory_capacity
                 )
             ) or (
@@ -843,13 +844,13 @@ class pmob(mob):
         self.set_permission(constants.IN_VEHICLE_PERMISSION, False)
         if (
             self.get_permission(constants.CARAVAN_PERMISSION)
-            and self.inventory_capacity > 0
+            and self.inventory_capacity.value > 0
         ):
             consumer_goods_present = vehicle.get_inventory("consumer goods")
             if consumer_goods_present > 0:
                 consumer_goods_transferred = consumer_goods_present
-                if consumer_goods_transferred > self.inventory_capacity:
-                    consumer_goods_transferred = self.inventory_capacity
+                if consumer_goods_transferred > self.inventory_capacity.value:
+                    consumer_goods_transferred = self.inventory_capacity.value
                 vehicle.change_inventory(
                     "consumer goods", -1 * consumer_goods_transferred
                 )

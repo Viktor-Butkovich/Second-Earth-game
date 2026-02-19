@@ -2131,18 +2131,17 @@ class tab_button(button):
         if self.identifier == constants.SETTLEMENT_PANEL:
             return bool(
                 status.displayed_location.settlement
-                or status.displayed_location.has_building(constants.INFRASTRUCTURE)
             )
         elif self.identifier == constants.INVENTORY_PANEL:
             if self.linked_element == status.location_inventory_collection:
                 return (
                     status.displayed_location.inventory
-                    or status.displayed_location.inventory_capacity > 0
+                    or status.displayed_location.inventory_capacity.value > 0
                     or status.displayed_location.infinite_inventory_capacity
                     or not status.displayed_location.supply_chain_plan.trivial
                 )
             else:
-                return status.displayed_mob.inventory_capacity > 0
+                return status.displayed_mob.inventory_capacity.value > 0
         elif self.identifier == constants.REORGANIZATION_PANEL:
             return status.displayed_mob.get_permission(constants.PMOB_PERMISSION)
         elif self.identifier == constants.LOCAL_CONDITIONS_PANEL:
