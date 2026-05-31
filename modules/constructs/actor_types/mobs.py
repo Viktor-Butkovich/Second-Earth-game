@@ -836,22 +836,6 @@ class mob(actor):
 
         if adjacent_location:
             cost = adjacent_location.terrain_type.movement_cost
-            if self.get_permission(constants.PMOB_PERMISSION):
-                local_infrastructure = self.location.get_intact_building(
-                    constants.INFRASTRUCTURE
-                )
-                adjacent_infrastructure = self.location.get_intact_building(
-                    constants.INFRASTRUCTURE
-                )
-                if local_infrastructure and adjacent_infrastructure:
-                    # If both have infrastructure and connected by land or bridge, use discount
-                    cost = cost / 2
-                # Otherwise, use default cost but not full cost (no canoe penantly)
-                if (
-                    adjacent_infrastructure
-                    and adjacent_infrastructure.infrastructure_type == constants.FERRY
-                ):
-                    cost = 2
         return cost
 
     def change_movement_points(self, change) -> None:
@@ -1027,12 +1011,12 @@ class mob(actor):
             f"Unit type: {self.name[:1].capitalize()}{self.name[1:]}"
         )  # Capitalizes first letter while keeping rest the same
         if self.get_permission(constants.OFFICER_PERMISSION):
-            tooltip_list.append(f"Name: {self.character_info["name"]}")
+            tooltip_list.append(f"Name: {self.character_info['name']}")
         if self.get_permission(constants.PMOB_PERMISSION):
             if self.get_permission(constants.GROUP_PERMISSION):
                 tooltip_list.append(f"    Officer: {self.officer.name.capitalize()}")
                 tooltip_list.append(
-                    f"        Name: {self.officer.character_info["name"]}"
+                    f"        Name: {self.officer.character_info['name']}"
                 )
                 tooltip_list.append(f"    Workers: {self.worker.name.capitalize()}")
             elif self.get_permission(constants.VEHICLE_PERMISSION):

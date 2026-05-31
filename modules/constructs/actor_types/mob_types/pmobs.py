@@ -150,9 +150,6 @@ class pmob(mob):
         self.location.subscribe_mob(self)
         self.vehicle = None
         self.set_permission(constants.IN_VEHICLE_PERMISSION, False)
-        if not self.location.get_intact_building(constants.SPACEPORT):
-            if constants.ALLOW_DISORGANIZED:
-                self.set_permission(constants.DISORGANIZED_PERMISSION, True)
         vehicle.set_crew(None)
         vehicle.end_turn_destination = None
         vehicle.set_permission(

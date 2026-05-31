@@ -452,11 +452,16 @@ except Exception:  # Displays error message and records error message in crash l
 # If re-factored, an observer pattern with publish and subscribe events could be useful for syncing data, particularly button presses (click the buttons subscribed to this key)
 
 # Upcoming work queue:
+# There is an ongoing issue where the combined image ID's of a location don't have the desired resolution
+#   This is likely because the existing image surface is being re-used and scaled up rather than re-rendered at the original resolution
+#   This is why having very low pixel size causes low resolution of adjacent buildings, but raising it doesn't let it exceed the terrain resolution
+#   Debugging in drawing_utility.compose_surface()
 # Look into overlaying building icons and other zone images on the location image
 #   Perhaps make a function that assembles a surface out of each of the zone non-terrain images, then overlay these over the
 #   location's image ID
 #   Avoid the location needing to track a complex series of image IDs for each individual zone, and avoid complicating the
 #   rendering of locations that have few or no buildings.
+# Make sure building icons don't show up on zoomed in image - the one a subsurface is extracted from on zoom-in should be full detail with no building icons blitted on
 # Modify maximum movement points to use the managed attribute system.
 # Reconnect zone buildings to settlement system and location labels
 # Update location focus map-mode when zone buildings are modified

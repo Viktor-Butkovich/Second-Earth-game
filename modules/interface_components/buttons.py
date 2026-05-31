@@ -1955,7 +1955,7 @@ class scroll_button(button):
         Provides the tooltip for this object
         """
         return [
-            f"Click to navigate to the {"next" if self.increment > 0 else "previous"} page of the grid",
+            f"Click to navigate to the {'next' if self.increment > 0 else 'previous'} page of the grid",
         ]
 
 
@@ -2129,9 +2129,7 @@ class tab_button(button):
             boolean: Returns whether this tab is enabled
         """
         if self.identifier == constants.SETTLEMENT_PANEL:
-            return bool(
-                status.displayed_location.settlement
-            )
+            return bool(status.displayed_location.settlement)
         elif self.identifier == constants.INVENTORY_PANEL:
             if self.linked_element == status.location_inventory_collection:
                 return (

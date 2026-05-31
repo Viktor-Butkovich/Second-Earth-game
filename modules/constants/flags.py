@@ -14,7 +14,6 @@ player_turn: bool = True
 enemy_combat_phase: bool = False
 prosecution_bribed_judge: bool = False
 loading: bool = True
-finished_loading: bool = False
 show_selection_outlines: bool = False
 show_minimap_outlines: bool = True
 startup_complete: bool = False

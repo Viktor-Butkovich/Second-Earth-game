@@ -341,64 +341,8 @@ class construction(action.action):
                     "name": self.building_name,
                 },
             )
-        return
-        if self.roll_result >= self.current_min_success:
-            input_dict = {
-                "init_type": self.building_type.key,
-                "location": self.current_unit.location,
-                "name": self.building_name,
-            }
-
-            if not self.building_type.key in [constants.TRAIN]:
-                if self.current_unit.location.has_building(
-                    self.building_type.key
-                ):  # if building of same type exists, remove it and replace with new one
-                    self.current_unit.location.get_building(
-                        self.building_type.key
-                    ).remove()
-            if self.building_type.key == constants.RESOURCE:
-                input_dict["image_id"] = "buildings/resource_building.png"
-                input_dict["resource_type"] = self.attached_resource
-            elif self.building_type.key == constants.INFRASTRUCTURE:
-                building_image_id = None
-                if self.building_name == "road":
-                    building_image_id = "buildings/infrastructure/road.png"
-                elif self.building_name == "railroad":
-                    building_image_id = "buildings/infrastructure/railroad.png"
-                else:  # bridge image handled in infrastructure initialization to use correct horizontal/vertical version
-                    building_image_id = "buildings/infrastructure/road.png"
-                input_dict["image_id"] = building_image_id
-                input_dict["infrastructure_type"] = self.building_name.replace(" ", "_")
-            elif self.building_type.key == constants.TRAIN:
-                input_dict["image_dict"] = {
-                    constants.IMAGE_ID_LIST_DEFAULT: [
-                        {
-                            "image_id": "mobs/train/default.png",
-                        }
-                    ],
-                    constants.IMAGE_ID_LIST_VEHICLE_UNCREWED: [
-                        {
-                            "image_id": "mobs/train/uncrewed.png",
-                        }
-                    ],
-                    constants.IMAGE_ID_LIST_VEHICLE_MOVING: [
-                        {
-                            "image_id": "mobs/train/default.png",
-                        }
-                    ],
-                }
-                input_dict["crew"] = None
-            else:
-                input_dict["image_id"] = f"buildings/{self.building_type.key}.png"
-            new_building = constants.ActorCreationManager.create(False, input_dict)
-
+            status.location_mode_focus.focus_location(force_refresh=True)
             actor_utility.calibrate_actor_info_display(
-                status.location_info_display, self.current_unit.location
-            )  # Update location display to show new building
-            if self.building_type.key in [constants.TRAIN]:
-                new_building.select()
-            else:
-                actor_utility.calibrate_actor_info_display(
-                    status.mob_info_display, self.current_unit
-                )  # Update mob display to show new upgrade possibilities
+                status.zone_info_display, self.target_zone
+            )
         super().complete()

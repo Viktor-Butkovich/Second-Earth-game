@@ -127,7 +127,9 @@ class selector_manager:
                     and target_cell.source.actor_type == constants.ZONE_ACTOR_TYPE
                 ):
                     self.stop()
-                    construction_action.start(construction_action.current_unit, target_cell.source)
+                    construction_action.start(
+                        construction_action.current_unit, target_cell.source
+                    )
                 else:
                     text_utility.print_to_screen(
                         f"Click on a zone to start building {construction_action.building_type.name}, or right click to cancel."
@@ -151,14 +153,7 @@ def select_destination(target_cell: cells.cell) -> bool:
         bool: True if the destination was successfully set, otherwise False
     """
     # If clicking to move somewhere
-    target_location = None
-    if target_cell.source.is_abstract_location:
-        target_location = target_cell.source
-    else:
-        target_location = target_cell.source.world_handler.find_location(
-            status.minimap_grid.center_x,
-            status.minimap_grid.center_y,
-        )
+    target_location = target_cell.source
     if target_cell.grid.world_handler != status.displayed_mob.location.world_handler:
         actor_utility.click_move_minimap(target_cell, select_unit=False)
         status.displayed_mob.end_turn_destination = target_location

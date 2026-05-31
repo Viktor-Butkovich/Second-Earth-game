@@ -1,4 +1,4 @@
-# Contains functions that control the display of images
+# Contains functions that manage the display of images
 
 from __future__ import annotations
 import pygame
@@ -87,6 +87,35 @@ def get_subsurface(
             pixel_height,
         )
     )
+
+
+def compose_surface(
+    grid_size: int, pixel_size: Tuple[int, int], *args
+) -> pygame.Surface:
+
+    # Create the blank output surface
+    out_surface = pygame.Surface(
+        pixel_size, pygame.HWSURFACE | pygame.DOUBLEBUF | pygame.SRCALPHA
+    )
+    out_surface.fill((0, 0, 0, 0))  # Fill with transparent color
+
+    cell_width = pixel_size[0] // grid_size
+    cell_height = pixel_size[1] // grid_size
+
+    idx = 0
+    for item in args:
+        surf = pygame.transform.scale(item["surface"], ((cell_width, cell_height)))
+        pygame.image.save(surf, f"debug_surface_{idx}.png")
+        idx += 1
+        x, y = item["coords"]
+
+        draw_x = x * cell_width
+        draw_y = (grid_size - 1 - y) * cell_height
+
+        # Blit the small surface into the correct cell
+        out_surface.blit(surf, (draw_x, draw_y))
+    pygame.image.save(out_surface, "debug_composed_surface.png")
+    return out_surface
 
 
 def image_id_to_surface(image_id: List[Dict[str, Any]]) -> pygame.Surface:

@@ -1,4 +1,5 @@
 from __future__ import annotations
+import pygame
 from modules.constants import constants, status, flags
 from modules.constructs.actor_types import locations
 from modules.constructs import buildings
@@ -40,7 +41,7 @@ class zone:
             Image ID list: List of image IDs for this zone (just a single pre-rendered surface for zones)
         """
         if self.parent_location == status.location_mode_focus:
-            return [
+            image_id_list = [
                 {
                     "image_id": drawing_utility.get_subsurface(
                         status.focused_location_surface,
@@ -48,11 +49,22 @@ class zone:
                         (self.x, self.y),
                     )
                 }
-            ] + utility.combine(
-                *[building.get_image_id_list() for building in self.zone_buildings]
-            )
+            ]
+            if self.has_zone_surface():
+                image_id_list.append({"image_id": self.get_zone_surface()})
+            return image_id_list
         else:
             return [{"image_id": "misc/empty.png"}]
+
+    def has_zone_surface(self) -> bool:
+        return bool(self.zone_buildings)
+
+    def get_zone_surface(self) -> pygame.Surface:
+        return drawing_utility.image_id_to_surface(
+            utility.combine(
+                *[building.get_image_id_list() for building in self.zone_buildings]
+            )
+        )
 
     @property
     def batch_tooltip_list(self) -> List[List[str]]:
@@ -72,8 +84,15 @@ class zone:
 
     def add_building(self, building: buildings.building) -> None:
         self.zone_buildings.append(building)
+        self.parent_location.zones_with_surfaces.add(self)
         if not building.building_type.key in self.parent_location.contained_buildings:
             self.parent_location.contained_buildings[building.building_type.key] = []
         self.parent_location.contained_buildings[building.building_type.key].append(
             building
         )
+        constants.EventBus.subscribe(
+            self.parent_location.update_image_bundle,
+            building.uuid,
+            constants.BUILDING_SET_DAMAGED_ROUTE,
+        )  # Update location image bundle when building's damaged status changes
+        self.parent_location.publish_events(constants.LOCATION_ADD_BUILDING_ROUTE)

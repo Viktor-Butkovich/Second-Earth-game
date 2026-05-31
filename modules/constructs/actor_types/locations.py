@@ -8,6 +8,7 @@ from modules.util import (
     utility,
     game_transitions,
     drawing_utility,
+    scaling,
 )
 from modules.constructs.actor_types import actors
 from modules.constructs import (
@@ -66,6 +67,7 @@ class location(actors.actor):
         )
         self.warehouse_level.set_modifier(self, input_dict.get("warehouses_built", 0))
 
+        self.zones_with_surfaces: set = set()
         self.zone_list: List[List[zones.zone]] = None
         if not self.world_handler.is_abstract_world:
             self.name = f"({self.x}, {self.y})"
@@ -198,11 +200,11 @@ class location(actors.actor):
             not self.infinite_inventory_capacity
         ) and self.get_inventory_used() > self.inventory_capacity.value
 
-    def focus_location(self) -> None:
+    def focus_location(self, force_refresh: bool = False) -> None:
         """
         Calibrates the location game mode to this location
         """
-        if status.location_mode_focus == self:
+        if status.location_mode_focus == self and not force_refresh:
             return
         status.location_mode_focus = self
         status.focused_location_surface = drawing_utility.image_id_to_surface(
@@ -212,6 +214,7 @@ class location(actors.actor):
                     constants.TERRAIN_KNOWLEDGE
                 ),  # Only show clouds in orbital view for focused tile, regardless of global settings
                 allow_ground_overlays=True,
+                allow_zone_details=False,
             )
         )
         status.focused_location_zone_grid.calibrate(self)
@@ -349,19 +352,19 @@ class location(actors.actor):
                 # Attrition only occurs if a random roll is higher than the habitability - more attrition for worse habitability
                 return False
 
-            if (
-                self.has_building(constants.TRAIN_STATION)
-                or self.has_building(constants.SPACEPORT)
-                or self.has_building(constants.RESOURCE)
-                or self.has_building(constants.FORT)
-            ):
-                if random.randrange(1, 7) >= 3:  # removes 2/3 of attrition
-                    return False
-            elif self.has_building(constants.ROAD) or self.has_building(
-                constants.RAILROAD
-            ):
-                if random.randrange(1, 7) >= 5:  # removes 1/3 of attrition
-                    return False
+            # if (
+            #     self.has_building(constants.TRAIN_STATION)
+            #     or self.has_building(constants.SPACEPORT)
+            #     or self.has_building(constants.RESOURCE)
+            #     or self.has_building(constants.FORT)
+            # ):
+            #     if random.randrange(1, 7) >= 3:  # removes 2/3 of attrition
+            #         return False
+            # elif self.has_building(constants.ROAD) or self.has_building(
+            #     constants.RAILROAD
+            # ):
+            #     if random.randrange(1, 7) >= 5:  # removes 1/3 of attrition
+            #         return False
         return True
 
     def remove(self) -> None:
@@ -373,7 +376,7 @@ class location(actors.actor):
             self.unsubscribe_cell(cell)
         for mob in self.subscribed_mobs.copy():
             mob.remove()
-        for building in self.contained_buildings.copy().values():
+        for building in utility.combine(*self.contained_buildings.values()):
             building.remove()
 
     def has_building(self, building_type: str) -> bool:
@@ -408,26 +411,6 @@ class location(actors.actor):
                 for building in self.contained_buildings[building_type]
             )
 
-    def add_building(self, building: Any) -> None:
-        """
-        Description:
-            Adds the inputted building to this location
-        Input:
-            building building: Building to add to this location
-        Output:
-            None
-        """
-        self.contained_buildings[building.building_type.key].append(building)
-
-        constants.EventBus.subscribe(
-            self.update_image_bundle,
-            building.uuid,
-            constants.BUILDING_SET_DAMAGED_ROUTE,
-        )
-        # Update image bundle when building's damaged status changes
-
-        self.publish_events(constants.LOCATION_ADD_BUILDING_ROUTE)
-
     def remove_building(self, building: Any) -> None:
         """
         Description:
@@ -437,14 +420,13 @@ class location(actors.actor):
         Output:
             None
         """
-        if self.get_building(building.building_type.key) == building:
-            self.contained_buildings[building.building_type.key].remove(building)
-            self.publish_events(constants.LOCATION_REMOVE_BUILDING_ROUTE)
-            constants.EventBus.unsubscribe(
-                self.update_image_bundle,
-                building.uuid,
-                constants.BUILDING_SET_DAMAGED_ROUTE,
-            )
+        self.contained_buildings[building.building_type.key].remove(building)
+        self.publish_events(constants.LOCATION_REMOVE_BUILDING_ROUTE)
+        constants.EventBus.unsubscribe(
+            self.update_image_bundle,
+            building.uuid,
+            constants.BUILDING_SET_DAMAGED_ROUTE,
+        )
 
     def get_building(self, building_type: str):
         """
@@ -964,7 +946,6 @@ class location(actors.actor):
                 for building_list in self.contained_buildings.values()
                 for building in building_list
             ],
-            "zones": [zone.to_save_dict() for zone in self.zones],
             "warehouses_built": self.warehouse_level.get_modifier_of_source(self),
         }
 
@@ -1309,6 +1290,7 @@ class location(actors.actor):
         allow_mapmodes=True,
         allow_ground_overlays=True,
         allow_clouds=True,
+        allow_zone_details=True,
     ):
         """
         Description:
@@ -1389,6 +1371,29 @@ class location(actors.actor):
                                 image_id_list,
                                 status.terrain_feature_types[terrain_feature].image_id,
                             )
+                if allow_zone_details and self.zones_with_surfaces:
+                    image_id_list.append(
+                        {
+                            "image_id": drawing_utility.compose_surface(
+                                5,
+                                (
+                                    scaling.scale_width(
+                                        constants.zone_grid_pixel_width
+                                    ),
+                                    scaling.scale_height(
+                                        constants.zone_grid_pixel_width
+                                    ),
+                                ),
+                                *[
+                                    {
+                                        "surface": zone.get_zone_surface(),
+                                        "coords": (zone.x, zone.y),
+                                    }
+                                    for zone in self.zones_with_surfaces
+                                ],
+                            )
+                        }
+                    )
                     # if (
                     #    self.resource
                     # ):  # If resource visible based on current knowledge
