@@ -6,9 +6,9 @@ if (Test-Path SE_exe) {
     rm SE_exe -force -Recurse
 }
 mkdir SE_exe
-Copy-Item -Path $PWD\*  -Destination "SE_exe" -Recurse -Exclude @("*SE_exe", ".git", "__pycache__", ".gitignore", "__init__.py", "Instructions.docx", "README.txt", "scripts", "venv")
+Copy-Item -Path $PWD\*  -Destination "SE_exe" -Recurse -Exclude @("*SE_exe", ".git", "__pycache__", ".gitignore", "__init__.py", "Instructions.docx", "README.txt", "scripts")
 cd SE_exe
-& "..\venv\Scripts\python.exe" -m PyInstaller --onefile main.py --noconsole --icon=graphics/misc/SE.ico
+conda run -n second_earth --no-capture-output python -m PyInstaller --onefile main.py --noconsole --icon=graphics/misc/SE.ico
 Move-Item -Path dist/main.exe
 rm main.spec -force
 rmdir build -force -Recurse
