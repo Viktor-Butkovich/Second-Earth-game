@@ -82,6 +82,7 @@ displayed_zone: zone = None
 
 cached_images: Dict[str, pygame.Surface] = {}
 dummy_surface_image: free_image = None
+dummy_surface_image_high_res: free_image = None
 globe_projection_surface: pygame.Surface = None
 focused_location_surface: pygame.Surface = None
 to_strategic_button: switch_game_mode_button = None

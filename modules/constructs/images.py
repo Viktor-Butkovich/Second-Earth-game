@@ -911,19 +911,21 @@ class free_image(image):
                 else:  # if set to image path list
                     self.contains_bundle = True
                     self.image = image_bundle(self, self.image_id)
-        if (
-            self.pixellate_image and type(self.image) != pygame.Surface
-        ):  # If image is an image bundle, convert it to a sufficiently pixellated Surface
+        if type(self.image) == image_bundle:
             self.image = self.image.generate_combined_surface()
+            if (
+                self.pixellate_image
+            ):  # Convert it to a sufficiently pixellated Surface
+                self.contains_bundle = False
+                self.image = pygame.transform.scale(
+                    self.image,
+                    (constants.LIGHT_PIXELLATED_SIZE, constants.LIGHT_PIXELLATED_SIZE),
+                ) # Lower spatial resolution in an intentionally lossy manner
+                self.image = pygame.transform.scale(
+                    self.image,
+                    (self.width, self.height),
+                ) # Scale back up to original spatial resolution for pixellation
             self.contains_bundle = False
-            self.image = pygame.transform.scale(
-                self.image,
-                (constants.LIGHT_PIXELLATED_SIZE, constants.LIGHT_PIXELLATED_SIZE),
-            )
-            self.image = pygame.transform.scale(
-                self.image,
-                (self.width, self.height),
-            )
 
     def can_show_tooltip(self) -> bool:
         """

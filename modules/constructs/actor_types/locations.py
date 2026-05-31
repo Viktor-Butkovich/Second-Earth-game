@@ -239,12 +239,13 @@ class location(actors.actor):
                 allow_clouds=True,
                 allow_ground_overlays=True,
                 force_clouds=True,
+                allow_zone_details=True,
             )  # Always show clouds for adjacent tiles, regardless of global settings
 
             status.focused_location_adjacent_images[relative_coordinates[0] + 1][
                 relative_coordinates[1] + 1
             ].set_image(
-                [{"image_id": drawing_utility.image_id_to_surface(relative_image)}]
+                [{"image_id": drawing_utility.image_id_to_surface(relative_image, high_res=True)}]
             )
         game_transitions.set_game_mode(constants.LOCATION_MODE)
 
@@ -1200,7 +1201,7 @@ class location(actors.actor):
                 sum(
                     [
                         sum(
-                            status.albedo_free_image.image.combined_surface.get_at(
+                            status.albedo_free_image.image.get_at(
                                 (x, y)
                             )[0:3]
                         )

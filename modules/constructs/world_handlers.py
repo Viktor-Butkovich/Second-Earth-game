@@ -228,7 +228,7 @@ class world_handler:
         """
         return itertools.chain.from_iterable(self.location_list)
 
-    def find_location(self, x: int, y: int) -> Any:
+    def find_location(self, x: int, y: int) -> locations.location:
         return self.location_list[x % self.coordinate_width][y % self.coordinate_height]
 
     def change_parameter(self, parameter_name: str, change: int) -> None:

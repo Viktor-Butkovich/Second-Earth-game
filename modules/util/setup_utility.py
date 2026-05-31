@@ -1616,6 +1616,19 @@ def buttons() -> None:
             "pixellate_image": True,
         }
     )
+    status.dummy_surface_image_high_res = constants.ActorCreationManager.create_interface_element(
+        {
+            "coordinates": (globe_projection_x, globe_projection_y),
+            "init_type": constants.FREE_IMAGE,
+            "modes": [],
+            "width": scaling.scale_width(200),
+            "height": scaling.scale_height(
+                200
+            ),
+            "image_id": "misc/empty.png",
+            "pixellate_image": False,
+        }
+    )
     compass_overlay_size = 15
     north_overlay = constants.ActorCreationManager.create_interface_element(
         {

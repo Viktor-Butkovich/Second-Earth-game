@@ -92,7 +92,18 @@ def get_subsurface(
 def compose_surface(
     grid_size: int, pixel_size: Tuple[int, int], *args
 ) -> pygame.Surface:
-
+    """
+    Description:
+        Composes a pygame Surface by placing the inputted subsurfaces into a grid layout
+    Input:
+        int grid_size: The width and height of the composed grid (number of cells in each dimension)
+        Tuple[int, int] pixel_size: The total pixel dimensions of the composed surface
+        *args: List of dictionaries containing:
+            Surface "surface": Subsurface to place
+            Tuple[int, int] "coords": (x, y) grid coordinates for the subsurface
+    Output:
+        pygame.Surface: Returns the composed surface
+    """
     # Create the blank output surface
     out_surface = pygame.Surface(
         pixel_size, pygame.HWSURFACE | pygame.DOUBLEBUF | pygame.SRCALPHA
@@ -105,7 +116,6 @@ def compose_surface(
     idx = 0
     for item in args:
         surf = pygame.transform.scale(item["surface"], ((cell_width, cell_height)))
-        pygame.image.save(surf, f"debug_surface_{idx}.png")
         idx += 1
         x, y = item["coords"]
 
@@ -114,18 +124,22 @@ def compose_surface(
 
         # Blit the small surface into the correct cell
         out_surface.blit(surf, (draw_x, draw_y))
-    pygame.image.save(out_surface, "debug_composed_surface.png")
     return out_surface
 
 
-def image_id_to_surface(image_id: List[Dict[str, Any]]) -> pygame.Surface:
+def image_id_to_surface(image_id: List[Dict[str, Any]], high_res: bool = False) -> pygame.Surface:
     """
     Description:
         Converts an image ID list to a pygame Surface
     Input:
         List[Dict[str, Any]] image_id: Image ID list to convert
+        bool high_res: Whether to use full resolution rendering
     Output:
         pygame.Surface: Corresponding pygame Surface
     """
-    status.dummy_surface_image.set_image(image_id)
-    return status.dummy_surface_image.image
+    if not high_res:
+        dummy_surface = status.dummy_surface_image
+    else:
+        dummy_surface = status.dummy_surface_image_high_res
+    dummy_surface.set_image(image_id)
+    return dummy_surface.image
