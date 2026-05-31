@@ -10,3 +10,4 @@ artifacts/*
 .vscode/*
 venv/
 Outputs/
+autogui/*

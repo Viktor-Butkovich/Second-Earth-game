@@ -206,6 +206,7 @@ def start_loading(previous_game_mode: str = None, new_game_mode: str = None):
     else:
         status.loading_screen_quote_banner.set_label("")
     flags.loading = True
+    actor_utility.autogui_pipe_send("loading")
     constants.loading_loops = 0
     main_loop_utility.update_display()
 

@@ -4,6 +4,7 @@ from __future__ import annotations
 import os
 import pygame
 import math
+from pathlib import Path
 from typing import List, Tuple, Dict, Iterable, Any
 from modules.util import utility, text_utility
 from modules.constants import constants, status, flags
@@ -959,3 +960,18 @@ def click_move_minimap(current_cell, select_unit: bool = True):
                         status.location_info_display, current_source
                     )
             focus_minimap_grids(current_source)
+
+
+def autogui_pipe_send(message: str) -> None:
+    """
+    Description:
+        If autogui is active, sends the requested message to the autogui pipeline to allow for cross-application communication.
+    Input:
+        string message: Message to send to the pipeline file
+    Output:
+        None
+    """
+    if constants.EffectManager.effect_active("autogui"):
+        pipe_path = Path(f"Outputs/AutoGUI/autogui_pipe.txt")
+        with open(pipe_path, "w") as f:
+            f.write(f"\n{message}")

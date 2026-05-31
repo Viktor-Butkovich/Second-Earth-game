@@ -486,6 +486,7 @@ def draw_loading_screen():
     constants.loading_loops += 1
     if constants.loading_loops > 2:
         flags.loading = False
+        actor_utility.autogui_pipe_send("loaded")
         if status.loading_screen_quote_banner.message != [""]:  # If loading into game
             status.loading_screen_continue_banner.showing = True
             status.loading_screen_continue_banner.draw()

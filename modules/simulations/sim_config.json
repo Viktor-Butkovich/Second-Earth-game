@@ -1,0 +1,9 @@
+{
+    "chosen_simulation": 3,
+    "possible_simulations": [
+        "1. investing_strategies",
+        "2. dice_game",
+        "3. load_and_select_first_unit",
+        "4. new_game"
+    ]
+}
