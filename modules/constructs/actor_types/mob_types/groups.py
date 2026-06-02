@@ -29,7 +29,6 @@ class group(pmob):
                 'end_turn_destination_coordinates': int tuple value - None if no saved destination, destination coordinates if saved destination
                 'end_turn_destination_world_index': int value - Index of the world of the end turn destination, if any
                 'movement_points': int value - Required if from save, how many movement points this actor currently has
-                'max_movement_points': int value - Required if from save, maximum number of movement points this mob can have
                 'worker': worker or dictionary value - If creating a new group, equals a worker that is part of this group. If loading, equals a dictionary of the saved information necessary to recreate the worker
                 'officer': worker or dictionary value - If creating a new group, equals an officer that is part of this group. If loading, equals a dictionary of the saved information necessary to recreate the officer
         Output:
@@ -223,8 +222,6 @@ class group(pmob):
         Promotes this group's officer to a veteran after performing various actions particularly well, improving the capabilities of groups the officer is attached to in the future. Creates a veteran star icon that follows this
             group and its officer
         """
-        if self.get_permission(constants.PORTERS_PERMISSION):
-            self.set_max_movement_points(6, initial_setup=False)
         if not self.officer.get_permission(constants.VETERAN_PERMISSION):
             self.officer.promote()
         if not self.get_permission(constants.VETERAN_PERMISSION):
@@ -253,13 +250,13 @@ class group(pmob):
         self.drop_inventory()
         self.worker.leave_group(self, focus=False)
 
-        movement_ratio_remaining = self.movement_points / self.max_movement_points
+        movement_ratio_remaining = self.movement_points / self.max_movement_points.value
         self.worker.set_movement_points(
-            math.floor(movement_ratio_remaining * self.worker.max_movement_points)
+            math.floor(movement_ratio_remaining * self.worker.max_movement_points.value)
         )
         self.officer.leave_group(self, focus=focus)
         self.officer.set_movement_points(
-            math.floor(movement_ratio_remaining * self.officer.max_movement_points)
+            math.floor(movement_ratio_remaining * self.officer.max_movement_points.value)
         )
         super().remove()
 

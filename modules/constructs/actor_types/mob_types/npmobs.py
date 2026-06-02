@@ -27,7 +27,6 @@ class npmob(mob):
                 'name': string value - Required if from save, this mob's name
                 'modes': string list value - Game modes during which this mob's images can appear
                 'movement_points': int value - Required if from save, how many movement points this actor currently has
-                'max_movement_points': int value - Required if from save, maximum number of movement points this mob can have
         Output:
             None
         """
@@ -237,7 +236,7 @@ class npmob(mob):
                         ):
                             self.move(0, 1 * vertical_multiplier)
                         else:
-                            self.movement_points -= 1
+                            self.change_movement_points(-1)
                 elif vertical_multiplier == 0:
                     # While self.movement_points > 0:
                     if self.movement_points >= self.get_movement_cost(
@@ -245,7 +244,7 @@ class npmob(mob):
                     ):
                         self.move(1 * horizontal_multiplier, 0)
                     else:
-                        self.movement_points -= 1
+                        self.change_movement_points(-1)
                 else:
                     horizontal_distance = abs(
                         initial_location.x - target_location.x
@@ -263,21 +262,21 @@ class npmob(mob):
                         ):
                             self.move(1 * horizontal_multiplier, 0)
                         else:
-                            self.movement_points -= 1
+                            self.change_movement_points(-1)
                     else:
                         if self.movement_points >= self.get_movement_cost(
                             0, 1 * vertical_multiplier
                         ):
                             self.move(0, 1 * vertical_multiplier)
                         else:
-                            self.movement_points -= 1
+                            self.change_movement_points(-1)
                 if horizontal_multiplier == 0 and vertical_multiplier == 0:
-                    self.movement_points -= 1
+                    self.change_movement_points(-1)
             else:
-                self.movement_points -= 1
+                self.change_movement_points(-1)
             if self.combat_possible():
                 status.attacker_queue.append(self)
-                self.movement_points = 0
+                self.set_movement_points(0)
             else:
                 if self.location.has_unit_by_filter([constants.PMOB_PERMISSION]) or (
                     self.can_damage_buildings
@@ -286,7 +285,7 @@ class npmob(mob):
                     self.kill_noncombatants()
                     if self.can_damage_buildings:
                         self.damage_buildings()
-                    self.movement_points = 0
+                    self.set_movement_points(0)
             if self.movement_points == 0:
                 self.turn_done = True
         else:

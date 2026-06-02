@@ -26,7 +26,6 @@ class battalion(group):
                 'end_turn_destination_coordinates': int tuple value - None if no saved destination, destination coordinates if saved destination
                 'end_turn_destination_world_index': int value - Index of the world of the end turn destination, if any
                 'movement_points': int value - Required if from save, how many movement points this actor currently has
-                'max_movement_points': int value - Required if from save, maximum number of movement points this mob can have
                 'worker': worker or dictionary value - If creating a new group, equals a worker that is part of this group. If loading, equals a dictionary of the saved information necessary to recreate the worker
                 'officer': worker or dictionary value - If creating a new group, equals an officer that is part of this group. If loading, equals a dictionary of the saved information necessary to recreate the officer
         Output:

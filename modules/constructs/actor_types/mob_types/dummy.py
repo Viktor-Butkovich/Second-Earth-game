@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 from typing import Dict, Any
+from modules.constructs import managed_attributes
 from modules.constructs.actor_types.mob_types import pmobs
 from modules.constants import constants, status, flags
 
@@ -23,6 +24,7 @@ class dummy(pmobs.pmob):
             "generate_button_portrait", False
         )
         self.set_permission(constants.DUMMY_PERMISSION, True)
+        self.max_movement_points: managed_attributes.managed_attribute = managed_attributes.managed_attribute(base_value=self.unit_type.movement_points)
         if self.generate_button_portrait:
             self.image_dict = {
                 constants.IMAGE_ID_LIST_FULL_MOB: self.unit_type.generate_center_recruitment_image(

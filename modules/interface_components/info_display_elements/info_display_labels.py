@@ -1170,7 +1170,7 @@ class actor_display_label(labels.label):
                     ):
                         # If train with crew or normal unit
                         self.set_label(
-                            f"{self.message_start}{new_actor.movement_points}/{new_actor.max_movement_points}"
+                            f"{self.message_start}{new_actor.movement_points}/{new_actor.max_movement_points.value}"
                         )
                     else:  # If spaceship or train without crew
                         if not new_actor.get_permission(

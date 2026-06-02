@@ -30,7 +30,6 @@ class pmob(mob):
                 'end_turn_destination_coordinates': int tuple value - None if no saved destination, destination coordinates if saved destination
                 'end_turn_destination_world_index': int value - Index of the world of the end turn destination, if any
                 'movement_points': int value - Required if from save, how many movement points this actor currently has
-                'max_movement_points': int value - Required if from save, maximum number of movement points this mob can have
                 'sentry_mode': boolean value - Required if from save, whether this unit is in sentry mode, preventing it from being in the turn order
                 'in_turn_queue': boolean value - Required if from save, whether this unit is in the turn order, allowing end unit turn commands, etc. to persist after saving/loading
                 'base_automatic_route': int tuple list value - Required if from save, list of the coordinates in this unit's automatic movement route, with the first coordinates being the start and the last being the end. List empty if
@@ -63,7 +62,6 @@ class pmob(mob):
             self.wait_until_full = input_dict["wait_until_full"]
         else:
             self.default_name = self.name
-            self.set_max_movement_points(self.unit_type.movement_points)
             self.set_automatically_replace(True)
             self.add_to_turn_queue()
             self.base_automatic_route = (

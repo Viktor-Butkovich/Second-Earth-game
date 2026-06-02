@@ -66,16 +66,10 @@ class exploration(action.action):
         """
         message = []
         if status.displayed_mob.get_permission(constants.EXPEDITION_PERMISSION):
-            # message.append(
-            #    "Press to attempt to explore in the " + tooltip_info_dict["direction"]
-            # )
             message.append(
                 f"Attempting to explore would cost {self.get_price()} money and all remaining movement points, at least 1"
             )
         else:
-            # message.append(
-            #    f"This unit cannot currently move to the {tooltip_info_dict['direction']}"
-            # )
             message.append("This unit cannot move into unexplored areas")
         return message
 
@@ -200,10 +194,6 @@ class exploration(action.action):
                             "message": "Explore",
                         },
                         {
-                            # "on_click": (
-                            #    self.current_unit.clear_attached_cell_icons,
-                            #    [],
-                            # ),
                             "tooltip": ["Cancel"],
                             "message": "Cancel",
                         },

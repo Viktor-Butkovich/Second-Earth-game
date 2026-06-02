@@ -13,7 +13,6 @@ required_dummy_attributes = [
     "override_permissions",
     "crew",
     "movement_points",
-    "max_movement_points",
     "inventory_capacity",
     "inventory",
     "equipment",
@@ -266,11 +265,6 @@ def simulate_merge(officer, worker, required_dummy_attributes, dummy_input_dict)
         )
         dummy_input_dict["movement_points"] = (
             actor_utility.generate_group_movement_points(worker, officer)
-        )
-        dummy_input_dict["max_movement_points"] = (
-            actor_utility.generate_group_movement_points(
-                worker, officer, generate_max=True
-            )
         )
         dummy_input_dict["default_permissions"].update(
             {

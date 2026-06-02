@@ -29,7 +29,6 @@ class vehicle(pmob):
                 'end_turn_destination_coordinates': int tuple value - None if no saved destination, destination coordinates if saved destination
                 'end_turn_destination_world_index': int value - Index of the world of the end turn destination, if any
                 'movement_points': int value - Required if from save, how many movement points this actor currently has
-                'max_movement_points': int value - Required if from save, maximum number of movement points this mob can have
                 'crew': worker, string, or dictionary value - If no crew, equals None. Otherwise, if creating a new vehicle, equals a worker that serves as crew. If loading, equals a dictionary of the saved information necessary to
                     recreate the worker to serve as crew
                 'passenger_dicts': dictionary list value - Required if from save, list of dictionaries of saved information necessary to recreate each of this vehicle's passengers

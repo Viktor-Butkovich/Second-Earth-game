@@ -553,40 +553,27 @@ def generate_group_name(
     return name
 
 
-def generate_group_movement_points(
-    worker: mobs.mob, officer: mobs.mob, generate_max: bool = False
-) -> int:
+def generate_group_movement_points(worker: mobs.mob, officer: mobs.mob) -> int:
     """
     Description:
-        Generates and returns either the current or maximum movement points that a group created from the inputted worker and officer would have
+        Computes the current movement points that a group created from the inputted worker and officer would have
     Input:
         worker worker: Worker to use for group
         officer officer: Officer to use for group
-        boolean generate_max=False: Whether to return the group's current or maximum number of movement points
     Output:
-        list: Returns image id list of dictionaries for each part of the group image
+        int: Returns the group's movement points
     """
-    if generate_max:
-        max_movement_points = officer.max_movement_points
-        if officer.all_permissions(
-            constants.DRIVER_PERMISSION, constants.VETERAN_PERMISSION
-        ):
-            max_movement_points = 6
-        return max_movement_points
+    max_movement_points = officer.max_movement_points.value
+    worker_movement_ratio_remaining = (
+        worker.movement_points / worker.max_movement_points.value
+    )
+    officer_movement_ratio_remaining = (
+        officer.movement_points / officer.max_movement_points.value
+    )
+    if worker_movement_ratio_remaining > officer_movement_ratio_remaining:
+        return math.floor(max_movement_points * officer_movement_ratio_remaining)
     else:
-        max_movement_points = generate_group_movement_points(
-            worker, officer, generate_max=True
-        )
-        worker_movement_ratio_remaining = (
-            worker.movement_points / worker.max_movement_points
-        )
-        officer_movement_ratio_remaining = (
-            officer.movement_points / officer.max_movement_points
-        )
-        if worker_movement_ratio_remaining > officer_movement_ratio_remaining:
-            return math.floor(max_movement_points * officer_movement_ratio_remaining)
-        else:
-            return math.floor(max_movement_points * worker_movement_ratio_remaining)
+        return math.floor(max_movement_points * worker_movement_ratio_remaining)
 
 
 def select_interface_tab(

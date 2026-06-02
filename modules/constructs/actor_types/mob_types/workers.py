@@ -31,7 +31,6 @@ class worker(pmob):
                 'end_turn_destination_coordinates': int tuple value - None if no saved destination, destination coordinates if saved destination
                 'end_turn_destination_world_index': int value - Index of the world of the end turn destination, if any
                 'movement_points': int value - Required if from save, how many movement points this actor currently has
-                'max_movement_points': int value - Required if from save, maximum number of movement points this mob can have
                 'worker_type': worker_type value - Type of worker this is, like 'Colonist'. Each type of worker has a separate upkeep, labor pool, and abilities
         Output:
             None

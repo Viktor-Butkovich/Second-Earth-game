@@ -48,6 +48,14 @@ class managed_attribute:
         self.modifiers[source] = value
         self.update_value()
 
+    def remove_modifier(self, source: Any) -> None:
+        """
+        Removes the modifier from a particular source, if it exists
+        """
+        if source in self.modifiers:
+            del self.modifiers[source]
+            self.update_value()
+
     def set_base_value(self, new_base_value: int) -> None:
         """
         Sets a new base value for this attribute

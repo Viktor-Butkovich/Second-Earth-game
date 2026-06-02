@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 import pygame, random
-from modules.constructs import images, unit_types, ministers, item_types
+from modules.constructs import images, unit_types, ministers, item_types, managed_attributes
 from modules.constructs.actor_types import locations
 from modules.util import (
     utility,
@@ -34,7 +34,6 @@ class mob(actor):
                     - Signifies default button image overlayed by a default mob image scaled to 0.95x size
                 'name': string value - Required if from save, this mob's name
                 'movement_points': int value - Required if from save, how many movement points this actor currently has
-                'max_movement_points': int value - Required if from save, maximum number of movement points this mob can have
         Output:
             None
         """
@@ -77,16 +76,15 @@ class mob(actor):
         self.image_variants_setup(from_save, input_dict)
         status.mob_list.append(self)
         self.set_name(input_dict["name"])
-        self.max_movement_points: int = 1
-        self.movement_points: int = self.max_movement_points
+        self.max_movement_points: managed_attributes.managed_attribute = managed_attributes.managed_attribute(base_value=self.unit_type.movement_points)
+        self.movement_points: int = None
         self.movement_cost: int = 1
         self.subscribed_location: locations.location = None
         if input_dict.get("location", None):
             input_dict["location"].subscribe_mob(self)
         self.permissions_setup()
+        self.set_movement_points(input_dict.get("movement_points", self.max_movement_points.value))
         if from_save:
-            self.set_max_movement_points(input_dict["max_movement_points"])
-            self.set_movement_points(input_dict["movement_points"])
             self.creation_turn = input_dict["creation_turn"]
             self.set_permission(
                 constants.DISORGANIZED_PERMISSION,
@@ -516,7 +514,6 @@ class mob(actor):
             dictionary: Returns dictionary that can be saved and used as input to recreate it on loading
                 Along with superclass outputs, also saves the following values:
                 'movement_points': int value - How many movement points this mob currently has
-                'max_movement_points': int value - Maximum number of movement points this mob can have
                 'image': string value - File path to the image used by this mob
                 'creation_turn': int value - Turn number on which this mob was created
                 'disorganized': boolean value - Whether this unit is currently disorganized
@@ -525,7 +522,6 @@ class mob(actor):
         save_dict = super().to_save_dict()
         save_dict["init_type"] = self.unit_type.key
         save_dict["movement_points"] = self.movement_points
-        save_dict["max_movement_points"] = self.max_movement_points
         save_dict[constants.IMAGE_ID_LIST_DEFAULT] = self.image_dict[
             constants.IMAGE_ID_LIST_DEFAULT
         ]
@@ -842,37 +838,31 @@ class mob(actor):
         """
         Changes this mob's movement points by the inputted amount. Ensures that the mob info display is updated correctly and that whole number movement point amounts are not shown as decimals
         """
-        if not self.get_permission(constants.INFINITE_MOVEMENT_PERMISSION):
-            self.movement_points += change
-            if self.movement_points == round(
-                self.movement_points
-            ):  # if whole number, don't show decimal
-                self.movement_points = round(self.movement_points)
-            if (
-                self.get_permission(constants.PMOB_PERMISSION)
-                and self.movement_points <= 0
-            ):
-                self.remove_from_turn_queue()
-            if (
-                status.displayed_mob == self
-            ):  # update mob info display to show new movement points
-                actor_utility.calibrate_actor_info_display(
-                    status.mob_info_display, self
-                )
+        if self.get_permission(constants.INFINITE_MOVEMENT_PERMISSION):
+            return
+        self.set_movement_points(self.movement_points + change)
 
     def set_movement_points(self, new_value: float) -> None:
         """
         Sets this mob's movement points to the inputted amount. Ensures that the mob info display is updated correctly and that whole number movement point amounts are not shown as decimals
         """
-        if new_value < 0:
-            new_value = 0
-        self.movement_points = new_value
+        previous_value = self.movement_points
+        self.movement_points = max(0, new_value)
         if self.movement_points == round(
             self.movement_points
-        ):  # if whole number, don't show decimal
+        ):  # If whole number, don't show decimal
             self.movement_points = round(self.movement_points)
         if self.get_permission(constants.PMOB_PERMISSION) and self.movement_points <= 0:
             self.remove_from_turn_queue()
+        if previous_value == 0 and new_value > 0 and self.get_permission(
+            constants.PMOB_PERMISSION
+        ) and not self.any_permissions(
+            constants.INACTIVE_VEHICLE_PERMISSION,
+            constants.IN_VEHICLE_PERMISSION,
+            constants.IN_BUILDING_PERMISSION,
+            constants.IN_GROUP_PERMISSION,
+        ): # If unit is able to be added to turn queue and just regained movement points, re-add to turn queue
+            self.add_to_turn_queue()
         if status.displayed_mob == self:
             actor_utility.calibrate_actor_info_display(status.mob_info_display, self)
 
@@ -884,50 +874,9 @@ class mob(actor):
             self.set_permission(
                 constants.MOVEMENT_DISABLED_PERMISSION, False, override=True
             )
-            self.movement_points = 0
+            self.set_movement_points(0)
         else:
-            self.movement_points = self.max_movement_points
-            if self.movement_points == round(
-                self.movement_points
-            ):  # if whole number, don't show decimal
-                self.movement_points = round(self.movement_points)
-            if self.get_permission(
-                constants.PMOB_PERMISSION
-            ) and not self.any_permissions(
-                constants.INACTIVE_VEHICLE_PERMISSION,
-                constants.IN_VEHICLE_PERMISSION,
-                constants.IN_BUILDING_PERMISSION,
-                constants.IN_GROUP_PERMISSION,
-            ):
-                self.add_to_turn_queue()
-            if status.displayed_mob == self:
-                actor_utility.calibrate_actor_info_display(
-                    status.mob_info_display, self
-                )
-
-    def set_max_movement_points(
-        self, new_value, initial_setup=True, allow_increase=True
-    ) -> None:
-        """
-        Description:
-            Sets this mob's maximum number of movement points and changes its current movement points by the amount increased or to the maximum, based on the input boolean
-        Input:
-            boolean initial_setup: Whether to set this current movement points to the max (on recruitment) or change by the amount increased (when increased after recruitment)
-        Output:
-            None
-        """
-        increase = 0
-        if allow_increase and not initial_setup:
-            increase = new_value - self.max_movement_points
-        if (
-            increase + self.movement_points > new_value
-        ):  # If current movement points is above max, set current movement points to max
-            increase = new_value - self.movement_points
-        self.max_movement_points = new_value
-        if initial_setup:
-            self.set_movement_points(new_value)
-        else:
-            self.set_movement_points(self.movement_points + increase)
+            self.set_movement_points(self.max_movement_points.value)
 
     def reselect(self) -> None:
         """
@@ -1039,7 +988,7 @@ class mob(actor):
                 constants.ACTIVE_PERMISSION
             ) and not self.get_permission(constants.INFINITE_MOVEMENT_PERMISSION):
                 tooltip_list.append(
-                    f"Movement points: {self.movement_points}/{self.max_movement_points}"
+                    f"Movement points: {self.movement_points}/{self.max_movement_points.value}"
                 )
             elif self.get_permission(
                 constants.MOVEMENT_DISABLED_PERMISSION
