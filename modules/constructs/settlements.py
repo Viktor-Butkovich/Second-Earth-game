@@ -1,13 +1,14 @@
 # Contains functionality for settlements
 
 from __future__ import annotations
+from modules.constructs.actor_types import locations
 from modules.util import actor_utility
 from modules.constants import constants, status, flags
 
 
 class settlement:
     """
-    Object that represents a colonial settlement - attached to a resource production facility, port, and/or train station
+    Object that represents a colonial settlement
     """
 
     def __init__(self, from_save, input_dict):
@@ -22,7 +23,7 @@ class settlement:
         Output:
             None
         """
-        self.subscribed_location = input_dict["location"]
+        self.subscribed_location: locations.location = input_dict["location"]
         self.subscribed_location.settlement = self
         if not from_save:
             self.name = constants.FlavorTextManager.generate_flavor_text(
@@ -61,7 +62,7 @@ class settlement:
             None
         """
         self.name = new_name
-        status.displayed_location.set_name(self.name)
+        self.subscribed_location.set_name(self.name)
 
     def to_save_dict(self):
         """

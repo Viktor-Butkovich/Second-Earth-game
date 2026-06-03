@@ -1207,9 +1207,13 @@ class button(interface_elements.interface_element):
 
         elif self.button_type == constants.RENAME_SETTLEMENT_BUTTON:
             if override_action_possible or main_loop_utility.action_possible():
-                constants.message = status.displayed_location.settlement.name
+                if constants.current_game_mode == constants.LOCATION_MODE:
+                    current_location = status.location_mode_focus
+                else:
+                    current_location = status.displayed_location
+                constants.message = current_location.settlement.name
                 constants.InputManager.start_receiving_input(
-                    status.displayed_location.settlement.rename,
+                    current_location.settlement.rename,
                     prompt="Type a new name for your settlement: ",
                 )
             else:

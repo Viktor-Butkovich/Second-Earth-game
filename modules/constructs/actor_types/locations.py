@@ -245,7 +245,13 @@ class location(actors.actor):
             status.focused_location_adjacent_images[relative_coordinates[0] + 1][
                 relative_coordinates[1] + 1
             ].set_image(
-                [{"image_id": drawing_utility.image_id_to_surface(relative_image, high_res=True)}]
+                [
+                    {
+                        "image_id": drawing_utility.image_id_to_surface(
+                            relative_image, high_res=True
+                        )
+                    }
+                ]
             )
         game_transitions.set_game_mode(constants.LOCATION_MODE)
 
@@ -1200,12 +1206,7 @@ class location(actors.actor):
             return (
                 sum(
                     [
-                        sum(
-                            status.albedo_free_image.image.get_at(
-                                (x, y)
-                            )[0:3]
-                        )
-                        / 3
+                        sum(status.albedo_free_image.image.get_at((x, y))[0:3]) / 3
                         for x, y in [(0, 0), (0, 1), (1, 0), (1, 1)]
                     ]
                 )
@@ -1988,5 +1989,9 @@ class location(actors.actor):
                     "init_type": constants.HOSTED_ICON,
                     "location": self,
                 },
+            )
+        if self == status.displayed_location or self == status.location_mode_focus:
+            actor_utility.calibrate_actor_info_display(
+                status.location_info_display, self
             )
         self.publish_events(constants.LOCATION_SET_NAME_ROUTE)

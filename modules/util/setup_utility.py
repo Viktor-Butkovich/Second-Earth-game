@@ -1616,18 +1616,18 @@ def buttons() -> None:
             "pixellate_image": True,
         }
     )
-    status.dummy_surface_image_high_res = constants.ActorCreationManager.create_interface_element(
-        {
-            "coordinates": (globe_projection_x, globe_projection_y),
-            "init_type": constants.FREE_IMAGE,
-            "modes": [],
-            "width": scaling.scale_width(200),
-            "height": scaling.scale_height(
-                200
-            ),
-            "image_id": "misc/empty.png",
-            "pixellate_image": False,
-        }
+    status.dummy_surface_image_high_res = (
+        constants.ActorCreationManager.create_interface_element(
+            {
+                "coordinates": (globe_projection_x, globe_projection_y),
+                "init_type": constants.FREE_IMAGE,
+                "modes": [],
+                "width": scaling.scale_width(200),
+                "height": scaling.scale_height(200),
+                "image_id": "misc/empty.png",
+                "pixellate_image": False,
+            }
+        )
     )
     compass_overlay_size = 15
     north_overlay = constants.ActorCreationManager.create_interface_element(
@@ -3487,30 +3487,24 @@ def settlement_interface() -> None:
         )
     )
     for current_actor_label_type in [
-        # constants.SETTLEMENT,
-        # constants.SPACEPORT,
-        # constants.TRAIN_STATION,
-        # constants.RESOURCE,
-        # constants.BUILDING_EFFICIENCY_LABEL,
-        # constants.BUILDING_WORK_CREWS_LABEL,
-        # constants.CURRENT_BUILDING_WORK_CREW_LABEL,
-        # constants.FORT,
+        constants.SETTLEMENT,
         # constants.INFRASTRUCTURE,
     ]:
-        if current_actor_label_type in [
-            constants.SETTLEMENT,
-            constants.INFRASTRUCTURE,
-        ]:  # Left align any top-level buildings
-            x_displacement = 0
-        elif current_actor_label_type == constants.CURRENT_BUILDING_WORK_CREW_LABEL:
-            x_displacement = 75
-        elif current_actor_label_type in [
-            constants.BUILDING_EFFICIENCY_LABEL,
-            constants.BUILDING_WORK_CREWS_LABEL,
-        ]:
-            x_displacement = 50
-        else:
-            x_displacement = 25
+        # if current_actor_label_type in [
+        #    constants.SETTLEMENT,
+        #    constants.INFRASTRUCTURE,
+        # ]:  # Left align any top-level buildings
+        #    x_displacement = 0
+        # elif current_actor_label_type == constants.CURRENT_BUILDING_WORK_CREW_LABEL:
+        #    x_displacement = 75
+        # elif current_actor_label_type in [
+        #    constants.BUILDING_EFFICIENCY_LABEL,
+        #    constants.BUILDING_WORK_CREWS_LABEL,
+        # ]:
+        #    x_displacement = 50
+        # else:
+        #    x_displacement = 25
+        x_displacement = 0
         input_dict = {
             "minimum_width": scaling.scale_width(10),
             "height": scaling.scale_height(
@@ -3522,6 +3516,7 @@ def settlement_interface() -> None:
             "member_config": {"order_x_offset": scaling.scale_width(x_displacement)},
         }
 
+        """
         if current_actor_label_type == constants.BUILDING_EFFICIENCY_LABEL:
             input_dict["init_type"] = constants.BUILDING_EFFICIENCY_LABEL
             input_dict["building_type"] = constants.RESOURCE
@@ -3537,8 +3532,9 @@ def settlement_interface() -> None:
                 input_dict["list_index"] = i
                 constants.ActorCreationManager.create_interface_element(input_dict)
         else:
-            input_dict["init_type"] = current_actor_label_type
-            constants.ActorCreationManager.create_interface_element(input_dict)
+        """
+        input_dict["init_type"] = current_actor_label_type
+        constants.ActorCreationManager.create_interface_element(input_dict)
 
 
 def terrain_interface() -> None:
