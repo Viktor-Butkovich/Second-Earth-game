@@ -127,7 +127,9 @@ def compose_surface(
     return out_surface
 
 
-def image_id_to_surface(image_id: List[Dict[str, Any]], high_res: bool = False) -> pygame.Surface:
+def image_id_to_surface(
+    image_id: List[Dict[str, Any]], high_res: bool = False
+) -> pygame.Surface:
     """
     Description:
         Converts an image ID list to a pygame Surface

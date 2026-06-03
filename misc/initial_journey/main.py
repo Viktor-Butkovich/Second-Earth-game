@@ -17,6 +17,7 @@ toxicity: 1, severity 2
 radioactivity: 1, severity 2
 magnetic field: 6, severity 2
 """
+
 import random
 import math
 

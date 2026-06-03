@@ -256,7 +256,9 @@ class group(pmob):
         )
         self.officer.leave_group(self, focus=focus)
         self.officer.set_movement_points(
-            math.floor(movement_ratio_remaining * self.officer.max_movement_points.value)
+            math.floor(
+                movement_ratio_remaining * self.officer.max_movement_points.value
+            )
         )
         super().remove()
 

@@ -2,7 +2,13 @@
 
 from __future__ import annotations
 import pygame, random
-from modules.constructs import images, unit_types, ministers, item_types, managed_attributes
+from modules.constructs import (
+    images,
+    unit_types,
+    ministers,
+    item_types,
+    managed_attributes,
+)
 from modules.constructs.actor_types import locations
 from modules.util import (
     utility,
@@ -76,14 +82,20 @@ class mob(actor):
         self.image_variants_setup(from_save, input_dict)
         status.mob_list.append(self)
         self.set_name(input_dict["name"])
-        self.max_movement_points: managed_attributes.managed_attribute = managed_attributes.managed_attribute(base_value=self.unit_type.movement_points)
+        self.max_movement_points: managed_attributes.managed_attribute = (
+            managed_attributes.managed_attribute(
+                base_value=self.unit_type.movement_points
+            )
+        )
         self.movement_points: int = None
         self.movement_cost: int = 1
         self.subscribed_location: locations.location = None
         if input_dict.get("location", None):
             input_dict["location"].subscribe_mob(self)
         self.permissions_setup()
-        self.set_movement_points(input_dict.get("movement_points", self.max_movement_points.value))
+        self.set_movement_points(
+            input_dict.get("movement_points", self.max_movement_points.value)
+        )
         if from_save:
             self.creation_turn = input_dict["creation_turn"]
             self.set_permission(
@@ -854,14 +866,17 @@ class mob(actor):
             self.movement_points = round(self.movement_points)
         if self.get_permission(constants.PMOB_PERMISSION) and self.movement_points <= 0:
             self.remove_from_turn_queue()
-        if previous_value == 0 and new_value > 0 and self.get_permission(
-            constants.PMOB_PERMISSION
-        ) and not self.any_permissions(
-            constants.INACTIVE_VEHICLE_PERMISSION,
-            constants.IN_VEHICLE_PERMISSION,
-            constants.IN_BUILDING_PERMISSION,
-            constants.IN_GROUP_PERMISSION,
-        ): # If unit is able to be added to turn queue and just regained movement points, re-add to turn queue
+        if (
+            previous_value == 0
+            and new_value > 0
+            and self.get_permission(constants.PMOB_PERMISSION)
+            and not self.any_permissions(
+                constants.INACTIVE_VEHICLE_PERMISSION,
+                constants.IN_VEHICLE_PERMISSION,
+                constants.IN_BUILDING_PERMISSION,
+                constants.IN_GROUP_PERMISSION,
+            )
+        ):  # If unit is able to be added to turn queue and just regained movement points, re-add to turn queue
             self.add_to_turn_queue()
         if status.displayed_mob == self:
             actor_utility.calibrate_actor_info_display(status.mob_info_display, self)

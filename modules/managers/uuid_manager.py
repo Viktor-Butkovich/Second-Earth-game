@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+
 class uuid_manager:
     """
     Object that assigns unique identifiers (UUIDs) to objects

@@ -452,11 +452,12 @@ except Exception:  # Displays error message and records error message in crash l
 # If re-factored, an observer pattern with publish and subscribe events could be useful for syncing data, particularly button presses (click the buttons subscribed to this key)
 
 # Upcoming work queue:
-# Reconnect zone buildings to settlement system and location labels
+# Figure out which buildings should lead to settlement creation
 # Test updated warehouse system
 """
 Develop a system for buildings in zones
     Some buildings like roads and warehouses update the location-wide infrastructure
+        Update: Warehouses would be actual zone buildings. But it still makes sense for roads to be a location-wide improvement
     Some buildings like mines, farms, and spaceports occupy individual zones
         Perhaps all location-wide buildings could be treated as amorphous "upgrades" that aren't technically buildings, but
             modify some attribute of the location

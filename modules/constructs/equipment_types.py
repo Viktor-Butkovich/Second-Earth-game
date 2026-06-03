@@ -98,8 +98,12 @@ class equipment_type(item_types.item_type):
         if not unit.equipment.get(self.key, False):
             unit.equipment[self.key] = True
             if self.effects.get("max_movement_points", 0) != 0:
-                unit_max_movement: managed_attributes.managed_attribute = unit.max_movement_points
-                unit_max_movement.set_modifier(self.key, self.effects["max_movement_points"])
+                unit_max_movement: managed_attributes.managed_attribute = (
+                    unit.max_movement_points
+                )
+                unit_max_movement.set_modifier(
+                    self.key, self.effects["max_movement_points"]
+                )
             for permission in self.effects.get("permissions", []):
                 unit.set_permission(permission, True, override=True, update_image=False)
             if unit.get_permission(constants.GROUP_PERMISSION):
@@ -122,7 +126,9 @@ class equipment_type(item_types.item_type):
         if unit.equipment.get(self.key, False):
             del unit.equipment[self.key]
             if self.effects.get("max_movement_points", 0) != 0:
-                unit_max_movement: managed_attributes.managed_attribute = unit.max_movement_points
+                unit_max_movement: managed_attributes.managed_attribute = (
+                    unit.max_movement_points
+                )
                 unit_max_movement.remove_modifier(self.key)
             for permission in self.effects.get("permissions", []):
                 unit.set_permission(

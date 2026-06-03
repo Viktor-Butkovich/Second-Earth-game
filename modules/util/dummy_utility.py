@@ -6,7 +6,6 @@ from copy import deepcopy
 from modules.util import actor_utility
 from modules.constants import constants, status, flags
 
-
 required_dummy_attributes = [
     "name",
     "default_permissions",

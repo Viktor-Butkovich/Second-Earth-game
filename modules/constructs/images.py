@@ -403,7 +403,9 @@ class bundle_image:
                     self.green_screen_colors = []
                     if type(image_id["green_screen"]) == list:
                         for index in range(0, len(image_id["green_screen"])):
-                            self.green_screen_colors.append(image_id["green_screen"][index])
+                            self.green_screen_colors.append(
+                                image_id["green_screen"][index]
+                            )
                     elif type(image_id["green_screen"]) == dict:
                         self.green_screen_colors = image_id["green_screen"]
                     else:
@@ -432,7 +434,9 @@ class bundle_image:
                 self.load()
             self.image = pygame.transform.scale(self.image, (self.width, self.height))
         except Exception as e:
-            raise Exception(f"Error initializing bundle image with image ID {image_id}: {e}")
+            raise Exception(
+                f"Error initializing bundle image with image ID {image_id}: {e}"
+            )
 
     def get_blit_x_offset(self) -> float:
         """
@@ -913,18 +917,16 @@ class free_image(image):
                     self.image = image_bundle(self, self.image_id)
         if type(self.image) == image_bundle:
             self.image = self.image.generate_combined_surface()
-            if (
-                self.pixellate_image
-            ):  # Convert it to a sufficiently pixellated Surface
+            if self.pixellate_image:  # Convert it to a sufficiently pixellated Surface
                 self.contains_bundle = False
                 self.image = pygame.transform.scale(
                     self.image,
                     (constants.LIGHT_PIXELLATED_SIZE, constants.LIGHT_PIXELLATED_SIZE),
-                ) # Lower spatial resolution in an intentionally lossy manner
+                )  # Lower spatial resolution in an intentionally lossy manner
                 self.image = pygame.transform.scale(
                     self.image,
                     (self.width, self.height),
-                ) # Scale back up to original spatial resolution for pixellation
+                )  # Scale back up to original spatial resolution for pixellation
             self.contains_bundle = False
 
     def can_show_tooltip(self) -> bool:

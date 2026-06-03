@@ -1873,11 +1873,15 @@ class actor_icon(buttons.button):
             if self.actor.actor_type == constants.MOB_ACTOR_TYPE:
                 if self.actor.get_permission(constants.DUMMY_PERMISSION):
                     if self.actor.get_permission(constants.ACTIVE_VEHICLE_PERMISSION):
-                        status.reorganize_vehicle_right_button.on_click(allow_sound=False)
+                        status.reorganize_vehicle_right_button.on_click(
+                            allow_sound=False
+                        )
                     elif status.displayed_mob.get_permission(
                         constants.ACTIVE_VEHICLE_PERMISSION
                     ):
-                        status.reorganize_vehicle_left_button.on_click(allow_sound=False)
+                        status.reorganize_vehicle_left_button.on_click(
+                            allow_sound=False
+                        )
                     elif self.actor.any_permissions(
                         constants.WORKER_PERMISSION, constants.OFFICER_PERMISSION
                     ):
