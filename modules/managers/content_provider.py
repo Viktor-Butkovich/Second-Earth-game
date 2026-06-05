@@ -25,31 +25,24 @@ class content_provider:
             return []
 
         body: List[Dict[str, Any]] = []
-        headers: List[str] = []
+        header: Dict[str, Any] = {}
         if table.subject == constants.SUPPLY_CHAIN_TABLE_SUBJECT:
             # Generate the datatable from the location's supply chain plan
-            body = location.supply_chain_plan.generate_datatable()
-            headers = [
-                "item_type",
-                "present",
-                "delivering",
-                "consuming",
-                "expected",
-            ]
+            body, header = location.supply_chain_plan.generate_datatable()
         else:
             raise ValueError(f"Unexpected table grid subject: {table.subject}")
 
         # Provide first row as headers and subsequent rows as JSON body content
-        return [[self.provide_header_content(col_name) for col_name in headers]] + [
-            [self.provide_body_content(col_name, data) for col_name in headers]
+        return [[self.provide_header_content(col_name, header) for col_name in header]] + [
+            [self.provide_body_content(col_name, data) for col_name in header]
             for data in body
         ]
 
-    def provide_header_content(self, col_name: str) -> Dict[str, Any]:
+    def provide_header_content(self, col_name: str, header: Dict[str, Any]) -> Dict[str, Any]:
         """
-        Provides content for a table header cell based on the inputted column name
+        Provides content for a table header cell
         """
-        return {constants.TABLEDATA_TEXT_KEY: col_name.replace("_", " ").title()}
+        return header[col_name]
 
     def provide_body_content(
         self, col_name: str, data: Dict[str, Any]
