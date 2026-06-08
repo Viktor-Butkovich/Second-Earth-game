@@ -241,7 +241,7 @@ class item_icon(buttons.button):
                         ):  # If next index is a different type, show shader for decimal amount
                             image_id.append(
                                 {
-                                    "image_id": f"items/fill_meters/{round((stored_amount - math.floor(stored_amount)) * 10)}.png",
+                                    "image_id": f"misc/fill_meters/{round((stored_amount - math.floor(stored_amount)) * 10)}.png",
                                     "alpha": 255 // 2,
                                 }
                             )  # Show fill meter 1-9 depending on tenth's place

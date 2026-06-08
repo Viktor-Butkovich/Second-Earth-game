@@ -399,25 +399,13 @@ def item_types_config() -> None:
     """
     item_types.item_type(
         {
-            "equipment_type": constants.CONSUMER_GOODS_ITEM,
-            "can_purchase": True,
-            "can_sell": True,
-            "price": constants.consumer_goods_starting_price,
-            "description": ["Placeholder consumer goods description"],
-            "item_image": "items/consumer_goods.png",
-            "background_color": constants.color_dict[constants.COLOR_GREEN_ICON],
-            "allow_price_variation": True,
-        }
-    )
-
-    item_types.item_type(
-        {
-            "equipment_type": constants.FUEL_ITEM,
+            "equipment_type": constants.FUELS_ITEM,
+            "item_category": constants.MATERIAL_ITEM_CATEGORY,
             "can_purchase": True,
             "can_sell": True,
             "price": 5,
-            "description": ["Placeholder fuel description"],
-            "item_image": "items/fuel.png",
+            "description": ["Placeholder fuels description"],
+            "item_image": "items/material/fuels.png",
             "background_color": constants.color_dict[constants.COLOR_FIRE_ORANGE],
             "allow_price_variation": True,
         }
@@ -425,11 +413,26 @@ def item_types_config() -> None:
 
     item_types.item_type(
         {
+            "equipment_type": constants.CONSUMER_GOODS_ITEM,
+            "item_category": constants.RESOURCE_ITEM_CATEGORY,
+            "can_purchase": True,
+            "can_sell": True,
+            "price": constants.consumer_goods_starting_price,
+            "description": ["Placeholder consumer goods description"],
+            "item_image": "items/resource/consumer_goods.png",
+            "background_color": constants.color_dict[constants.COLOR_GREEN_ICON],
+            "allow_price_variation": True,
+        }
+    )
+
+    item_types.item_type(
+        {
             "equipment_type": constants.ENERGY_ITEM,
+            "item_category": constants.RESOURCE_ITEM_CATEGORY,
             "can_purchase": False,
             "can_sell": False,
             "description": ["Placeholder energy description"],
-            "item_image": "items/energy.png",
+            "item_image": "items/resource/energy.png",
             "background_color": constants.color_dict[constants.COLOR_PURPLE],
         }
     )
@@ -437,11 +440,12 @@ def item_types_config() -> None:
     item_types.item_type(
         {
             "equipment_type": constants.FOOD_ITEM,
+            "item_category": constants.RESOURCE_ITEM_CATEGORY,
             "can_purchase": True,
             "can_sell": True,
             "price": 5,
             "description": ["Placeholder food description"],
-            "item_image": "items/food.png",
+            "item_image": "items/resource/food.png",
             "background_color": constants.color_dict[constants.COLOR_YELLOW],
             "allow_price_variation": True,
         }
@@ -450,11 +454,12 @@ def item_types_config() -> None:
     item_types.item_type(
         {
             "equipment_type": constants.WATER_ITEM,
+            "item_category": constants.RESOURCE_ITEM_CATEGORY,
             "can_purchase": True,
             "can_sell": True,
             "price": 5,
             "description": ["Placeholder water description"],
-            "item_image": "items/water.png",
+            "item_image": "items/resource/water.png",
             "background_color": constants.color_dict[constants.COLOR_BLUE],
             "allow_price_variation": True,
         }
@@ -463,11 +468,12 @@ def item_types_config() -> None:
     item_types.item_type(
         {
             "equipment_type": constants.AIR_ITEM,
+            "item_category": constants.RESOURCE_ITEM_CATEGORY,
             "can_purchase": True,
             "can_sell": True,
             "price": 5,
             "description": ["Placeholder air description"],
-            "item_image": "items/air.png",
+            "item_image": "items/resource/air.png",
             "background_color": constants.color_dict[constants.COLOR_LIGHT_GRAY],
             "allow_price_variation": True,
         }
@@ -494,7 +500,7 @@ def item_types_config() -> None:
                 "Human units without spacesuits in deadly conditions cannot perform actions and will die at the end of the turn",
                 # "By default, solitary officers are assumed to be wearing personal spacesuits",
             ],
-            "item_image": "items/spacesuits.png",  # Used for icons
+            "item_image": "items/equipment/spacesuits.png",  # Used for icons
             "equipment_image": {  # Used as mob image components
                 constants.FULL_BODY_PORTRAIT_SECTION: "mobs/spacesuits/spacesuit_body.png",
                 constants.HAT_PORTRAIT_SECTION: "ministers/portraits/hat/spacesuit/spacesuit_helmet.png",
@@ -719,136 +725,6 @@ def building_types_config() -> None:
             "build_keybind": pygame.K_p,
         }
     )
-    """
-    building_types.building_type(
-        {
-            "key": constants.TRAIN_STATION,
-            "name": "train station",
-            "description": [
-                "A train station allows trains to pick up or drop off cargo, and expands the location's warehouse capacity.",
-            ],
-            "warehouse_level": 1,
-            "can_construct": True,
-            "can_damage": True,
-            "cost": 10,
-            "display_coordinates": (0, -1),
-            "attached_settlement": True,
-            "image_id_list": [
-                {"image_id": "buildings/train_station.png"},
-                {"image_id": "buildings/infrastructure/down_railroad.png"},
-            ],
-            "build_keybind": pygame.K_t,
-        }
-    )
-    building_types.building_type(
-       {
-           "key": constants.RESOURCE,
-           "name": "resource production facility",
-           "warehouse_level": 1,
-           "can_construct": True,
-           "can_damage": True,
-           "cost": 10,
-           "description": [
-               "A resource production facility allows attaching work crews to attempt to produce resources each turn, and expands the location's warehouse capacity.",
-               "Upgrades can increase the maximum number of attached work crews and the number of production attempts each work crew can make.",
-           ],
-           "upgrade_fields": {
-               constants.RESOURCE_SCALE: {
-                   "cost": constants.base_upgrade_price,
-                   "max": 6,
-                   "name": "scale",
-                   "description": [
-                      "Each increase to scale allows another work crew to work here."
-                   ]"
-               },
-               constants.RESOURCE_EFFICIENCY: {
-                   "cost": constants.base_upgrade_price,
-                    "max": 6,
-                    "name": "efficiency",
-                    "description": [
-                       "Each increase to efficiency allows each work crew to make an additional production attempt each turn."
-                   ],
-               },
-           },
-           "attached_settlement": True,
-           "build_keybind": pygame.K_g,
-       }
-    )
-    building_types.building_type(
-        {
-            "key": constants.FORT,
-            "name": "fort",
-            "description": [
-                "A fort grants a +1 combat modifier to your units fighting in this location."
-            ],
-            "can_construct": True,
-            "can_damage": True,
-            "cost": 5,
-            "display_coordinates": (-1, 1),
-            "attached_settlement": True,
-            "build_requirements": [
-                constants.GROUP_PERMISSION,
-                constants.BATTALION_PERMISSION,
-            ],
-            "build_keybind": pygame.K_v,
-        }
-    )
-    building_types.building_type(
-        {
-            "key": constants.TRAIN,
-            "name": "train",
-            "description": [
-                "A train can be built as a vehicle with 27 inventory capacity and 16 movement points that is restricted to moving on railroads and loading/unloading on train stations."
-            ],
-            "can_construct": True,
-            "can_damage": False,
-            "cost": 10,
-            "build_keybind": pygame.K_y,
-            "image_id_list": [{"image_id": "mobs/train/default.png"}],
-            "button_image_id_list": [
-                "buttons/default_button_alt.png",
-                {
-                    "image_id": "mobs/train/default.png",
-                    "size": 0.95,
-                    "x_offset": 0,
-                    "y_offset": 0,
-                    "level": 1,
-                },
-            ],
-        }
-    )
-
-    building_types.building_type(
-        {
-            "key": constants.WAREHOUSES,
-            "name": "warehouses",
-            "can_construct": False,
-            "can_damage": False,
-            "cost": 5,
-            "upgrade_fields": {
-                constants.WAREHOUSE_LEVEL: {
-                    "name": "warehouse capacity",
-                    "cost": constants.base_upgrade_price,
-                    "keybind": pygame.K_k,
-                    "description": [
-                        "Each increase to warehouse capacity increases this location's inventory capacity by 9."
-                    ],
-                },
-            },
-            "image_id": [],
-        }
-    )
-    building_types.building_type(
-        {
-            "key": constants.INFRASTRUCTURE,
-            "name": "infrastructure",
-            "can_construct": True,
-            "can_damage": False,
-            "cost": 5, # 15 for railroad, 50 for ferry, 100 for road bridge, 300 for railroad bridge?
-            "build_keybind": pygame.K_r,
-        }
-    )
-    """
     # Add attrition modifiers
     # add upgrade types
 
@@ -2954,7 +2830,7 @@ def inventory_interface() -> None:
                     "image_id": "misc/circle.png",
                     "green_screen": current_item_type.background_color,
                 },
-                f"items/{current_item_type.key}.png",
+                f"items/{current_item_type.item_category}/{current_item_type.key}.png",
             ]
             input_dict["item_type"] = current_item_type
             new_sellable_item_button = (

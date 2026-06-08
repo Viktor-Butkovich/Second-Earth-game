@@ -1,0 +1,136 @@
+% chktex-file 8
+%   Allow dashes
+% chktex-file 17
+%   Don't require matching number of brackets and parentheses
+% chktex-file 11
+%   Allow ellipsis
+% chktex-file 44
+%   Allow regex
+% chktex-file 9
+%   Allow unmatched brackets and parentheses
+% chktex-file 36
+%   ALlow parentheses without spaces in front of them
+% chktex-file 40
+%   Allow factorials
+% chktex-file 12
+%   Don't require inter-word spaces
+% chktex-file 3
+%   Don't require enclosing parentheses with braces
+% chktex-file 13
+%   Don't require intersentence spaces
+% chktex-file 26
+%   Allow spaces in front of punctuation
+\documentclass{article}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage[a4paper, margin=1in]{geometry}
+\usepackage{graphicx}
+\usepackage{hyperref}
+\usepackage{listings}
+\usepackage{cancel}
+\lstset{
+basicstyle=\small\ttfamily,
+columns=flexible,
+breaklines=true
+}
+
+\begin{document}
+
+\section*{Item Types Design}
+\begin{itemize}
+    \item We distinguish between `materials', `resources', and `equipment' items.
+    \begin{itemize}
+        \item \textbf{Materials}, like metals or chemicals, have a notion of quality and technological advancement, where certain techniques or
+            facilities might produce/require certain tiers and material types. Many of the 4-6 tiers of each type are likely to require special
+            resources found on exoplanets, along with new technologies. These types, in addition to the tier-less resources, should
+            encompass all upkeep and the requirements of all production and construction.
+        \item \textbf{Resources}, like oxygen or consumer goods, have some simple identity, and the only advancement is in terms of the scale or ease at which they are produced.
+        \item \textbf{Equipment}, like a spacesuit, vehicle, deployable module, or building, is an individual item or construct with capabilities based on
+            stats and type, and not handled in bulk/stacks. Some are formally `items' and can be carried (e.g. a spacesuit), while
+            others are more abstract (e.g. a power plant or type of engineered microbe) and can use similar stat-like representations
+            but are not inventory items.
+    \end{itemize}
+    \item The 6 following tiers are considered for materials. Only 1-3 are available at the start of the game.
+    \begin{enumerate}
+        \item \textbf{Baseline}: iron, copper, wood, stone capable of basic construction, especially ground-based construction within Earth-like conditions - used in modern housing, tools, power infrastructure, etc.
+        \item \textbf{Modern}: steel, concrete, glass, silicon, etc. for more advanced construction, for bulk construction exposed to harsh conditions - used in standard modern factories, skyscrapers, tanks, digital infrastructure, etc.
+        \item \textbf{High-end}: titanium, aluminum, carbon fiber, gold, rare earth metals, etc. for resilient ground and space-capable construction - used in high-end modern `smart' buildings, aircraft, spaceships, high-performance computing, etc.
+        \item \textbf{Post-modern}: nanomaterials, aerogels, superconductors, etc. - modern research grade but not feasible at scale, likely allowing fusion, quantum computing, etc. if they became widely available
+        \item \textbf{Future materials}: likely only theoretical or unconsidered at this point.
+        \item \textbf{Future materials}: likely only theoretical or unconsidered at this point.
+    \end{enumerate}
+    \item The 7 following types are considered for materials.
+    \begin{itemize}
+        \item \textbf{Structural metals}: Used for structural support and machinery
+        \begin{enumerate}
+            \item Iron and other basic widespread metals that can be used for heavy construction
+            \item Steel, magnesium, aluminum, etc. used in modern cities
+            \item Titanium and advanced alloys used in `smart' construction and modern aerospace
+            \item Post-modern - materials only at research stage now
+            \item Future materials - likely only theoretical or unconsidered at this point.
+            \item Future materials - likely only theoretical or unconsidered at this point.
+        \end{enumerate}
+        \item \textbf{Construction materials}: Non-metals used as structural base 
+        \begin{enumerate}
+            \item Wood, stone, etc. for basic widespread construction in earth-like conditions
+            \item Concrete, glass, ceramics, etc. used at industrial scale
+            \item Carbon fiber, aerogel, etc. non-metallic materials used in advanced construction and aerospace
+            \item Post-modern - materials only at research stage now
+            \item Future materials - likely only theoretical or unconsidered at this point.
+            \item Future materials - likely only theoretical or unconsidered at this point.
+        \end{enumerate}
+        \item \textbf{Advanced materials}: Used for specialized properties like unusual conductivity, corrosion or heat resistance, etc.
+        \begin{enumerate}
+            \item Copper and other basic conductive materials for power infrastructure
+            \item Silicon and other materials of modern computing chips, bulk solar panels, etc.
+            \item Gold, silver, and rare earth metals sought after for high-end electronics and industrial applications
+            \item Post-modern - materials only at research stage now
+            \item Future materials - likely only theoretical or unconsidered at this point.
+            \item Future materials - likely only theoretical or unconsidered at this point.
+        \end{enumerate}
+        \item \textbf{Fuels}: Used for energy and vehicles
+        \begin{enumerate}
+            \item Coal, wood, and other simple combustibles
+            \item Oil, natural gas, etc. capable of at least fueling cars or generators
+            \item Hydrazine, jet fuel, rocket fuel, etc. capable of fueling aircraft and spaceships
+            \item Post-modern - materials only at research stage now
+            \item Future materials - likely only theoretical or unconsidered at this point.
+            \item Future materials - likely only theoretical or unconsidered at this point.
+        \end{enumerate}
+        \item \textbf{Chemicals}: Process reagents and products for manufacturing, fertilizers, pesticides, etc. Includes a wide variety of
+            fertilizer, solvents, catalysts, polymers, rubbers, coatings, etc., but not directly biological
+        \begin{itemize}
+            \item Similar 1-6 scale
+        \end{itemize}
+        \item \textbf{Biomaterials}: Nutrients, pharmaceuticals, medical supplies, cell culture media, enzymes, engineered tissues, etc., but not
+            directly industrial unless in a biotech context
+        \begin{itemize}
+            \item Similar 1-6 scale
+        \end{itemize}
+        \item \textbf{Nuclear materials}: Fissile materials for nuclear power
+        \begin{itemize}
+            \item Similar 1-6 scale
+        \end{itemize}
+    \end{itemize}
+    \item \textbf{Resources}: Oxygen, GHGs, inert gases, toxic gases, water, food, consumer goods, energy
+    \begin{itemize}
+        \item Energy is unique in that, while being consumed and produced like a resource, it is not stored or distributed as a physical item.
+    \end{itemize}
+\end{itemize}
+
+\end{document}
+
+% Sample figure
+%\begin{figure}[!ht]
+%    \centering
+%    \includegraphics[width=350px]{screenshot_1.png}
+%    \caption{Sample caption}
+%\end{figure}
+
+% Sample hyperlink
+% \item \href{URL}{Label}
+
+% Sample listing
+% \begin{lstlisting}[language=Python, caption=Sample Python Code]
+% print("Hello World")
+% \end{lstlisting}

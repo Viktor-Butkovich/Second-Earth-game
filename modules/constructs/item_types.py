@@ -23,10 +23,12 @@ class item_type:
                 'key': string value - Key of this equipment type
                 'description': string list value - Description tooltip for this equipment type
                 'price': float value - Purchase price of this equipment type
+                'item_category': string value - Category of this item type - material, resource, or equipment
         Output:
             None
         """
         self.key: str = input_dict["equipment_type"]
+        self.item_category: str = input_dict["item_category"]
         status.item_types[self.key] = self
         self.description: List[str] = input_dict.get("description", [])
 
@@ -44,7 +46,7 @@ class item_type:
             "allow_price_variation", False
         )
         self.item_image: str = input_dict.get(
-            "item_image", "items/consumer_goods.png"
+            "item_image", "items/resources/consumer_goods.png"
         )  # Basic image that can be used in icons
         self.background_color: tuple = input_dict.get(
             "background_color", constants.color_dict[constants.COLOR_GREEN_ICON]

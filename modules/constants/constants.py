@@ -946,9 +946,13 @@ ADJACENT_LOCATION_EXPLORATION_NOTIFICATION: str = (
     "adjacent_location_exploration_notification"
 )
 
+EQUIPMENT_ITEM_CATEGORY: str = "equipment"
+MATERIAL_ITEM_CATEGORY: str = "material"
+RESOURCE_ITEM_CATEGORY: str = "resource"
+
 SPACESUITS_EQUIPMENT: str = "spacesuits"
 CONSUMER_GOODS_ITEM: str = "consumer_goods"
-FUEL_ITEM: str = "fuel"
+FUELS_ITEM: str = "fuels"
 ENERGY_ITEM: str = "energy"
 FOOD_ITEM: str = "food"
 WATER_ITEM: str = "water"

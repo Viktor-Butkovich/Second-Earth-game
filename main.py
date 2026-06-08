@@ -426,7 +426,21 @@ except Exception:  # Displays error message and records error message in crash l
     Individual officers can easily be replaced or uplifted from the general population, so workers of different skill
         levels would be the main limited resource
     Potentially "stun" units for a variable amount of turns as an officer replacement is found
-"""
+30. Item types: See the item types notes at notes/tex_notes/item_notes.pdf
+31. Imagery sources: Good inspiration for native planet terrain
+    * Mars:
+        * https://astrogeology-usgs.hub.arcgis.com/pages/interactive-maps-mars
+        * https://trek.nasa.gov/mars/
+        * https://explore-mars.esri.com/
+    * Venus:
+        * https://astrogeology-usgs.hub.arcgis.com/pages/interactive-maps-venus
+        * https://venus.quickmap.io
+        * https://trek.nasa.gov/venus/
+        * https://www.davidrumsey.com/luna/servlet/detail/RUMSEY~8~1~329838~90098292:Interactive-Globe--Venus-Magellan-G
+    * Earth:
+        * https://worldview.earthdata.nasa.gov/
+32. Construction site system: See the construction site notes at notes/tex_notes/construction_site_notes.pdf
+    """
 # Introduce TypeDicts (reference keyboard assignment), particularly for input_dicts and image_dicts
 # Eventually look into planets where magnetic tilt != sun direction, tidally locked, etc.
 # Add new colors for soil mapmode - gray to dark brown
@@ -452,6 +466,11 @@ except Exception:  # Displays error message and records error message in crash l
 # If re-factored, an observer pattern with publish and subscribe events could be useful for syncing data, particularly button presses (click the buttons subscribed to this key)
 
 # Upcoming work queue:
+# Update file paths for new materials/resources/equipment system
+# Add materials
+# Add blueprint mode for building design, and buttons to enter it for each building type
+# Add construction sites
+# Add construction site progress system
 # Test updated warehouse system
 """
 Develop a system for buildings in zones

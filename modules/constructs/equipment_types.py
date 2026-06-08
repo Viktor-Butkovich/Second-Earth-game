@@ -27,6 +27,7 @@ class equipment_type(item_types.item_type):
         Output:
             None
         """
+        input_dict["item_category"] = constants.EQUIPMENT_ITEM_CATEGORY
         super().__init__(input_dict)
 
         self.effects: Dict[str, any] = input_dict.get("effects", {})

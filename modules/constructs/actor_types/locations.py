@@ -1835,12 +1835,12 @@ class location(actors.actor):
             Dict[str, float]: Dictionary of items with amounts that can not be provided
         """
         if constants.ENERGY_ITEM in requested_items:
-            possible_energy = self.get_inventory(status.item_types[constants.FUEL_ITEM])
+            possible_energy = self.get_inventory(status.item_types[constants.FUELS_ITEM])
             created_energy = min(
                 possible_energy, requested_items[constants.ENERGY_ITEM]
             )
             sufficient_energy = self.consume_items(
-                {constants.FUEL_ITEM: requested_items[constants.ENERGY_ITEM]}
+                {constants.FUELS_ITEM: requested_items[constants.ENERGY_ITEM]}
             )
             missing_energy = requested_items[constants.ENERGY_ITEM] - created_energy
             self.change_inventory(

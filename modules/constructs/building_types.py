@@ -52,10 +52,10 @@ class building_type:
         )
         self.link_to_adjacent: bool = input_dict.get("link_to_adjacent", False)
         self.image_id_list: List[Any] = input_dict.get(
-            "image_id", [{"image_id": f"buildings/{self.key}.png"}]
+            "image_id", [{"image_id": f"items/equipment/buildings/{self.key}.png"}]
         )
         self.button_image_id_list: List[Any] = input_dict.get(
-            "button_image_id_list", [{"image_id": f"buildings/buttons/{self.key}.png"}]
+            "button_image_id_list", [{"image_id": f"items/equipment/buildings/buttons/{self.key}.png"}]
         )
         self.attached_settlement: bool = input_dict.get("attached_settlement", False)
         self.cost: int = input_dict.get("cost", 0)

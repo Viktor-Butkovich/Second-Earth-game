@@ -293,7 +293,7 @@ class pmob(mob):
             if value == True:
                 if key == constants.ENERGY_ITEM:
                     key = (
-                        constants.FUEL_ITEM
+                        constants.FUELS_ITEM
                     )  # If checking if any energy is present, check fuel instead
                 self.item_upkeep_present[key] = self.item_present(
                     status.item_types[key]

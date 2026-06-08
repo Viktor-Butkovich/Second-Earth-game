@@ -2,7 +2,7 @@
 
 import random
 from modules.constructs.actor_types.mob_types.groups import group
-from modules.constructs.buildings import resource_building
+from modules.constructs import buildings
 from modules.util import actor_utility, utility, market_utility
 from modules.constants import constants, status, flags
 
@@ -52,7 +52,7 @@ class work_crew(group):
         )
         self.select()
 
-    def attempt_production(self, current_building: resource_building):
+    def attempt_production(self, current_building: buildings.building):
         """
         Description:
             Attempts to produce resources at a production building at the end of a turn. A work crew makes a number of rolls equal to the building's efficiency level, and each successful roll produces a unit of the building's

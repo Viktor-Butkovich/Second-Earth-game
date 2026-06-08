@@ -1,0 +1,89 @@
+% chktex-file 8
+%   Allow dashes
+% chktex-file 17
+%   Don't require matching number of brackets and parentheses
+% chktex-file 11
+%   Allow ellipsis
+% chktex-file 44
+%   Allow regex
+% chktex-file 9
+%   Allow unmatched brackets and parentheses
+% chktex-file 36
+%   ALlow parentheses without spaces in front of them
+% chktex-file 40
+%   Allow factorials
+% chktex-file 12
+%   Don't require inter-word spaces
+% chktex-file 3
+%   Don't require enclosing parentheses with braces
+% chktex-file 13
+%   Don't require intersentence spaces
+% chktex-file 26
+%   Allow spaces in front of punctuation
+\documentclass{article}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage[a4paper, margin=1in]{geometry}
+\usepackage{graphicx}
+\usepackage{hyperref}
+\usepackage{listings}
+\usepackage{cancel}
+\lstset{
+basicstyle=\small\ttfamily,
+columns=flexible,
+breaklines=true
+}
+
+\begin{document}
+
+\section*{Construction Site Notes}
+\begin{itemize}
+    \item User flow:
+    \begin{enumerate}
+        \item Click on a zone
+        \item Click button to start designing a building. Each building type can have its own button.
+        \item Initiating design enters a new "blueprint mode", where you specify any desired details of the building - this creates a
+            hypothetical building "blueprint" visible at the zone. Only one such blueprint can exist per zone at a time.
+        \begin{itemize}
+            \item Building details include building type, tolerance to environmental conditions, quality, etc., which determine materials
+                required per construction step attempt, number of successful attempts required to complete, and expected value of step
+                attempts and materials spent to complete
+        \end{itemize}
+        \item Upon confirming details, a small amount of construction materials are immediately allocated, and a construction site is
+            created. There should be another interface mode that describes any construction sites or completed buildings in the
+            zone, which should be able to support multiple of these existing at once (scrolling through them). These specifications
+            should reflect the player's current posterior belief about the building, but may not have actually been implemented 
+            fully (update belief upon specific evidence arising).
+        \item When a construction site and construction crew are selected, the construction crew can be attached to the site.
+        \item During the end of the turn, checks should be rolled to make progress on the site, using up materials over time.
+        \begin{itemize}
+            \item It should be toggleable by a construction site whether these rolls will be shown to the player or automated. Whether they
+                are shown should never affect the outcome.
+            \item Minister theft can occur via either direct theft of materials, theft of wages of crew(s), and/or using a substandard
+                amount of materials to create a slightly off-blueprint building and keeping the excess
+        \end{itemize}
+        \item Upon completion, the building is created where the site was, and the construction crew(s) are unattached.
+    \end{enumerate}
+    \item A pre-built module acts as the above, but selecting the pre-built module item opens up a selector to create a
+        deployment site in some zone in the location, which opens a blueprint mode with pre-filled, immutable details, and with a
+        very abbreviated construction process.
+    \item Designing a contracted (or built on-site) module or spaceship, or an engineered microbe, or a variety of equipment should use a very similar system.
+    \item Idea - potentially have about 6 progress steps required for each building, but each success can give some number of progress steps.
+\end{itemize}
+
+\end{document}
+
+% Sample figure
+%\begin{figure}[!ht]
+%    \centering
+%    \includegraphics[width=350px]{screenshot_1.png}
+%    \caption{Sample caption}
+%\end{figure}
+
+% Sample hyperlink
+% \item \href{URL}{Label}
+
+% Sample listing
+% \begin{lstlisting}[language=Python, caption=Sample Python Code]
+% print("Hello World")
+% \end{lstlisting}

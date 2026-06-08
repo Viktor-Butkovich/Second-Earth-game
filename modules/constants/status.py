@@ -50,7 +50,7 @@ from modules.interface_components.tables import table_grid
 from modules.interface_components.info_display_elements.info_display_buttons import (
     actor_icon,
 )
-from modules.constructs.buildings import building, resource_building
+from modules.constructs.buildings import building
 from modules.constructs.actor_types.mobs import mob
 from modules.constructs.actor_types.mob_types.pmobs import pmob
 from modules.constructs.actor_types.mob_types.npmobs import npmob
@@ -114,7 +114,6 @@ mob_list: List[mob] = []
 pmob_list: List[pmob] = []
 npmob_list: List[npmob] = []
 building_list: List[building] = []
-resource_building_list: List[resource_building] = []
 loan_list: List[loan] = []
 attacker_queue: List[npmob] = []
 enemy_turn_queue: List[npmob] = []

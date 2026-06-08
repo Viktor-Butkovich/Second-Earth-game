@@ -39,9 +39,6 @@ class construction(action.action):
             self.building_name = constants.ROAD
         constants.transaction_descriptions["construction"] = "construction"
         self.requirements += self.building_type.build_requirements
-        if self.building_type.key == constants.RESOURCE:
-            self.attached_resource: item_types.item_type = None
-            self.building_name = "resource production facility"
         self.name = "construction"
         self.allow_critical_failures = False
         self.target_zone: zones.zone = None
@@ -57,24 +54,7 @@ class construction(action.action):
             None
         """
         initial_input_dict = super().button_setup(initial_input_dict)
-        if self.building_type.key == constants.RESOURCE:
-            displayed_resource = self.attached_resource
-            if not displayed_resource:
-                displayed_resource = "consumer goods"
-            initial_input_dict["image_id"] = [
-                "buttons/default_button_alt2.png",
-                {"image_id": f"items/{displayed_resource}.png"},
-                {
-                    "image_id": "misc/plus.png",
-                    "size": 0.5,
-                    "x_offset": 0.3,
-                    "y_offset": 0.2,
-                },
-            ]
-        elif self.building_type.key == constants.INFRASTRUCTURE:
-            initial_input_dict["image_id"] = "buildings/buttons/road.png"
-        else:
-            initial_input_dict["image_id"] = self.building_type.button_image_id_list
+        initial_input_dict["image_id"] = self.building_type.button_image_id_list
         initial_input_dict["keybind_id"] = self.building_type.build_keybind
         return initial_input_dict
 
@@ -176,61 +156,6 @@ class construction(action.action):
             self.current_unit, self.building_type.key, self.building_name
         )
 
-    def can_show(self):
-        """
-        Description:
-            Returns whether a button linked to this action should be drawn - if correct type of unit selected and building not yet present in location
-        Input:
-            None
-        Output:
-            boolean: Returns whether a button linked to this action should be drawn
-        """
-        can_show = super().can_show()
-        if can_show:
-            self.update_info()
-        return can_show
-
-    def update_info(self):
-        """
-        Description:
-            Updates this action based on any local circumstances, such as changing resource building built depending on local resource
-        Input:
-            None
-        Output:
-            None
-        """
-        if self.building_type.key == constants.RESOURCE:
-            if status.displayed_mob.location.resource != self.attached_resource:
-                self.attached_resource = None
-                self.building_name = "resource production facility"
-
-                displayed_resource = self.attached_resource
-                if not displayed_resource:
-                    displayed_resource = "consumer goods"
-                self.button.image.set_image(
-                    [
-                        "buttons/default_button_alt2.png",
-                        {"image_id": f"items/{displayed_resource}.png"},
-                        {
-                            "image_id": "misc/plus.png",
-                            "size": 0.5,
-                            "x_offset": 0.3,
-                            "y_offset": 0.2,
-                        },
-                    ]
-                )
-
-        elif self.building_type.key == constants.INFRASTRUCTURE:
-            if not status.displayed_mob.location.has_building(constants.INFRASTRUCTURE):
-                new_name = "road"
-                new_image = "buildings/buttons/road.png"
-            else:
-                new_name = "railroad"
-                new_image = "buildings/buttons/railroad.png"
-            if new_name != self.building_name:
-                self.building_name = new_name
-                self.button.image.set_image(new_image)
-
     def can_build(self, unit):
         """
         Description:
@@ -245,30 +170,6 @@ class construction(action.action):
                 "This building can only be built on the planet."
             )
             return False
-        elif self.building_type.key == constants.RESOURCE:
-            if self.attached_resource:
-                return True
-            else:
-                text_utility.print_to_screen(
-                    "This building can only be built in locations with resources."
-                )
-                return False
-        elif self.building_type.key == constants.TRAIN_STATION:
-            if unit.location.has_intact_building(constants.RAILROAD):
-                return True
-            else:
-                text_utility.print_to_screen(
-                    "This building can only be built on railroads."
-                )
-                return False
-        elif self.building_type.key == constants.TRAIN:
-            if unit.location.has_intact_building(constants.TRAIN_STATION):
-                return True
-            else:
-                text_utility.print_to_screen(
-                    "This building can only be built on train stations"
-                )
-                return False
         else:
             return True
 

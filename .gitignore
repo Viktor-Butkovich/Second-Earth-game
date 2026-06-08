@@ -11,3 +11,9 @@ artifacts/*
 venv/
 Outputs/
 autogui/*
+*.aux
+*.fdb_latexmk
+*.fls
+*.log
+*.out
+*.synctex.gz

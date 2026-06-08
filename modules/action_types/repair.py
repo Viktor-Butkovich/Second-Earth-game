@@ -73,11 +73,11 @@ class repair(action.action):
         initial_input_dict = super().button_setup(initial_input_dict)
         if self.building_type.key != constants.RESOURCE:
             initial_input_dict["image_id"] = [
-                f"buildings/buttons/{self.building_type.key}.png",
-                "buildings/repair_hammer.png",
+                f"items/equipment/buildings/buttons/{self.building_type.key}.png",
+                "items/equipment/buildings/repair_hammer.png",
             ]
         else:
-            initial_input_dict["image_id"] = "buildings/buttons/repair_resource.png"
+            initial_input_dict["image_id"] = "items/equipment/buttons/repair_resource.png"
         initial_input_dict["keybind_id"] = status.actions[
             self.building_type.key
         ].button.keybind_id

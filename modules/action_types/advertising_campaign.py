@@ -155,7 +155,7 @@ class advertising_campaign(action.campaign):
                             "size": 0.75,
                         },
                         {
-                            "image_id": f"items/{self.target_unadvertised_item.key}.png",
+                            "image_id": f"items/{self.target_unadvertised_item.item_category}/{self.target_unadvertised_item.key}.png",
                             "size": 0.75,
                         },
                         {
@@ -184,7 +184,7 @@ class advertising_campaign(action.campaign):
                             "size": 0.75,
                         },
                         {
-                            "image_id": f"items/{self.target_item.key}.png",
+                            "image_id": f"items/{self.target_item.item_category}/{self.target_item.key}.png",
                             "size": 0.75,
                         },
                         {

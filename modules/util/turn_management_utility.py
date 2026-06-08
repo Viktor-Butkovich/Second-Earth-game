@@ -342,32 +342,7 @@ def manage_production():
     for current_item in status.item_types.values():
         current_item.amount_produced_this_turn = 0
         expected_production[current_item.key] = 0
-    for current_resource_building in status.resource_building_list:
-        if not current_resource_building.damaged:
-            for current_work_crew in current_resource_building.subscribed_work_crews:
-                if current_work_crew.movement_points >= 1:
-                    if current_work_crew.get_permission(constants.VETERAN_PERMISSION):
-                        expected_production[
-                            current_resource_building.resource_type.key
-                        ] += (
-                            0.75
-                            * current_resource_building.upgrade_fields[
-                                constants.RESOURCE_EFFICIENCY
-                            ]
-                        )
-                    else:
-                        expected_production[
-                            current_resource_building.resource_type.key
-                        ] += (
-                            0.5
-                            * current_resource_building.upgrade_fields[
-                                constants.RESOURCE_EFFICIENCY
-                            ]
-                        )
-            current_resource_building.produce()
-            current_resource_building.resource_type.production_attempted_this_turn = (
-                True
-            )
+    # Go through production buildings
     manage_production_report(expected_production)
 
 

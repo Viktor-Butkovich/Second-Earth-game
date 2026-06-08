@@ -242,8 +242,8 @@ class supply_chain_plan:
         """
         total_demand = self.location.location_item_upkeep_demand.copy()
         if constants.ENERGY_ITEM in total_demand:
-            total_demand[constants.FUEL_ITEM] = (
-                total_demand.get(constants.FUEL_ITEM, 0.0)
+            total_demand[constants.FUELS_ITEM] = (
+                total_demand.get(constants.FUELS_ITEM, 0.0)
                 + total_demand[constants.ENERGY_ITEM]
             )
             del total_demand[
