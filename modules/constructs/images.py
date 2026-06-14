@@ -3,6 +3,9 @@
 from __future__ import annotations
 import pygame
 import math
+import pathlib
+import numpy as np
+from PIL import Image
 from typing import List, Dict, Tuple, Any
 from modules.util import (
     utility,
@@ -533,23 +536,9 @@ class bundle_image:
             try:
                 if full_image_id.endswith(".png"):
                     self.text = False
-                    try:  # use if there are any image path issues to help with file troubleshooting, shows the file location in which an image was expected
-                        self.image = pygame.image.load(full_image_id)
-                    except:
-                        self.image = pygame.image.load(full_image_id)
-                    self.image.convert()
-                    size = self.image.get_size()
-                    self.image = pygame.transform.scale(  # Decrease detail of each image before applying pixel mutations to speed processing
-                        self.image,
-                        (
-                            math.floor(size[0] * self.detail_level),
-                            math.floor(size[1] * self.detail_level),
-                        ),
-                    )
-                    if self.is_offset and (
-                        self.has_green_screen or self.has_color_filter
-                    ):
-                        self.apply_per_pixel_mutations()
+                    if not pathlib.Path(full_image_id).exists():
+                        raise FileNotFoundError(f"Image file not found: {full_image_id}")
+                    self.image = self.load_image_pil(full_image_id)
                 else:
                     self.text = True
                     self.image = text_utility.text(self.image_id, self.font)
@@ -581,154 +570,83 @@ class bundle_image:
                 self.image.set_alpha(self.alpha)
             status.cached_images[key] = self.image
 
-    def apply_per_pixel_mutations(self) -> None:
+    def load_image_pil(self, path: str) -> pygame.Surface:
         """
-        Applies green screen and color filter changes to this image
+        Description:
+            Loads the inputted image via PIL, applies downscaling, green screen, and color filter processing
+        Input:
+            string path: The path to the image file to be loaded.
+        Output:
+            pygame.Surface: Returns the preprocessed image as a pygame Surface.
         """
-        width, height = self.image.get_size()
-        smart_green_screen = (
-            self.has_green_screen and type(self.green_screen_colors) == dict
-        )
-        color_cache = (
-            {}
-        )  # Avoid re-computing color changes for that starting color for the rest of the image
-        for x in range(width):
-            for y in range(height):
+        pil_img = Image.open(path).convert("RGBA")
+
+        if self.detail_level != 1: # Decrease detail of each image before applying mutations to speed processing
+            w, h = pil_img.size
+            pil_img = pil_img.resize(
                 (
-                    original_red,
-                    original_green,
-                    original_blue,
-                    alpha,
-                ) = self.image.get_at((x, y))
-                red, green, blue = (
-                    original_red,
-                    original_green,
-                    original_blue,
-                )
-                if (
-                    color_cache.get((original_red, original_green, original_blue), None)
-                    == None
-                ):
-                    if self.has_green_screen:
-                        if smart_green_screen:
-                            replaced = False
-                            for terrain_type in self.green_screen_colors:
-                                if not replaced:
-                                    metadata = self.green_screen_colors[terrain_type]
-                                    for base_color in metadata["base_colors"]:
-                                        displacement = self.get_color_difference(
-                                            (red, green, blue),
-                                            base_color,
-                                        )
-                                        if (
-                                            sum([abs(a) for a in displacement])
-                                            <= metadata["tolerance"]
-                                        ):
-                                            replaced = True
-                                            difference_proportion = (
-                                                min(red / base_color[0], 1.5),
-                                                min(
-                                                    green / base_color[1],
-                                                    1.5,
-                                                ),
-                                                min(
-                                                    blue / base_color[2],
-                                                    1.5,
-                                                ),
-                                            )
-                                            red = min(
-                                                max(
-                                                    round(
-                                                        metadata["replacement_color"][0]
-                                                        * difference_proportion[0]
-                                                    ),
-                                                    0,
-                                                ),
-                                                255,
-                                            )
-                                            green = min(
-                                                max(
-                                                    round(
-                                                        metadata["replacement_color"][1]
-                                                        * difference_proportion[1]
-                                                    ),
-                                                    0,
-                                                ),
-                                                255,
-                                            )
-                                            blue = min(
-                                                max(
-                                                    round(
-                                                        metadata["replacement_color"][2]
-                                                        * difference_proportion[2]
-                                                    ),
-                                                    0,
-                                                ),
-                                                255,
-                                            )
-                                            break
-                                else:
-                                    break
-                        else:
-                            if self.override_green_screen_colors:
-                                replaced_colors = self.override_green_screen_colors
-                            else:
-                                replaced_colors = constants.green_screen_colors
-                            for index, current_replaced_color in enumerate(
-                                replaced_colors
-                            ):
-                                # If pixel matches preset green screen color, replace it with the image's corresponding replacement color
-                                if (
-                                    red,
-                                    green,
-                                    blue,
-                                ) == current_replaced_color:
-                                    (
-                                        red,
-                                        green,
-                                        blue,
-                                    ) = self.green_screen_colors[index]
-                                    break
-                    if self.has_color_filter:
-                        red = round(
-                            max(
-                                min(
-                                    self.color_filter.get(constants.COLOR_RED, 1) * red,
-                                    255,
-                                ),
-                                0,
-                            )
-                        )
-                        green = round(
-                            max(
-                                min(
-                                    self.color_filter.get(constants.COLOR_GREEN, 1)
-                                    * green,
-                                    255,
-                                ),
-                                0,
-                            )
-                        )
-                        blue = round(
-                            max(
-                                min(
-                                    self.color_filter.get(constants.COLOR_BLUE, 1)
-                                    * blue,
-                                    255,
-                                ),
-                                0,
-                            )
-                        )
-                    color_cache[(original_red, original_green, original_blue)] = (
-                        red,
-                        green,
-                        blue,
-                    )
-                else:
-                    red, green, blue = color_cache[
-                        (original_red, original_green, original_blue)
-                    ]
-                self.image.set_at((x, y), (red, green, blue, alpha))
+                    max(1, math.floor(w * self.detail_level)),
+                    max(1, math.floor(h * self.detail_level)),
+                ),
+                Image.NEAREST,
+            )
+
+        arr = np.array(pil_img) # (H, W, 4)
+        r, g, b, a = arr[:, :, 0], arr[:, :, 1], arr[:, :, 2], arr[:, :, 3]
+
+        if self.is_offset and self.has_green_screen:
+            if isinstance(self.green_screen_colors, dict): # If tolerance-based replacement
+                unassigned = np.ones(r.shape, dtype=bool)
+                for terrain_type, metadata in self.green_screen_colors.items():
+                    base_colors, tolerance, repl = metadata["base_colors"], metadata["tolerance"], metadata["replacement_color"]
+                    for base_r, base_g, base_b in base_colors:
+                        diff = np.abs(r.astype(np.int16) - int(base_r)) + np.abs(g.astype(np.int16) - int(base_g)) + np.abs(b.astype(np.int16) - int(base_b))
+
+                        mask = (diff <= tolerance) & unassigned
+                        if not np.any(mask):
+                            continue
+
+
+                        # difference proportion (clamped to 1.5)
+                        dr = np.minimum(r[mask] / base_r, 1.5) if base_r != 0 else 1
+                        dg = np.minimum(g[mask] / base_g, 1.5) if base_g != 0 else 1
+                        db = np.minimum(b[mask] / base_b, 1.5) if base_b != 0 else 1
+
+                        r[mask] = np.clip(np.round(repl[0] * dr), 0, 255)
+                        g[mask] = np.clip(np.round(repl[1] * dg), 0, 255)
+                        b[mask] = np.clip(np.round(repl[2] * db), 0, 255)
+
+                        unassigned[mask] = False
+
+                        if not unassigned.any(): # Stop if all pixels are already assigned
+                            break
+
+            else: # If simple color-based replacement
+                if self.override_green_screen_colors:
+                    replaced_colors = self.override_green_screen_colors
+                else: # Use the default set of colors to replace
+                    replaced_colors = constants.green_screen_colors
+
+                for idx, (gr, gg, gb) in enumerate(replaced_colors):
+                    mask = (r == gr) & (g == gg) & (b == gb)
+                    if np.any(mask):
+                        repl = self.green_screen_colors[idx]
+                        r[mask] = repl[0]
+                        g[mask] = repl[1]
+                        b[mask] = repl[2]
+
+        if self.is_offset and self.has_color_filter:
+            rf = self.color_filter.get(constants.COLOR_RED, 1)
+            gf = self.color_filter.get(constants.COLOR_GREEN, 1)
+            bf = self.color_filter.get(constants.COLOR_BLUE, 1)
+            r[:] = np.clip(np.round(r * rf), 0, 255)
+            g[:] = np.clip(np.round(g * gf), 0, 255)
+            b[:] = np.clip(np.round(b * bf), 0, 255)
+            
+        arr = np.stack([r, g, b, a], axis=-1).astype(np.uint8)
+        pil_img = Image.fromarray(arr, mode="RGBA")
+        surface = pygame.image.fromstring(pil_img.tobytes(), pil_img.size, pil_img.mode)
+        return surface
 
 
 class free_image(image):

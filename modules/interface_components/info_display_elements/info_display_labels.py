@@ -550,10 +550,7 @@ class actor_display_label(labels.label):
                     },
                 )
 
-                if self.actor_label_type in [
-                    constants.GHG_LABEL,
-                    constants.AVERAGE_WATER_LABEL,
-                ]:
+                if self.actor_label_type == constants.AVERAGE_WATER_LABEL:
                     change_magnitude = 100
                 else:
                     change_magnitude = 1000
