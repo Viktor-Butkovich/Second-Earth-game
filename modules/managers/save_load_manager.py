@@ -71,7 +71,7 @@ class save_load_manager:
         game_transitions.create_grids()
 
         for current_item in status.item_types.values():
-            if current_item.key == constants.CONSUMER_GOODS_ITEM:
+            if current_item.key == constants.RESOURCE_CONSUMER_GOODS:
                 market_utility.set_price(
                     current_item, constants.consumer_goods_starting_price
                 )

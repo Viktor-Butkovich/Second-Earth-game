@@ -27,7 +27,7 @@ class item_type:
         Output:
             None
         """
-        self.key: str = input_dict["equipment_type"]
+        self.key: str = input_dict["key"]
         self.item_category: str = input_dict["item_category"]
         status.item_types[self.key] = self
         self.description: List[str] = input_dict.get("description", [])
@@ -52,6 +52,7 @@ class item_type:
             "background_color", constants.color_dict[constants.COLOR_GREEN_ICON]
         )
         self.name: str = input_dict.get("name", self.key).replace("_", " ")
+        self.abbreviated_name: str = input_dict.get("abbreviated_name", self.name)
 
     def apply_save_dict(self, save_dict: Dict[str, Any]) -> None:
         """
@@ -85,8 +86,19 @@ class item_type:
             "amount_produced_this_turn": self.amount_produced_this_turn,
             "production_attempted_this_turn": self.production_attempted_this_turn,
             "price": self.price,
+            "abbreviated_name": self.abbreviated_name,
         }
 
+class material_type(item_type):
+    def __init__(self, input_dict: Dict[str, Any]) -> None:
+        input_dict["item_category"] = constants.ITEM_CATEGORY_MATERIAL
+        super().__init__(input_dict)
+
+
+class resource_type(item_type):
+    def __init__(self, input_dict: Dict[str, Any]) -> None:
+        input_dict["item_category"] = constants.ITEM_CATEGORY_RESOURCE
+        super().__init__(input_dict)
 
 def transfer(
     source_type: str, transferred_item: item_type = None, amount: int = None

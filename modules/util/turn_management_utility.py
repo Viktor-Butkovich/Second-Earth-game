@@ -419,7 +419,7 @@ def manage_upkeep_expenditure() -> None:
                 current_mob.check_item_availability()
             for current_mob in current_location.contained_mobs:
                 current_mob.consume_item_upkeep()
-            current_location.set_inventory(status.item_types[constants.ENERGY_ITEM], 0)
+            current_location.set_inventory(status.item_types[constants.RESOURCE_ENERGY], 0)
 
     total_money_upkeep = market_utility.calculate_total_worker_upkeep()
     constants.MoneyTracker.change(round(-1 * total_money_upkeep, 2), "worker_upkeep")
@@ -874,8 +874,8 @@ def end_turn_warnings():
     for current_location in actor_utility.all_locations():
         if current_location.subscribed_mobs:
             item_demand = current_location.location_item_upkeep_demand
-            if constants.ENERGY_ITEM in item_demand:
-                del item_demand[constants.ENERGY_ITEM]
+            if constants.RESOURCE_ENERGY in item_demand:
+                del item_demand[constants.RESOURCE_ENERGY]
             unfulfilled_item_demand = current_location.create_item_request(
                 item_demand
             )  # Request any items that aren't present

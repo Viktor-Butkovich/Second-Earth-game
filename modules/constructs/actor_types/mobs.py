@@ -206,7 +206,7 @@ class mob(actor):
         return self.get_permission(constants.VEHICLE_PERMISSION) or (
             self.get_permission(constants.SPACESUITS_PERMISSION)
             and status.equipment_types[
-                constants.SPACESUITS_EQUIPMENT
+                constants.EQUIPMENT_SPACESUITS
             ].can_show_portrait_section(self, constants.HAT_PORTRAIT_SECTION)
         )
 

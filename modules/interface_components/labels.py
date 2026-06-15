@@ -336,41 +336,23 @@ class item_prices_label_template(label):
             for current_item_type in status.item_types.values()
             if current_item_type.can_sell or current_item_type.can_purchase
         ]
-        widest_name_width = max(
-            [self.font.calculate_size(item_type.name) for item_type in market_items]
-        )
         for current_item_type in market_items:
-            current_line = ""
-            while (
-                self.font.calculate_size(f"{current_line}{current_item_type.name}")
-                < widest_name_width
-            ):
-                current_line += " "
-            current_line += f"{current_item_type.name}: {current_item_type.price}"
-            message.append(current_line)
+            current_line = f"{current_item_type.abbreviated_name}: {current_item_type.price}"
+            while self.font.calculate_size(current_line) < self.width:
+                current_line = f" {current_line}" # Add sufficient spacing for right-justified text
+            message.append(current_line.removeprefix("    "))
         self.set_label(message)
 
     def set_label(self, new_message):
         """
         Description:
-            Sets each line of this label's text to the corresponding item in the inputted list, adjusting width as needed
+            Sets each line of this label's text to the corresponding item in the inputted list
         Input:
             string list new_message: New text for this label, with each item corresponding to a line of text
         Output:
             None
         """
         self.message = new_message
-        for text_line in self.message:
-            message_size = self.font.calculate_size(text_line)
-            if (
-                message_size > self.ideal_width - scaling.scale_width(10)
-                and message_size + scaling.scale_width(10) > self.width
-            ):
-                self.width = message_size + scaling.scale_width(20)
-                self.image.width = self.width
-                self.Rect.width = self.width
-                self.image.set_image(self.image.image_id)  # update width scaling
-                self.image.Rect = self.Rect
 
     def draw(self):
         """

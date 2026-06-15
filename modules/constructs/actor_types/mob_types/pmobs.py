@@ -175,7 +175,7 @@ class pmob(mob):
         elif self.location.get_unit_habitability() > constants.HABITABILITY_DEADLY:
             return {
                 **self.unit_type.item_upkeep,
-                constants.AIR_ITEM: 0,
+                constants.RESOURCE_AIR: 0,
             }  # Return a version without air requirements if in habitable environment
         else:
             return self.unit_type.item_upkeep
@@ -248,7 +248,7 @@ class pmob(mob):
                 self.set_permission(constants.STARVATION_PERMISSION, True)
                 self.record_logistics_incident(
                     incident_type=constants.UPKEEP_MISSING_PENALTY_STARVATION,
-                    cause=constants.FOOD_ITEM,
+                    cause=constants.RESOURCE_FOOD,
                 )
         else:
             # If received sufficient food, recover from any existing starvation
@@ -279,7 +279,7 @@ class pmob(mob):
         if self.location.get_unit_habitability() > constants.HABITABILITY_DEADLY:
             return {
                 **self.unit_type.required_item_upkeep,
-                constants.AIR_ITEM: False,
+                constants.RESOURCE_AIR: False,
             }  # Return a version without air requirements
         else:
             return self.unit_type.required_item_upkeep
@@ -291,9 +291,9 @@ class pmob(mob):
         self.item_upkeep_present = {}
         for key, value in self.required_item_upkeep.items():
             if value == True:
-                if key == constants.ENERGY_ITEM:
+                if key == constants.RESOURCE_ENERGY:
                     key = (
-                        constants.FUELS_ITEM
+                        constants.MATERIAL_FUELS
                     )  # If checking if any energy is present, check fuel instead
                 self.item_upkeep_present[key] = self.item_present(
                     status.item_types[key]
@@ -705,7 +705,7 @@ class pmob(mob):
             Explains the death of this unit to attrition, logging the explanation in a list of all attrition deaths this turn
         Input:
             int incident_type: Incident type code, such as constants.UPKEEP_MISSING_PENALTY_DEATH
-            string cause: Cause explaining the incident, such as "health attrition" or constants.WATER_ITEM
+            string cause: Cause explaining the incident, such as "health attrition" or constants.RESOURCE_WATER
         Output:
             None
         """

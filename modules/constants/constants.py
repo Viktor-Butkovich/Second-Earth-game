@@ -342,6 +342,7 @@ COLOR_WHITE: str = "white"
 COLOR_LIGHT_GRAY: str = "light gray"
 COLOR_GRAY: str = "gray"
 COLOR_DARK_GRAY: str = "dark gray"
+COLOR_DARKER_GRAY: str = "darker gray"
 COLOR_BRIGHT_RED: str = "bright red"
 COLOR_RED: str = "red"
 COLOR_DARK_RED: str = "dark red"
@@ -365,6 +366,7 @@ COLOR_BRIGHT_BLUE_2: str = "bright_blue_2"
 COLOR_PURPLE_2: str = "purple_2"
 COLOR_ORANGE: str = "orange"
 COLOR_FIRE_ORANGE: str = "fire_orange"
+COLOR_YELLOW_GREEN: str = "yellow_green"
 COLOR_GREEN_SCREEN_1: str = "green_screen_1"
 COLOR_GREEN_SCREEN_2: str = "green_screen_2"
 COLOR_GREEN_SCREEN_3: str = "green_screen_3"
@@ -374,6 +376,7 @@ color_dict: Dict[str, tuple[int, int, int]] = {
     COLOR_LIGHT_GRAY: (230, 230, 230),
     COLOR_GRAY: (190, 190, 190),
     COLOR_DARK_GRAY: (150, 150, 150),
+    COLOR_DARKER_GRAY: (75, 75, 75),
     COLOR_BRIGHT_RED: (255, 0, 0),
     COLOR_RED: (200, 0, 0),
     COLOR_DARK_RED: (150, 0, 0),
@@ -397,6 +400,7 @@ color_dict: Dict[str, tuple[int, int, int]] = {
     COLOR_PURPLE_2: (201, 98, 255),
     COLOR_ORANGE: (255, 157, 77),
     COLOR_FIRE_ORANGE: (245, 66, 0),
+    COLOR_YELLOW_GREEN: (154, 205, 50),
     COLOR_GREEN_SCREEN_1: (62, 82, 82),
     COLOR_GREEN_SCREEN_2: (70, 70, 92),
     COLOR_GREEN_SCREEN_3: (110, 107, 3),
@@ -946,17 +950,25 @@ ADJACENT_LOCATION_EXPLORATION_NOTIFICATION: str = (
     "adjacent_location_exploration_notification"
 )
 
-EQUIPMENT_ITEM_CATEGORY: str = "equipment"
-MATERIAL_ITEM_CATEGORY: str = "material"
-RESOURCE_ITEM_CATEGORY: str = "resource"
+ITEM_CATEGORY_EQUIPMENT: str = "equipment"
+ITEM_CATEGORY_MATERIAL: str = "material"
+ITEM_CATEGORY_RESOURCE: str = "resource"
 
-SPACESUITS_EQUIPMENT: str = "spacesuits"
-CONSUMER_GOODS_ITEM: str = "consumer_goods"
-FUELS_ITEM: str = "fuels"
-ENERGY_ITEM: str = "energy"
-FOOD_ITEM: str = "food"
-WATER_ITEM: str = "water"
-AIR_ITEM: str = "air"
+RESOURCE_CONSUMER_GOODS: str = "consumer_goods"
+RESOURCE_ENERGY: str = "energy"
+RESOURCE_FOOD: str = "food"
+RESOURCE_WATER: str = "water"
+RESOURCE_AIR: str = "air"
+
+EQUIPMENT_SPACESUITS: str = "spacesuits"
+
+MATERIAL_STRUCTURAL_METALS: str = "structural_metals"
+MATERIAL_CONSTRUCTION_MATERIALS: str = "construction_materials"
+MATERIAL_ADVANCED_MATERIALS: str = "advanced_materials"
+MATERIAL_FUELS: str = "fuels"
+MATERIAL_CHEMICALS: str = "chemicals"
+MATERIAL_BIOMATERIALS: str = "biomaterials"
+MATERIAL_NUCLEAR_MATERIALS: str = "nuclear_materials"
 
 PMOB_PERMISSION: str = "pmob"
 NPMOB_PERMISSION: str = "npmob"
@@ -1173,3 +1185,6 @@ ADVERTISING_SELECTOR: str = "advertising_selector"
 CONSTRUCTION_SELECTOR: str = "construction_selector"
 SELECTOR_CONFIG_CONSTRUCTION_ACTION: str = "selector_config_construction_action"
 AUTOMATIC_ROUTE_SELECTOR: str = "automatic_route_selector"
+
+USE_PIL: bool = True
+total_seconds: int = 0

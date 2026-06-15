@@ -88,7 +88,7 @@ class supply_chain_plan:
         Returns an iterator of subplans sorted by amount of item already present, in descending order
         """
         return sorted(
-            self.subplans.values(), key=lambda subplan: subplan.item_type.name.lower()
+            self.subplans.values(), key=lambda subplan: subplan.item_type.abbreviated_name.lower()
         )
 
     def get_sorted_subplan_index(self, item_key: str) -> int:
@@ -163,7 +163,7 @@ class supply_chain_plan:
                         }
                     ]
                 # Highlight background of row if item type is currently selected
-            cells["item_type"][constants.TABLEDATA_TEXT_KEY] = subplan.item_type.name.title()
+            cells["item_type"][constants.TABLEDATA_TEXT_KEY] = subplan.item_type.abbreviated_name.title()
             cells["present"][constants.TABLEDATA_TEXT_KEY] = str(subplan.local)
             cells["delivering"][constants.TABLEDATA_TEXT_KEY] = (
                 str(subplan.delta) if subplan.delta != 0 else ""
@@ -241,13 +241,13 @@ class supply_chain_plan:
             dict: Dictionary with item type keys and total demand values
         """
         total_demand = self.location.location_item_upkeep_demand.copy()
-        if constants.ENERGY_ITEM in total_demand:
-            total_demand[constants.FUELS_ITEM] = (
-                total_demand.get(constants.FUELS_ITEM, 0.0)
-                + total_demand[constants.ENERGY_ITEM]
+        if constants.RESOURCE_ENERGY in total_demand:
+            total_demand[constants.MATERIAL_FUELS] = (
+                total_demand.get(constants.MATERIAL_FUELS, 0.0)
+                + total_demand[constants.RESOURCE_ENERGY]
             )
             del total_demand[
-                constants.ENERGY_ITEM
+                constants.RESOURCE_ENERGY
             ]  # Remap energy demand to fuel demand
         # Add logic to include requests from other locations
         return total_demand

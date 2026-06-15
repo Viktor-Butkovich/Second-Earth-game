@@ -2001,7 +2001,7 @@ class sellable_item_button(button):
         Controls this button's behavior when clicked. When the player is choosing a target for an advertising campaign, clicking on this button starts an advertising campaign for this button's item
         """
         if constants.SelectorManager.is_active(constants.ADVERTISING_SELECTOR):
-            if self.item_type.key == constants.CONSUMER_GOODS_ITEM:
+            if self.item_type.key == constants.RESOURCE_CONSUMER_GOODS:
                 text_utility.print_to_screen("You cannot advertise consumer goods.")
             else:
                 if any(

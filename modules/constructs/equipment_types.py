@@ -27,7 +27,7 @@ class equipment_type(item_types.item_type):
         Output:
             None
         """
-        input_dict["item_category"] = constants.EQUIPMENT_ITEM_CATEGORY
+        input_dict["item_category"] = constants.ITEM_CATEGORY_EQUIPMENT
         super().__init__(input_dict)
 
         self.effects: Dict[str, any] = input_dict.get("effects", {})
@@ -67,11 +67,11 @@ class equipment_type(item_types.item_type):
             Returns whether the inputted unit can show the inputted section of this equipment in its portrait
         Input:
             pmob unit: Unit to check conditions for
-            string key: Key of equipment type to check for, like constants.SPACESUIT_EQUIPMENT
+            string key: Key of equipment type to check for, like constants.EQUIPMENT_SPACESUITS
         Output:
             bool: Returns whether the inputted unit can show the inputted section of this equipment in its portrait
         """
-        if self.key == constants.SPACESUITS_EQUIPMENT:
+        if self.key == constants.EQUIPMENT_SPACESUITS:
             toggled_sections = [
                 constants.HAT_PORTRAIT_SECTION,
                 constants.HAIR_PORTRAIT_SECTION,

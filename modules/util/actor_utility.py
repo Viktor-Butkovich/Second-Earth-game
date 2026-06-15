@@ -765,8 +765,8 @@ def summarize_amount_dict(item_dict: Dict[str, float]) -> str:
     Input:
         Dict[str, float] item_dict: Dictionary of item keys and amounts, in the format
             {
-                constants.CONSUMER_GOODS_ITEM_TYPE: 2,
-                constants.FOOD_ITEM_TYPE: 1
+                constants.RESOURCE_CONSUMER_GOODS_TYPE: 2,
+                constants.RESOURCE_FOOD_TYPE: 1
             }
     Output:
         str: String summary, in the format "2 units of consumer goods and 1 unit of food"
@@ -793,8 +793,8 @@ def line_item_amount_dict(item_dict: Dict[str, float]) -> str:
     Input:
         Dict[str, float] item_dict: Dictionary of item keys and amounts, in the format
             {
-                constants.CONSUMER_GOODS_ITEM_TYPE: 2,
-                constants.FOOD_ITEM_TYPE: 1
+                constants.RESOURCE_CONSUMER_GOODS_TYPE: 2,
+                constants.RESOURCE_FOOD_TYPE: 1
             }
     Output:
         str: String summary, in the format "/n    Consumer goods: 2 /n    Food: 1"

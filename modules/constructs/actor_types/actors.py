@@ -313,7 +313,7 @@ class actor:
                 status.item_types[item_key]
                 for item_key in self.inventory.keys()
                 if not (
-                    ignore_consumer_goods and item_key == constants.CONSUMER_GOODS_ITEM
+                    ignore_consumer_goods and item_key == constants.RESOURCE_CONSUMER_GOODS
                 )
             ]
         )

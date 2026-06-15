@@ -3,6 +3,7 @@
 from __future__ import annotations
 import pygame
 import logging
+from modules.config import config_item_types
 from modules.constants import constants, status, flags
 from modules.managers import (
     achievement_manager,
@@ -27,9 +28,7 @@ from modules.constructs import (
     unit_types,
     minister_types,
     building_types,
-    equipment_types,
     terrain_feature_types,
-    item_types,
 )
 from modules.action_types import (
     public_relations_campaign,
@@ -37,8 +36,6 @@ from modules.action_types import (
     combat,
     exploration,
     construction,
-    upgrade,
-    repair,
     loan_search,
     active_investigation,
     trial,
@@ -397,119 +394,7 @@ def item_types_config() -> None:
     """
     Defines item type templates
     """
-    item_types.item_type(
-        {
-            "equipment_type": constants.FUELS_ITEM,
-            "item_category": constants.MATERIAL_ITEM_CATEGORY,
-            "can_purchase": True,
-            "can_sell": True,
-            "price": 5,
-            "description": ["Placeholder fuels description"],
-            "item_image": "items/material/fuels.png",
-            "background_color": constants.color_dict[constants.COLOR_FIRE_ORANGE],
-            "allow_price_variation": True,
-        }
-    )
-
-    item_types.item_type(
-        {
-            "equipment_type": constants.CONSUMER_GOODS_ITEM,
-            "item_category": constants.RESOURCE_ITEM_CATEGORY,
-            "can_purchase": True,
-            "can_sell": True,
-            "price": constants.consumer_goods_starting_price,
-            "description": ["Placeholder consumer goods description"],
-            "item_image": "items/resource/consumer_goods.png",
-            "background_color": constants.color_dict[constants.COLOR_GREEN_ICON],
-            "allow_price_variation": True,
-        }
-    )
-
-    item_types.item_type(
-        {
-            "equipment_type": constants.ENERGY_ITEM,
-            "item_category": constants.RESOURCE_ITEM_CATEGORY,
-            "can_purchase": False,
-            "can_sell": False,
-            "description": ["Placeholder energy description"],
-            "item_image": "items/resource/energy.png",
-            "background_color": constants.color_dict[constants.COLOR_PURPLE],
-        }
-    )
-
-    item_types.item_type(
-        {
-            "equipment_type": constants.FOOD_ITEM,
-            "item_category": constants.RESOURCE_ITEM_CATEGORY,
-            "can_purchase": True,
-            "can_sell": True,
-            "price": 5,
-            "description": ["Placeholder food description"],
-            "item_image": "items/resource/food.png",
-            "background_color": constants.color_dict[constants.COLOR_YELLOW],
-            "allow_price_variation": True,
-        }
-    )
-
-    item_types.item_type(
-        {
-            "equipment_type": constants.WATER_ITEM,
-            "item_category": constants.RESOURCE_ITEM_CATEGORY,
-            "can_purchase": True,
-            "can_sell": True,
-            "price": 5,
-            "description": ["Placeholder water description"],
-            "item_image": "items/resource/water.png",
-            "background_color": constants.color_dict[constants.COLOR_BLUE],
-            "allow_price_variation": True,
-        }
-    )
-
-    item_types.item_type(
-        {
-            "equipment_type": constants.AIR_ITEM,
-            "item_category": constants.RESOURCE_ITEM_CATEGORY,
-            "can_purchase": True,
-            "can_sell": True,
-            "price": 5,
-            "description": ["Placeholder air description"],
-            "item_image": "items/resource/air.png",
-            "background_color": constants.color_dict[constants.COLOR_LIGHT_GRAY],
-            "allow_price_variation": True,
-        }
-    )
-
-    equipment_types.equipment_type(
-        {
-            "equipment_type": constants.SPACESUITS_EQUIPMENT,
-            "can_purchase": True,
-            "price": 5,
-            "requirements": (
-                "any",
-                [
-                    constants.GROUP_PERMISSION,
-                    constants.WORKER_PERMISSION,
-                    constants.OFFICER_PERMISSION,
-                ],
-            ),
-            "effects": {
-                "permissions": [constants.SPACESUITS_PERMISSION],
-            },
-            "description": [
-                "Spacesuits are required for humans to survive in deadly conditions",
-                "Human units without spacesuits in deadly conditions cannot perform actions and will die at the end of the turn",
-                # "By default, solitary officers are assumed to be wearing personal spacesuits",
-            ],
-            "item_image": "items/equipment/spacesuits.png",  # Used for icons
-            "equipment_image": {  # Used as mob image components
-                constants.FULL_BODY_PORTRAIT_SECTION: "mobs/spacesuits/spacesuit_body.png",
-                constants.HAT_PORTRAIT_SECTION: "ministers/portraits/hat/spacesuit/spacesuit_helmet.png",
-                constants.HAIR_PORTRAIT_SECTION: "misc/empty.png",
-                constants.FACIAL_HAIR_PORTAIT_SECTION: "misc/empty.png",
-                constants.BACKPACK_PORTRAIT_SECTION: "mobs/spacesuits/spacesuit_backpack.png",
-            },
-        }
-    )
+    config_item_types.config_item_types()
 
 
 def terrain_feature_types_config() -> None:
@@ -735,25 +620,25 @@ def unit_types_config() -> None:
     """
     standard_officer_upkeep = {}
     standard_officer_required = {
-        constants.AIR_ITEM: True,
-        constants.WATER_ITEM: True,
-        constants.FOOD_ITEM: True,
-        constants.CONSUMER_GOODS_ITEM: True,
-        # constants.ENERGY_ITEM: True,
+        constants.RESOURCE_AIR: True,
+        constants.RESOURCE_WATER: True,
+        constants.RESOURCE_FOOD: True,
+        constants.RESOURCE_CONSUMER_GOODS: True,
+        # constants.RESOURCE_ENERGY: True,
     }
     standard_colonist_upkeep = {
-        constants.AIR_ITEM: 0.1,
-        constants.WATER_ITEM: 0.1,
-        constants.FOOD_ITEM: 0.1,
-        constants.CONSUMER_GOODS_ITEM: 0.1,
-        # constants.ENERGY_ITEM: 0.1,
+        constants.RESOURCE_AIR: 0.1,
+        constants.RESOURCE_WATER: 0.1,
+        constants.RESOURCE_FOOD: 0.1,
+        constants.RESOURCE_CONSUMER_GOODS: 0.1,
+        # constants.RESOURCE_ENERGY: 0.1,
     }
     standard_missing_upkeep_penalties = {
-        constants.AIR_ITEM: constants.UPKEEP_MISSING_PENALTY_DEATH,
-        constants.WATER_ITEM: constants.UPKEEP_MISSING_PENALTY_DEHYDRATION,
-        constants.FOOD_ITEM: constants.UPKEEP_MISSING_PENALTY_STARVATION,
-        constants.CONSUMER_GOODS_ITEM: constants.UPKEEP_MISSING_PENALTY_MORALE,
-        # constants.ENERGY_ITEM: constants.UPKEEP_MISSING_PENALTY_MORALE,
+        constants.RESOURCE_AIR: constants.UPKEEP_MISSING_PENALTY_DEATH,
+        constants.RESOURCE_WATER: constants.UPKEEP_MISSING_PENALTY_DEHYDRATION,
+        constants.RESOURCE_FOOD: constants.UPKEEP_MISSING_PENALTY_STARVATION,
+        constants.RESOURCE_CONSUMER_GOODS: constants.UPKEEP_MISSING_PENALTY_MORALE,
+        # constants.RESOURCE_ENERGY: constants.UPKEEP_MISSING_PENALTY_MORALE,
     }
     if not constants.EffectManager.effect_active("hide_old_units"):
         unit_types.group_type(
@@ -1964,22 +1849,7 @@ def earth_screen() -> None:
     )
     purchase_button_grid_height = 7
 
-    for recruitment_type in status.recruitment_types:
-        constants.ActorCreationManager.create_interface_element(
-            {
-                "width": scaling.scale_width(100),
-                "height": scaling.scale_height(100),
-                "init_type": constants.RECRUITMENT_BUTTON,
-                "parent_collection": earth_purchase_buttons,
-                "recruitment_type": recruitment_type,
-                "member_config": {
-                    "second_dimension_coordinate": 0  # -1 * (len(earth_purchase_buttons.members) // purchase_button_grid_height)
-                },
-            }
-        )
-    for purchase_item_type in reversed(
-        list(status.item_types.values())
-    ):  # Creates purchase button for items from earth in reverse order
+    for purchase_item_type in status.item_types.values():  # Creates purchase button for items from Earth
         if purchase_item_type.can_purchase:
             constants.ActorCreationManager.create_interface_element(
                 {
@@ -1989,11 +1859,23 @@ def earth_screen() -> None:
                     "parent_collection": earth_purchase_buttons,
                     "item_type": purchase_item_type,
                     "member_config": {
-                        "second_dimension_coordinate": -1  # -1 * (len(earth_purchase_buttons.members) // purchase_button_grid_height)
-                    },  # Re-uses recruitment index from previous loop
+                        "second_dimension_coordinate": -1 * (len(earth_purchase_buttons.members) // purchase_button_grid_height)
+                    },  # Re-use recruitment index for both loops
                 }
             )
-
+    for recruitment_type in status.recruitment_types:
+        constants.ActorCreationManager.create_interface_element(
+            {
+                "width": scaling.scale_width(100),
+                "height": scaling.scale_height(100),
+                "init_type": constants.RECRUITMENT_BUTTON,
+                "parent_collection": earth_purchase_buttons,
+                "recruitment_type": recruitment_type,
+                "member_config": {
+                    "second_dimension_coordinate": -1 * (len(earth_purchase_buttons.members) // purchase_button_grid_height)
+                }, # Re-use recruitment index for both loops
+            }
+        )
 
 def ministers_screen() -> None:
     """
@@ -2788,18 +2670,18 @@ def inventory_interface() -> None:
     """
     Initializes the item prices display and both mob/location tabbed collections and inventory interfaces
     """
-    item_prices_x, item_prices_y = (1000, 100)
+    item_prices_x, item_prices_y = (950, 100)
     item_prices_height = 35 + (
         30
         * len(
             [
                 current_item_type
                 for current_item_type in status.item_types.values()
-                if current_item_type.can_sell
+                if current_item_type.can_purchase
             ]
         )
     )
-    item_prices_width = 200
+    item_prices_width = 250
 
     status.item_prices_label = constants.ActorCreationManager.create_interface_element(
         {
@@ -2820,7 +2702,7 @@ def inventory_interface() -> None:
     }
     current_index = 0
     for current_item_type in status.item_types.values():
-        if current_item_type.can_sell:
+        if current_item_type.can_sell or current_item_type.can_purchase:
             input_dict["coordinates"] = scaling.scale_coordinates(
                 item_prices_x - 35,
                 item_prices_y + item_prices_height - 65 - (30 * current_index),
@@ -2853,13 +2735,13 @@ def inventory_interface() -> None:
                         {
                             "image_id": "misc/circle.png",
                             "green_screen": status.item_types[
-                                constants.CONSUMER_GOODS_ITEM
+                                constants.RESOURCE_CONSUMER_GOODS
                             ].background_color,
                             "size": 0.75,
                         },
                         {
                             "image_id": status.item_types[
-                                constants.CONSUMER_GOODS_ITEM
+                                constants.RESOURCE_CONSUMER_GOODS
                             ].item_image,
                             "size": 0.75,
                         },
@@ -2963,13 +2845,13 @@ def inventory_interface() -> None:
                         {
                             "image_id": "misc/circle.png",
                             "green_screen": status.item_types[
-                                constants.CONSUMER_GOODS_ITEM
+                                constants.RESOURCE_CONSUMER_GOODS
                             ].background_color,
                             "size": 0.75,
                         },
                         {
                             "image_id": status.item_types[
-                                constants.CONSUMER_GOODS_ITEM
+                                constants.RESOURCE_CONSUMER_GOODS
                             ].item_image,
                             "size": 0.75,
                         },

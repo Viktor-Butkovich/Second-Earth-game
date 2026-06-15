@@ -102,13 +102,13 @@ class actor_display_label(labels.label):
                 {
                     "image_id": "misc/circle.png",
                     "green_screen": status.item_types[
-                        constants.CONSUMER_GOODS_ITEM
+                        constants.RESOURCE_CONSUMER_GOODS
                     ].background_color,
                     "size": 0.75,
                 },
                 {
                     "image_id": status.item_types[
-                        constants.CONSUMER_GOODS_ITEM
+                        constants.RESOURCE_CONSUMER_GOODS
                     ].item_image,
                     "size": 0.75,
                 },
@@ -1069,6 +1069,9 @@ class actor_display_label(labels.label):
                 return tooltip_text
             else:
                 return super().tooltip_text
+        elif self.actor_label_type == constants.INVENTORY_NAME_LABEL:
+            tooltip_text = [self.actor.current_item.name.title()]
+            return tooltip_text
         return super().tooltip_text
 
     def calibrate(self, new_actor: actors.actor):
@@ -1394,7 +1397,7 @@ class actor_display_label(labels.label):
 
             elif self.actor_label_type == constants.INVENTORY_NAME_LABEL:
                 self.set_label(
-                    f"{self.message_start}{utility.capitalize(new_actor.current_item.name)}"
+                    f"{self.message_start}{new_actor.current_item.abbreviated_name.title()}"
                 )
 
             elif self.actor_label_type == constants.INVENTORY_QUANTITY_LABEL:
