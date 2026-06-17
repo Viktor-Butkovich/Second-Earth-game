@@ -47,7 +47,7 @@ class button(interface_elements.interface_element):
         Output:
             None
         """
-        self.outline_width = 2
+        self.outline_width = 4
         self.outline = pygame.Rect(
             0,
             0,
@@ -658,9 +658,9 @@ class button(interface_elements.interface_element):
             if self.showing_outline and allow_show_outline:
                 pygame.draw.rect(
                     constants.game_display,
-                    constants.color_dict[constants.COLOR_WHITE],
+                    constants.color_dict[constants.COLOR_BLUE],
                     self.outline,
-                    width=2,
+                    width=self.outline_width,
                 )
             if self.showing_background and hasattr(self, "color"):
                 pygame.draw.rect(constants.game_display, self.color, self.Rect)

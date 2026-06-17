@@ -88,7 +88,8 @@ class supply_chain_plan:
         Returns an iterator of subplans sorted by amount of item already present, in descending order
         """
         return sorted(
-            self.subplans.values(), key=lambda subplan: subplan.item_type.abbreviated_name.lower()
+            self.subplans.values(),
+            key=lambda subplan: subplan.item_type.abbreviated_name.lower(),
         )
 
     def get_sorted_subplan_index(self, item_key: str) -> int:
@@ -112,35 +113,63 @@ class supply_chain_plan:
         header = {
             "item_type": {
                 constants.TABLEDATA_TEXT_KEY: "Item Type",
-                constants.TABLEDATA_BATCH_TOOLTIP_KEY: [["Each supply chain section covers a specific item type."]],
+                constants.TABLEDATA_BATCH_TOOLTIP_KEY: [
+                    ["Each supply chain section covers a specific item type."]
+                ],
             },
             "present": {
                 constants.TABLEDATA_TEXT_KEY: "Present",
-                constants.TABLEDATA_BATCH_TOOLTIP_KEY: [["There is this amount of the item stored among local warehouses and units."]],
+                constants.TABLEDATA_BATCH_TOOLTIP_KEY: [
+                    [
+                        "There is this amount of the item stored among local warehouses and units."
+                    ]
+                ],
             },
             "delivering": {
                 constants.TABLEDATA_TEXT_KEY: "Delivering",
-                constants.TABLEDATA_BATCH_TOOLTIP_KEY: [["Ingoing and outgoing deliveries are forecasted to cause a net change of this amount in stored inventory."]],
+                constants.TABLEDATA_BATCH_TOOLTIP_KEY: [
+                    [
+                        "Ingoing and outgoing deliveries are forecasted to cause a net change of this amount in stored inventory."
+                    ]
+                ],
             },
             "consuming": {
                 constants.TABLEDATA_TEXT_KEY: "Consuming",
-                constants.TABLEDATA_BATCH_TOOLTIP_KEY: [["This location is forecasted to consume this amount of the item this turn."]],
+                constants.TABLEDATA_BATCH_TOOLTIP_KEY: [
+                    [
+                        "This location is forecasted to consume this amount of the item this turn."
+                    ]
+                ],
             },
             "expected": {
                 constants.TABLEDATA_TEXT_KEY: "Expected",
-                constants.TABLEDATA_BATCH_TOOLTIP_KEY: [["This location is forecasted to have this amount of the item after the end of the turn."]],
-            }
+                constants.TABLEDATA_BATCH_TOOLTIP_KEY: [
+                    [
+                        "This location is forecasted to have this amount of the item after the end of the turn."
+                    ]
+                ],
+            },
         }
 
         body = []
         # Sort item type subplans by amount present, in descending order
         for subplan in self.get_sorted_subplans():
             cells = {
-                "item_type": {"description": f"This row summarizes the local {subplan.item_type.name} supply chain."},
-                "present": {"description": f"{subplan.local} of {subplan.item_type.name} are stored among local warehouses and units."},
-                "delivering": {"description": f"Ingoing and outgoing deliveries are forecasted to cause a net change of {subplan.delta} in stored {subplan.item_type.name}."},
-                "consuming": {"description": f"This location is forecasted to consume {subplan.consumption} {subplan.item_type.name} this turn."},
-                "expected": {"description": f"This location is forecasted to have {subplan.expected} {subplan.item_type.name} after the end of the turn."},
+                "item_type": {
+                    "description": f"This row summarizes the local {subplan.item_type.name} supply chain."
+                },
+                "present": {
+                    "description": f"{subplan.local} of {subplan.item_type.name} are stored among local warehouses and units."
+                },
+                "delivering": {
+                    "description": f"Ingoing and outgoing deliveries are forecasted to cause a net change of {subplan.delta} in stored {subplan.item_type.name}."
+                },
+                "consuming": {
+                    "description": f"This location is forecasted to consume {subplan.consumption} {subplan.item_type.name} this turn."
+                },
+                "expected": {
+                    "description": f"This location is forecasted to have {subplan.expected} {subplan.item_type.name} after the end of the turn."
+                },
             }
             for key in cells:
                 cells[key][constants.TABLEDATA_BATCH_TOOLTIP_KEY] = []
@@ -163,7 +192,9 @@ class supply_chain_plan:
                         }
                     ]
                 # Highlight background of row if item type is currently selected
-            cells["item_type"][constants.TABLEDATA_TEXT_KEY] = subplan.item_type.abbreviated_name.title()
+            cells["item_type"][
+                constants.TABLEDATA_TEXT_KEY
+            ] = subplan.item_type.abbreviated_name.title()
             cells["present"][constants.TABLEDATA_TEXT_KEY] = str(subplan.local)
             cells["delivering"][constants.TABLEDATA_TEXT_KEY] = (
                 str(subplan.delta) if subplan.delta != 0 else ""
@@ -185,23 +216,31 @@ class supply_chain_plan:
                             "level": constants.TABLE_BACKGROUND_IMAGE_LEVEL,
                         }
                     ]
-                    cells["expected"][constants.TABLEDATA_BATCH_TOOLTIP_KEY].append([
-                        f"Since {subplan.item_type.name} demand exceeds the available stockpile by {abs(subplan.expected)}, this location will suffer penalties at the end of the turn.",
-                    ])
-                elif subplan.demand > subplan.local: # Officers have 0.1 demand but no consumption, so they require 0.1 to be present.
+                    cells["expected"][constants.TABLEDATA_BATCH_TOOLTIP_KEY].append(
+                        [
+                            f"Since {subplan.item_type.name} demand exceeds the available stockpile by {abs(subplan.expected)}, this location will suffer penalties at the end of the turn.",
+                        ]
+                    )
+                elif (
+                    subplan.demand > subplan.local
+                ):  # Officers have 0.1 demand but no consumption, so they require 0.1 to be present.
                     cells["expected"][constants.TABLEDATA_BACKGROUND_IMAGE_ID_KEY] = [
                         {
                             "image_id": "colors/insufficient_upkeep_background.png",
                             "level": constants.TABLE_BACKGROUND_IMAGE_LEVEL,
                         }
                     ]
-                    cells["expected"][constants.TABLEDATA_BATCH_TOOLTIP_KEY].append([
-                        f"This location requires at least {subplan.demand} {subplan.item_type.name} stored to avoid penalties at the end of the turn.",
-                        f"Even units that only consume a negligible amount of {subplan.item_type.name} per turn (officers) require some amount to be present.",
-                    ])
+                    cells["expected"][constants.TABLEDATA_BATCH_TOOLTIP_KEY].append(
+                        [
+                            f"This location requires at least {subplan.demand} {subplan.item_type.name} stored to avoid penalties at the end of the turn.",
+                            f"Even units that only consume a negligible amount of {subplan.item_type.name} per turn (officers) require some amount to be present.",
+                        ]
+                    )
             for key in cells:
                 cell = cells[key]
-                cell[constants.TABLEDATA_BATCH_TOOLTIP_KEY].append([cell["description"]])
+                cell[constants.TABLEDATA_BATCH_TOOLTIP_KEY].append(
+                    [cell["description"]]
+                )
             body.append(
                 {
                     constants.TABLECOL_ITEM_TYPE: cells["item_type"],

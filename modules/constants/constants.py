@@ -370,6 +370,7 @@ COLOR_YELLOW_GREEN: str = "yellow_green"
 COLOR_GREEN_SCREEN_1: str = "green_screen_1"
 COLOR_GREEN_SCREEN_2: str = "green_screen_2"
 COLOR_GREEN_SCREEN_3: str = "green_screen_3"
+COLOR_TEAL: str = "teal"
 color_dict: Dict[str, tuple[int, int, int]] = {
     COLOR_BLACK: (0, 0, 0),
     COLOR_WHITE: (255, 255, 255),
@@ -386,6 +387,7 @@ color_dict: Dict[str, tuple[int, int, int]] = {
     COLOR_BRIGHT_BLUE: (0, 0, 255),
     COLOR_BLUE: (0, 0, 200),
     COLOR_DARK_BLUE: (0, 0, 150),
+    COLOR_TEAL: (0, 187, 187),
     COLOR_YELLOW: (255, 255, 0),
     COLOR_BROWN: (85, 53, 22),
     COLOR_BLONDE: (188, 175, 123),

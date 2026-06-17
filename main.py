@@ -1,39 +1,9 @@
-# Runs setup and main loop on program start
-
 from __future__ import annotations
 from modules.util import main_loop_utility, setup_utility
 
 try:
-    setup_utility.setup(
-        setup_utility.misc,
-        setup_utility.item_types_config,
-        setup_utility.terrain_feature_types_config,
-        setup_utility.minister_types_config,
-        setup_utility.building_types_config,
-        setup_utility.unit_types_config,
-        setup_utility.new_game_setup_screen,
-        setup_utility.info_displays,
-        setup_utility.transactions,
-        setup_utility.actions,
-        setup_utility.value_trackers,
-        setup_utility.buttons,
-        setup_utility.earth_screen,
-        setup_utility.ministers_screen,
-        setup_utility.trial_screen,
-        setup_utility.location_interface,
-        setup_utility.zone_interface,
-        setup_utility.mob_interface,
-        setup_utility.organization_interface,
-        setup_utility.vehicle_organization_interface,
-        setup_utility.unit_organization_interface,
-        setup_utility.terrain_interface,
-        setup_utility.settlement_interface,
-        setup_utility.inventory_interface,
-        setup_utility.mob_sub_interface,
-        setup_utility.minister_interface,
-    )
+    setup_utility.setup()
     main_loop_utility.main_loop()
-
 except Exception:  # Displays error message and records error message in crash log file
     setup_utility.manage_crash(Exception)
 

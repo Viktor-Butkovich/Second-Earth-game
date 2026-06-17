@@ -1,0 +1,550 @@
+from __future__ import annotations
+import pygame
+from modules.constants import constants, status, flags
+from modules.util import scaling, actor_utility, world_utility
+
+
+def config_buttons() -> None:
+    """
+    Initializes static buttons
+    """
+    status.planet_view_mask = constants.ActorCreationManager.create_interface_element(
+        {
+            "coordinates": scaling.scale_coordinates(
+                constants.strategic_map_x_offset, constants.strategic_map_y_offset
+            ),
+            "width": scaling.scale_width(constants.strategic_map_pixel_width),
+            "height": scaling.scale_height(constants.strategic_map_pixel_height),
+            "parent_collection": status.grids_collection,
+            "modes": [
+                constants.STRATEGIC_MODE
+            ],  # Manually drawn by scrolling strategic grid
+            "init_type": constants.FREE_IMAGE,
+            "color_key": (255, 255, 255),
+            "image_id": "misc/planet_view_mask.png",
+        }
+    )
+
+    if constants.EffectManager.effect_active("map_customization"):
+        north_pole_centered_earth = (
+            constants.ActorCreationManager.create_interface_element(
+                {
+                    "coordinates": scaling.scale_coordinates(
+                        constants.strategic_map_x_offset,
+                        constants.strategic_map_y_offset,
+                    ),
+                    "width": scaling.scale_width(constants.strategic_map_pixel_width),
+                    "height": scaling.scale_height(
+                        constants.strategic_map_pixel_height
+                    ),
+                    "parent_collection": status.grids_collection,
+                    "modes": [constants.STRATEGIC_MODE],
+                    "init_type": constants.FREE_IMAGE,
+                    "image_id": "locations/north_pole_centered_earth_grid.png",
+                }
+            )
+        )
+        constants.globe_projection_grid_x_offset += constants.strategic_map_pixel_width
+        constants.strategic_map_x_offset += constants.strategic_map_pixel_width
+        # globe_projection_x += constants.strategic_map_pixel_width
+
+    """
+    input_dict = {
+        "coordinates": scaling.scale_coordinates(0, 10),
+        "width": scaling.scale_width(150),
+        "height": scaling.scale_height(100),
+        "image_id": "misc/empty.png",
+        "modes": [constants.STRATEGIC_MODE, constants.EARTH_MODE],
+        "to_mode": constants.EARTH_MODE,
+        "init_type": constants.FREE_IMAGE,
+        "parent_collection": status.grids_collection,
+    }
+    strategic_flag_icon = constants.ActorCreationManager.create_interface_element(
+        input_dict
+    )
+
+    input_dict["modes"] = [constants.MINISTERS_MODE]
+    input_dict["coordinates"] = scaling.scale_coordinates(
+        constants.default_display_width / 2 - 75, constants.default_display_height - 160
+    )
+    input_dict["parent_collection"] = None
+    ministers_flag_icon = constants.ActorCreationManager.create_interface_element(
+        input_dict
+    )
+    """
+    globe_projection_x = scaling.scale_width(
+        constants.strategic_map_x_offset
+        + constants.grids_collection_x
+        + constants.strategic_map_pixel_width
+        + 15
+    )
+    # if constants.EffectManager.effect_active("map_customization"):
+    #    globe_projection_x += constants.strategic_map_pixel_width
+    globe_projection_y = (
+        scaling.scale_height(constants.earth_grid_y_offset) + status.grids_collection.y
+    )
+    globe_projection_size = constants.earth_grid_width * 0.85
+    status.dummy_surface_image = constants.ActorCreationManager.create_interface_element(
+        {
+            "coordinates": (globe_projection_x, globe_projection_y),
+            "init_type": constants.FREE_IMAGE,
+            "modes": [],
+            "width": scaling.scale_width(1000),
+            "height": scaling.scale_height(
+                1000
+            ),  # Sufficient to retain surface detail - does not seem to have a performance impact
+            "image_id": "misc/empty.png",
+            "pixellate_image": True,
+        }
+    )
+    status.dummy_surface_image_high_res = (
+        constants.ActorCreationManager.create_interface_element(
+            {
+                "coordinates": (globe_projection_x, globe_projection_y),
+                "init_type": constants.FREE_IMAGE,
+                "modes": [],
+                "width": scaling.scale_width(200),
+                "height": scaling.scale_height(200),
+                "image_id": "misc/empty.png",
+                "pixellate_image": False,
+            }
+        )
+    )
+    compass_overlay_size = 15
+    north_overlay = constants.ActorCreationManager.create_interface_element(
+        {
+            "coordinates": (
+                status.grids_collection.x
+                + scaling.scale_width(
+                    constants.globe_projection_grid_x_offset
+                    + constants.globe_projection_grid_width / 2
+                    - compass_overlay_size / 2
+                ),
+                status.grids_collection.y
+                + scaling.scale_height(
+                    constants.globe_projection_grid_y_offset
+                    + constants.globe_projection_grid_height
+                    - (compass_overlay_size * 0.25)
+                ),
+            ),
+            "init_type": constants.FREE_IMAGE,
+            "modes": [constants.STRATEGIC_MODE],
+            "width": scaling.scale_width(compass_overlay_size),
+            "height": scaling.scale_width(compass_overlay_size),
+            "image_id": "misc/north_indicator.png",
+            "to_front": True,
+        }
+    )
+    south_overlay = constants.ActorCreationManager.create_interface_element(
+        {
+            "coordinates": (
+                status.grids_collection.x
+                + scaling.scale_width(
+                    constants.globe_projection_grid_x_offset
+                    + constants.globe_projection_grid_width / 2
+                    - compass_overlay_size / 2
+                ),
+                status.grids_collection.y
+                + scaling.scale_height(
+                    constants.globe_projection_grid_y_offset
+                    + compass_overlay_size * -0.75
+                ),
+            ),
+            "init_type": constants.FREE_IMAGE,
+            "modes": north_overlay.modes,
+            "width": scaling.scale_width(compass_overlay_size),
+            "height": scaling.scale_width(compass_overlay_size),
+            "image_id": "misc/south_indicator.png",
+        }
+    )
+
+    switch_game_mode_buttons_x = (
+        constants.strategic_map_x_offset
+        + constants.grids_collection_x
+        + constants.strategic_map_pixel_width
+        + 15
+        + globe_projection_size
+        + 15
+    )
+    input_dict = {
+        "coordinates": scaling.scale_coordinates(
+            switch_game_mode_buttons_x, constants.default_display_height - 55
+        ),
+        "height": scaling.scale_height(50),
+        "width": scaling.scale_width(50),
+        "keybind_id": pygame.K_1,
+        "image_id": actor_utility.generate_frame("locations/africa.png"),
+        "modes": [
+            constants.MINISTERS_MODE,
+            constants.STRATEGIC_MODE,
+            constants.EARTH_MODE,
+            constants.TRIAL_MODE,
+            constants.LOCATION_MODE,
+        ],
+        "to_mode": constants.STRATEGIC_MODE,
+        "init_type": constants.SWITCH_GAME_MODE_BUTTON,
+    }
+    status.to_strategic_button = (
+        constants.ActorCreationManager.create_interface_element(input_dict)
+    )
+
+    input_dict.update(
+        {
+            "coordinates": scaling.scale_coordinates(
+                switch_game_mode_buttons_x + 60, constants.default_display_height - 55
+            ),
+            "image_id": actor_utility.generate_frame(
+                world_utility.generate_abstract_world_image(
+                    planet=constants.EARTH_WORLD, size=0.6
+                )
+            ),
+            "to_mode": constants.EARTH_MODE,
+            "keybind_id": pygame.K_2,
+        }
+    )
+    status.to_earth_button = constants.ActorCreationManager.create_interface_element(
+        input_dict
+    )
+
+    input_dict.update(
+        {
+            "coordinates": scaling.scale_coordinates(
+                switch_game_mode_buttons_x + 120, constants.default_display_height - 55
+            ),
+            "width": scaling.scale_width(50),
+            "to_mode": constants.MINISTERS_MODE,
+            "image_id": "buttons/hq_button.png",
+            "keybind_id": pygame.K_3,
+        }
+    )
+    to_ministers_button = constants.ActorCreationManager.create_interface_element(
+        input_dict
+    )
+
+    rhs_menu_collection = constants.ActorCreationManager.create_interface_element(
+        {
+            "coordinates": scaling.scale_coordinates(
+                constants.default_display_width - 55,
+                constants.default_display_height - 5,
+            ),
+            "width": 10,
+            "height": 10,
+            "modes": [
+                constants.STRATEGIC_MODE,
+                constants.EARTH_MODE,
+                constants.MINISTERS_MODE,
+                constants.TRIAL_MODE,
+                constants.NEW_GAME_SETUP_MODE,
+                constants.LOCATION_MODE,
+            ],
+            "init_type": constants.ORDERED_COLLECTION,
+            "member_config": {"order_exempt": True},
+            "separation": 5,
+        }
+    )
+
+    status.lhs_menu_collection = (
+        constants.ActorCreationManager.create_interface_element(
+            {
+                "coordinates": scaling.scale_coordinates(
+                    5, constants.default_display_height - 55
+                ),
+                "width": 10,
+                "height": 10,
+                "modes": [
+                    constants.STRATEGIC_MODE,
+                    constants.EARTH_MODE,
+                    constants.MINISTERS_MODE,
+                    constants.NEW_GAME_SETUP_MODE,
+                    constants.LOCATION_MODE,
+                ],
+                "init_type": constants.ORDERED_COLLECTION,
+                "member_config": {"order_exempt": True},
+                "separation": 5,
+                "direction": "horizontal",
+            }
+        )
+    )
+
+    input_dict["coordinates"] = scaling.scale_coordinates(
+        constants.default_display_width - 50, constants.default_display_height - 50
+    )
+    input_dict["image_id"] = "buttons/exit_earth_screen_button.png"
+    input_dict["init_type"] = constants.SWITCH_GAME_MODE_BUTTON
+    input_dict["width"] = scaling.scale_width(50)
+    input_dict["height"] = scaling.scale_height(50)
+    input_dict["modes"] = [
+        constants.STRATEGIC_MODE,
+        constants.EARTH_MODE,
+        constants.MINISTERS_MODE,
+        constants.TRIAL_MODE,
+        constants.LOCATION_MODE,
+    ]
+    input_dict["keybind_id"] = pygame.K_ESCAPE
+    input_dict["to_mode"] = constants.MAIN_MENU_MODE
+    to_main_menu_button = constants.ActorCreationManager.create_interface_element(
+        input_dict
+    )
+    rhs_menu_collection.add_member(to_main_menu_button)
+
+    input_dict["coordinates"] = scaling.scale_coordinates(
+        0, constants.default_display_height - 50
+    )
+    input_dict["modes"] = [constants.NEW_GAME_SETUP_MODE]
+    input_dict["keybind_id"] = pygame.K_ESCAPE
+    new_game_setup_to_main_menu_button = (
+        constants.ActorCreationManager.create_interface_element(input_dict)
+    )
+    status.lhs_menu_collection.add_member(new_game_setup_to_main_menu_button)
+
+    input_dict = {
+        "coordinates": scaling.scale_coordinates(
+            round(constants.default_display_width * 0.4) - 15,
+            constants.default_display_height - 55,
+        ),
+        "width": scaling.scale_width(round(constants.default_display_width * 0.2)),
+        "height": scaling.scale_height(50),
+        "modes": [
+            constants.STRATEGIC_MODE,
+            constants.EARTH_MODE,
+            constants.MINISTERS_MODE,
+            constants.TRIAL_MODE,
+            constants.LOCATION_MODE,
+        ],
+        "keybind_id": pygame.K_SPACE,
+        "image_id": "buttons/end_turn_button.png",
+        "init_type": constants.END_TURN_BUTTON,
+    }
+    end_turn_button = constants.ActorCreationManager.create_interface_element(
+        input_dict
+    )
+
+    input_dict["coordinates"] = (
+        input_dict["coordinates"][0],
+        scaling.scale_height(constants.default_display_height / 2 - 150),
+    )
+    input_dict["modes"] = [constants.MAIN_MENU_MODE]
+    input_dict["keybind_id"] = pygame.K_n
+    input_dict["image_id"] = "buttons/new_game_button.png"
+    input_dict["init_type"] = constants.NEW_GAME_BUTTON
+    main_menu_new_game_button = constants.ActorCreationManager.create_interface_element(
+        input_dict
+    )
+
+    input_dict["coordinates"] = (
+        input_dict["coordinates"][0],
+        scaling.scale_height(constants.default_display_height / 2 - 400),
+    )
+    input_dict["modes"] = [constants.NEW_GAME_SETUP_MODE]
+    input_dict["keybind_id"] = pygame.K_n
+    setup_new_game_button = constants.ActorCreationManager.create_interface_element(
+        input_dict
+    )
+
+    input_dict["coordinates"] = (
+        input_dict["coordinates"][0],
+        scaling.scale_height(constants.default_display_height / 2 - 225),
+    )
+    input_dict["modes"] = [constants.MAIN_MENU_MODE]
+    input_dict["keybind_id"] = pygame.K_l
+    input_dict["image_id"] = "buttons/load_game_button.png"
+    input_dict["init_type"] = constants.LOAD_GAME_BUTTON
+    load_game_button = constants.ActorCreationManager.create_interface_element(
+        input_dict
+    )
+
+    input_dict = {
+        "coordinates": scaling.scale_coordinates(
+            constants.default_display_width - 50, constants.default_display_height - 125
+        ),
+        "width": scaling.scale_width(50),
+        "height": scaling.scale_height(50),
+        "modes": [
+            constants.STRATEGIC_MODE,
+            constants.EARTH_MODE,
+            constants.MINISTERS_MODE,
+            constants.TRIAL_MODE,
+            constants.LOCATION_MODE,
+        ],
+        "image_id": "buttons/save_game_button.png",
+        "init_type": constants.SAVE_GAME_BUTTON,
+    }
+    save_game_button = constants.ActorCreationManager.create_interface_element(
+        input_dict
+    )
+    rhs_menu_collection.add_member(save_game_button)
+
+    input_dict["modes"] = [
+        constants.STRATEGIC_MODE,
+        constants.EARTH_MODE,
+        constants.MINISTERS_MODE,
+        constants.TRIAL_MODE,
+        constants.LOCATION_MODE,
+    ]
+    input_dict["image_id"] = "buttons/text_box_size_button.png"
+    input_dict["init_type"] = constants.TOGGLE_BUTTON
+    input_dict["toggle_variable"] = "expand_text_box"
+    input_dict["attached_to_actor"] = False
+    expand_text_box_button = constants.ActorCreationManager.create_interface_element(
+        input_dict
+    )
+    rhs_menu_collection.add_member(expand_text_box_button)
+
+    input_dict["modes"] = [constants.STRATEGIC_MODE]
+    input_dict["image_id"] = "buttons/grid_line_button.png"
+
+    input_dict["init_type"] = constants.TOGGLE_BUTTON
+    input_dict["attached_to_actor"] = False
+    input_dict["toggle_variable"] = "show_grid_lines"
+    toggle_grid_lines_button = constants.ActorCreationManager.create_interface_element(
+        input_dict
+    )
+    rhs_menu_collection.add_member(toggle_grid_lines_button)
+
+    if constants.EffectManager.effect_active("allow_planet_mask"):
+        input_dict["init_type"] = constants.TOGGLE_BUTTON
+        input_dict["toggle_variable"] = "show_planet_mask"
+        input_dict["attached_to_actor"] = False
+        input_dict["modes"] = [constants.STRATEGIC_MODE]
+        input_dict["image_id"] = actor_utility.generate_frame(
+            "buttons/toggle_planet_mask_button.png"
+        )
+        rhs_menu_collection.add_member(
+            constants.ActorCreationManager.create_interface_element(input_dict)
+        )
+
+    if constants.EffectManager.effect_active("allow_toggle_fog_of_war"):
+        input_dict["init_type"] = constants.TOGGLE_BUTTON
+        input_dict["toggle_variable"] = "remove_fog_of_war"
+        input_dict["attached_to_actor"] = False
+        input_dict["modes"] = [constants.STRATEGIC_MODE]
+        input_dict["image_id"] = actor_utility.generate_frame(
+            "buttons/toggle_fog_of_war_button.png"
+        )
+        rhs_menu_collection.add_member(
+            constants.ActorCreationManager.create_interface_element(input_dict)
+        )
+    if constants.EffectManager.effect_active("allow_toggle_clouds"):
+        input_dict["init_type"] = constants.TOGGLE_BUTTON
+        input_dict["toggle_variable"] = "show_clouds"
+        input_dict["attached_to_actor"] = False
+        input_dict["modes"] = [constants.STRATEGIC_MODE]
+        input_dict["image_id"] = actor_utility.generate_frame(
+            "buttons/toggle_clouds_button.png"
+        )
+        rhs_menu_collection.add_member(
+            constants.ActorCreationManager.create_interface_element(input_dict)
+        )
+
+    if constants.EffectManager.effect_active("allow_toggle_god_mode"):
+        input_dict["init_type"] = constants.TOGGLE_BUTTON
+        input_dict["toggle_variable"] = "god_mode"
+        input_dict["attached_to_actor"] = False
+        input_dict["modes"] = [constants.STRATEGIC_MODE]
+        input_dict["image_id"] = "buttons/toggle_god_mode_button.png"
+        rhs_menu_collection.add_member(
+            constants.ActorCreationManager.create_interface_element(input_dict)
+        )
+
+    input_dict["coordinates"] = scaling.scale_coordinates(
+        110, constants.default_display_height - 50
+    )
+    input_dict["modes"] = [
+        constants.STRATEGIC_MODE,
+        constants.EARTH_MODE,
+        constants.MINISTERS_MODE,
+        constants.LOCATION_MODE,
+    ]
+    input_dict["keybind_id"] = pygame.K_TAB
+    input_dict["image_id"] = "buttons/cycle_units_button.png"
+    input_dict["init_type"] = constants.CYCLE_UNITS_BUTTON
+    cycle_units_button = constants.ActorCreationManager.create_interface_element(
+        input_dict
+    )
+    status.lhs_menu_collection.add_member(cycle_units_button)
+    del input_dict["keybind_id"]
+
+    if not constants.EffectManager.effect_active("hide_old_buttons"):
+        input_dict["coordinates"] = (
+            scaling.scale_width(165),
+            input_dict["coordinates"][1],
+        )
+        input_dict["modes"] = [
+            constants.STRATEGIC_MODE,
+            constants.EARTH_MODE,
+            constants.LOCATION_MODE,
+        ]
+        input_dict["image_id"] = "buttons/disable_sentry_mode_button.png"
+        input_dict["init_type"] = constants.WAKE_UP_ALL_BUTTON
+        wake_up_all_button = constants.ActorCreationManager.create_interface_element(
+            input_dict
+        )
+        status.lhs_menu_collection.add_member(wake_up_all_button)
+
+        input_dict["coordinates"] = (
+            scaling.scale_width(220),
+            input_dict["coordinates"][1],
+        )
+        input_dict["image_id"] = "buttons/execute_movement_routes_button.png"
+        input_dict["init_type"] = constants.EXECUTE_MOVEMENT_ROUTES_BUTTON
+        execute_movement_routes_button = (
+            constants.ActorCreationManager.create_interface_element(input_dict)
+        )
+        status.lhs_menu_collection.add_member(execute_movement_routes_button)
+
+    input_dict["coordinates"] = scaling.scale_coordinates(
+        constants.default_display_width - 55, constants.default_display_height - 55
+    )
+    input_dict["modes"] = [constants.MAIN_MENU_MODE]
+    input_dict["image_id"] = ["buttons/exit_earth_screen_button.png"]
+    input_dict["init_type"] = constants.GENERATE_CRASH_BUTTON
+    generate_crash_button = constants.ActorCreationManager.create_interface_element(
+        input_dict
+    )
+
+    if constants.EffectManager.effect_active("map_modes"):
+        input_dict["init_type"] = constants.MAP_MODE_BUTTON
+        input_dict["parent_collection"] = rhs_menu_collection
+        input_dict["modes"] = [
+            constants.STRATEGIC_MODE,
+            constants.EARTH_MODE,
+            constants.LOCATION_MODE,
+        ]
+        for map_mode in constants.map_modes:
+            input_dict["map_mode"] = map_mode
+            input_dict["image_id"] = actor_utility.generate_frame(
+                f"misc/map_modes/{map_mode}.png"
+            )
+            constants.ActorCreationManager.create_interface_element(input_dict)
+
+    if constants.EffectManager.effect_active("allow_presets"):
+        input_dict["init_type"] = constants.TOGGLE_BUTTON
+        input_dict["toggle_variable"] = "mars_preset"
+        input_dict["attached_to_actor"] = False
+        input_dict["modes"] = [constants.NEW_GAME_SETUP_MODE]
+        input_dict["image_id"] = actor_utility.generate_frame(
+            world_utility.generate_abstract_world_image(
+                size=0.8, planet=constants.MARS_WORLD
+            )
+        )
+        input_dict["width"] = scaling.scale_width(100)
+        input_dict["height"] = scaling.scale_height(100)
+        input_dict["parent_collection"] = rhs_menu_collection
+        input_dict["member_config"] = {"order_x_offset": scaling.scale_width(-50)}
+        constants.ActorCreationManager.create_interface_element(input_dict)
+
+        input_dict["toggle_variable"] = "earth_preset"
+        input_dict["image_id"] = actor_utility.generate_frame(
+            world_utility.generate_abstract_world_image(
+                size=0.8, planet=constants.EARTH_WORLD
+            )
+        )
+        constants.ActorCreationManager.create_interface_element(input_dict)
+
+        input_dict["toggle_variable"] = "venus_preset"
+        input_dict["image_id"] = actor_utility.generate_frame(
+            world_utility.generate_abstract_world_image(
+                size=0.8, planet=constants.VENUS_WORLD
+            )
+        )
+        constants.ActorCreationManager.create_interface_element(input_dict)

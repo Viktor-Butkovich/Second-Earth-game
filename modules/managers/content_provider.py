@@ -33,12 +33,16 @@ class content_provider:
             raise ValueError(f"Unexpected table grid subject: {table.subject}")
 
         # Provide first row as headers and subsequent rows as JSON body content
-        return [[self.provide_header_content(col_name, header) for col_name in header]] + [
+        return [
+            [self.provide_header_content(col_name, header) for col_name in header]
+        ] + [
             [self.provide_body_content(col_name, data) for col_name in header]
             for data in body
         ]
 
-    def provide_header_content(self, col_name: str, header: Dict[str, Any]) -> Dict[str, Any]:
+    def provide_header_content(
+        self, col_name: str, header: Dict[str, Any]
+    ) -> Dict[str, Any]:
         """
         Provides content for a table header cell
         """

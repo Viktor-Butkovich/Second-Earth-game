@@ -337,9 +337,11 @@ class item_prices_label_template(label):
             if current_item_type.can_sell or current_item_type.can_purchase
         ]
         for current_item_type in market_items:
-            current_line = f"{current_item_type.abbreviated_name}: {current_item_type.price}"
+            current_line = (
+                f"{current_item_type.abbreviated_name}: {current_item_type.price}"
+            )
             while self.font.calculate_size(current_line) < self.width:
-                current_line = f" {current_line}" # Add sufficient spacing for right-justified text
+                current_line = f" {current_line}"  # Add sufficient spacing for right-justified text
             message.append(current_line.removeprefix("    "))
         self.set_label(message)
 

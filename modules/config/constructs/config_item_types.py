@@ -2,6 +2,7 @@ from __future__ import annotations
 from modules.constants import constants, status, flags
 from modules.constructs import item_types, equipment_types
 
+
 def config_item_types() -> None:
     """
     Configures all item types during setup
@@ -9,6 +10,7 @@ def config_item_types() -> None:
     define_materials()
     define_resources()
     define_equipment()
+
 
 def define_materials() -> None:
     """
@@ -104,6 +106,7 @@ def define_materials() -> None:
         }
     )
 
+
 def define_resources() -> None:
     """
     Configures resource types during setup
@@ -171,6 +174,7 @@ def define_resources() -> None:
             "background_color": constants.color_dict[constants.COLOR_PURPLE],
         }
     )
+
 
 def define_equipment() -> None:
     """

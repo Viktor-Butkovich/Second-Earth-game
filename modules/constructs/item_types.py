@@ -89,6 +89,7 @@ class item_type:
             "abbreviated_name": self.abbreviated_name,
         }
 
+
 class material_type(item_type):
     def __init__(self, input_dict: Dict[str, Any]) -> None:
         input_dict["item_category"] = constants.ITEM_CATEGORY_MATERIAL
@@ -99,6 +100,7 @@ class resource_type(item_type):
     def __init__(self, input_dict: Dict[str, Any]) -> None:
         input_dict["item_category"] = constants.ITEM_CATEGORY_RESOURCE
         super().__init__(input_dict)
+
 
 def transfer(
     source_type: str, transferred_item: item_type = None, amount: int = None

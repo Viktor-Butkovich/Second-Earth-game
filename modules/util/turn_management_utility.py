@@ -419,7 +419,9 @@ def manage_upkeep_expenditure() -> None:
                 current_mob.check_item_availability()
             for current_mob in current_location.contained_mobs:
                 current_mob.consume_item_upkeep()
-            current_location.set_inventory(status.item_types[constants.RESOURCE_ENERGY], 0)
+            current_location.set_inventory(
+                status.item_types[constants.RESOURCE_ENERGY], 0
+            )
 
     total_money_upkeep = market_utility.calculate_total_worker_upkeep()
     constants.MoneyTracker.change(round(-1 * total_money_upkeep, 2), "worker_upkeep")

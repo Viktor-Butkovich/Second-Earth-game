@@ -77,7 +77,9 @@ class repair(action.action):
                 "items/equipment/buildings/repair_hammer.png",
             ]
         else:
-            initial_input_dict["image_id"] = "items/equipment/buttons/repair_resource.png"
+            initial_input_dict["image_id"] = (
+                "items/equipment/buttons/repair_resource.png"
+            )
         initial_input_dict["keybind_id"] = status.actions[
             self.building_type.key
         ].button.keybind_id

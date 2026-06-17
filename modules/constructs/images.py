@@ -537,7 +537,9 @@ class bundle_image:
                 if full_image_id.endswith(".png"):
                     self.text = False
                     if not pathlib.Path(full_image_id).exists():
-                        raise FileNotFoundError(f"Image file not found: {full_image_id}")
+                        raise FileNotFoundError(
+                            f"Image file not found: {full_image_id}"
+                        )
                     self.image = self.load_image_pil(full_image_id)
                 else:
                     self.text = True
@@ -581,7 +583,9 @@ class bundle_image:
         """
         pil_img = Image.open(path).convert("RGBA")
 
-        if self.detail_level != 1: # Decrease detail of each image before applying mutations to speed processing
+        if (
+            self.detail_level != 1
+        ):  # Decrease detail of each image before applying mutations to speed processing
             w, h = pil_img.size
             pil_img = pil_img.resize(
                 (
@@ -591,21 +595,30 @@ class bundle_image:
                 Image.NEAREST,
             )
 
-        arr = np.array(pil_img) # (H, W, 4)
+        arr = np.array(pil_img)  # (H, W, 4)
         r, g, b, a = arr[:, :, 0], arr[:, :, 1], arr[:, :, 2], arr[:, :, 3]
 
         if self.is_offset and self.has_green_screen:
-            if isinstance(self.green_screen_colors, dict): # If tolerance-based replacement
+            if isinstance(
+                self.green_screen_colors, dict
+            ):  # If tolerance-based replacement
                 unassigned = np.ones(r.shape, dtype=bool)
                 for terrain_type, metadata in self.green_screen_colors.items():
-                    base_colors, tolerance, repl = metadata["base_colors"], metadata["tolerance"], metadata["replacement_color"]
+                    base_colors, tolerance, repl = (
+                        metadata["base_colors"],
+                        metadata["tolerance"],
+                        metadata["replacement_color"],
+                    )
                     for base_r, base_g, base_b in base_colors:
-                        diff = np.abs(r.astype(np.int16) - int(base_r)) + np.abs(g.astype(np.int16) - int(base_g)) + np.abs(b.astype(np.int16) - int(base_b))
+                        diff = (
+                            np.abs(r.astype(np.int16) - int(base_r))
+                            + np.abs(g.astype(np.int16) - int(base_g))
+                            + np.abs(b.astype(np.int16) - int(base_b))
+                        )
 
                         mask = (diff <= tolerance) & unassigned
                         if not np.any(mask):
                             continue
-
 
                         # difference proportion (clamped to 1.5)
                         dr = np.minimum(r[mask] / base_r, 1.5) if base_r != 0 else 1
@@ -618,13 +631,15 @@ class bundle_image:
 
                         unassigned[mask] = False
 
-                        if not unassigned.any(): # Stop if all pixels are already assigned
+                        if (
+                            not unassigned.any()
+                        ):  # Stop if all pixels are already assigned
                             break
 
-            else: # If simple color-based replacement
+            else:  # If simple color-based replacement
                 if self.override_green_screen_colors:
                     replaced_colors = self.override_green_screen_colors
-                else: # Use the default set of colors to replace
+                else:  # Use the default set of colors to replace
                     replaced_colors = constants.green_screen_colors
 
                 for idx, (gr, gg, gb) in enumerate(replaced_colors):
@@ -642,7 +657,7 @@ class bundle_image:
             r[:] = np.clip(np.round(r * rf), 0, 255)
             g[:] = np.clip(np.round(g * gf), 0, 255)
             b[:] = np.clip(np.round(b * bf), 0, 255)
-            
+
         arr = np.stack([r, g, b, a], axis=-1).astype(np.uint8)
         pil_img = Image.fromarray(arr, mode="RGBA")
         surface = pygame.image.fromstring(pil_img.tobytes(), pil_img.size, pil_img.mode)
