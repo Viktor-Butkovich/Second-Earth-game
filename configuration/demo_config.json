@@ -9,7 +9,6 @@
     "benchmark_world_creation": false,
     "allow_toggle_god_mode": true,
     "omit_default_names": true,
-    "hide_old_buttons": true,
     "hide_old_units": true,
     "skip_start_of_turn": true,
     "map_customization": false,

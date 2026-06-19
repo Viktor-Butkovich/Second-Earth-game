@@ -64,6 +64,13 @@ class interface_element:
         elif self.has_parent_collection:
             self.set_modes(self.parent_collection.modes)
 
+        if "outline_color" in input_dict:
+            self.outline_color = input_dict["outline_color"]
+        elif self.has_parent_collection and self.parent_collection.outline_color:
+            self.outline_color = self.parent_collection.outline_color
+        else:
+            self.outline_color = constants.COLOR_ELECTRIC_BLUE
+
         if "image_id" in input_dict:
             self.create_image(input_dict["image_id"])
 

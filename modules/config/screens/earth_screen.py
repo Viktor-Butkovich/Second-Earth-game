@@ -54,7 +54,7 @@ def config_earth_screen():
             )
             current_index += 1
 
-    earth_purchase_buttons = constants.ActorCreationManager.create_interface_element(
+    earth_market_collection = constants.ActorCreationManager.create_interface_element(
         {
             "coordinates": scaling.scale_coordinates(1500, 20),
             "width": 10,
@@ -65,6 +65,7 @@ def config_earth_screen():
             "reversed": True,
             "second_dimension_increment": scaling.scale_width(125),
             "direction": "vertical",
+            "outline_color": constants.COLOR_WHITE,
         }
     )
     purchase_button_grid_height = 7
@@ -78,12 +79,12 @@ def config_earth_screen():
                     "width": scaling.scale_width(100),
                     "height": scaling.scale_height(100),
                     "init_type": constants.BUY_ITEM_BUTTON,
-                    "parent_collection": earth_purchase_buttons,
+                    "parent_collection": earth_market_collection,
                     "item_type": purchase_item_type,
                     "member_config": {
                         "second_dimension_coordinate": -1
                         * (
-                            len(earth_purchase_buttons.members)
+                            len(earth_market_collection.members)
                             // purchase_button_grid_height
                         )
                     },  # Re-use recruitment index for both loops
@@ -95,12 +96,12 @@ def config_earth_screen():
                 "width": scaling.scale_width(100),
                 "height": scaling.scale_height(100),
                 "init_type": constants.RECRUITMENT_BUTTON,
-                "parent_collection": earth_purchase_buttons,
+                "parent_collection": earth_market_collection,
                 "recruitment_type": recruitment_type,
                 "member_config": {
                     "second_dimension_coordinate": -1
                     * (
-                        len(earth_purchase_buttons.members)
+                        len(earth_market_collection.members)
                         // purchase_button_grid_height
                     )
                 },  # Re-use recruitment index for both loops

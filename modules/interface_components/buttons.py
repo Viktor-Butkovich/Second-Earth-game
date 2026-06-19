@@ -47,7 +47,7 @@ class button(interface_elements.interface_element):
         Output:
             None
         """
-        self.outline_width = 4
+        self.outline_width = 3
         self.outline = pygame.Rect(
             0,
             0,
@@ -66,7 +66,6 @@ class button(interface_elements.interface_element):
         self.has_keybind = self.keybind_id != None
         if self.has_keybind:
             self.set_keybind(self.keybind_id)
-        self.outline_color = input_dict.get("outline_color", constants.COLOR_ELECTRIC_BLUE)
         self.has_button_press_override = False
         self.enable_shader = input_dict.get("enable_shader", False)
         self.showing_outline = False
@@ -504,7 +503,7 @@ class button(interface_elements.interface_element):
             return ["Moves this unit along its currently designated movement route"]
 
         elif self.button_type == constants.GENERATE_CRASH_BUTTON:
-            return ["Exits the game"]
+            return ["Exits the game and generates a dummy crash report"]
 
         elif self.button_type == constants.MINIMIZE_INTERFACE_COLLECTION_BUTTON:
             if self.parent_collection.minimized:
