@@ -352,6 +352,7 @@ COLOR_DARK_GREEN: str = "dark green"
 COLOR_BRIGHT_BLUE: str = "bright blue"
 COLOR_BLUE: str = "blue"
 COLOR_DARK_BLUE: str = "dark blue"
+COLOR_ELECTRIC_BLUE: str = "electric blue"
 COLOR_YELLOW: str = "yellow"
 COLOR_BROWN: str = "brown"
 COLOR_BLONDE: str = "blonde"
@@ -371,6 +372,7 @@ COLOR_GREEN_SCREEN_1: str = "green_screen_1"
 COLOR_GREEN_SCREEN_2: str = "green_screen_2"
 COLOR_GREEN_SCREEN_3: str = "green_screen_3"
 COLOR_TEAL: str = "teal"
+COLOR_DARK_PURPLE: str = "dark_purple"
 color_dict: Dict[str, tuple[int, int, int]] = {
     COLOR_BLACK: (0, 0, 0),
     COLOR_WHITE: (255, 255, 255),
@@ -387,6 +389,7 @@ color_dict: Dict[str, tuple[int, int, int]] = {
     COLOR_BRIGHT_BLUE: (0, 0, 255),
     COLOR_BLUE: (0, 0, 200),
     COLOR_DARK_BLUE: (0, 0, 150),
+    COLOR_ELECTRIC_BLUE: (0, 128, 255),
     COLOR_TEAL: (0, 187, 187),
     COLOR_YELLOW: (255, 255, 0),
     COLOR_BROWN: (85, 53, 22),
@@ -406,6 +409,7 @@ color_dict: Dict[str, tuple[int, int, int]] = {
     COLOR_GREEN_SCREEN_1: (62, 82, 82),
     COLOR_GREEN_SCREEN_2: (70, 70, 92),
     COLOR_GREEN_SCREEN_3: (110, 107, 3),
+    COLOR_DARK_PURPLE: (100, 0, 128),
 }
 
 quality_colors: Dict[str, tuple[int, int, int]] = {

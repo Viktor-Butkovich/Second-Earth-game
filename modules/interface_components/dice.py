@@ -68,7 +68,6 @@ class die(button):
             )
         else:
             input_dict["image_id"] = "misc/dice/impossible.png"
-        input_dict["color"] = constants.COLOR_WHITE
         input_dict["button_type"] = "die"
         super().__init__(input_dict)
         status.dice_list.append(self)

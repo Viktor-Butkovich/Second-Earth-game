@@ -53,7 +53,6 @@ def config_location_info_display() -> None:
                 "init_type": constants.SAME_LOCATION_ICON,
                 "image_id": "buttons/default_button.png",
                 "is_last": False,
-                "color": constants.COLOR_GRAY,
                 "parent_collection": same_location_ordered_collection,
                 "index": i,
                 "is_last": i == 3,

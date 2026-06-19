@@ -66,8 +66,7 @@ class button(interface_elements.interface_element):
         self.has_keybind = self.keybind_id != None
         if self.has_keybind:
             self.set_keybind(self.keybind_id)
-        if "color" in input_dict:
-            self.color = constants.color_dict[input_dict["color"]]
+        self.outline_color = input_dict.get("outline_color", constants.COLOR_ELECTRIC_BLUE)
         self.has_button_press_override = False
         self.enable_shader = input_dict.get("enable_shader", False)
         self.showing_outline = False
@@ -658,12 +657,10 @@ class button(interface_elements.interface_element):
             if self.showing_outline and allow_show_outline:
                 pygame.draw.rect(
                     constants.game_display,
-                    constants.color_dict[constants.COLOR_BLUE],
+                    constants.color_dict[self.outline_color],
                     self.outline,
                     width=self.outline_width,
                 )
-            if self.showing_background and hasattr(self, "color"):
-                pygame.draw.rect(constants.game_display, self.color, self.Rect)
             self.image.draw()
             if (
                 self.has_keybind
@@ -1617,9 +1614,15 @@ class same_location_icon(button):
                     elif len(self.previous_subscribed_mobs) > self.index:
                         self.attached_mob = self.previous_subscribed_mobs[self.index]
                         self.image.set_image(
-                            self.attached_mob.image_dict[
-                                constants.IMAGE_ID_LIST_FULL_MOB
-                            ]
+                            utility.combine(
+                                self.attached_mob.image_dict[
+                                    constants.IMAGE_ID_LIST_FULL_MOB
+                                ],
+                                {
+                                    "image_id": "misc/actor_backgrounds/mob_background.png",
+                                    "level": constants.BACKGROUND_LEVEL,
+                                },
+                            )
                         )
             else:
                 self.attached_mob = None

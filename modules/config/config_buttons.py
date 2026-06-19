@@ -166,59 +166,59 @@ def config_buttons() -> None:
         + globe_projection_size
         + 15
     )
-    input_dict = {
-        "coordinates": scaling.scale_coordinates(
-            switch_game_mode_buttons_x, constants.default_display_height - 55
-        ),
-        "height": scaling.scale_height(50),
-        "width": scaling.scale_width(50),
-        "keybind_id": pygame.K_1,
-        "image_id": actor_utility.generate_frame("locations/africa.png"),
-        "modes": [
-            constants.MINISTERS_MODE,
-            constants.STRATEGIC_MODE,
-            constants.EARTH_MODE,
-            constants.TRIAL_MODE,
-            constants.LOCATION_MODE,
-        ],
-        "to_mode": constants.STRATEGIC_MODE,
-        "init_type": constants.SWITCH_GAME_MODE_BUTTON,
-    }
-    status.to_strategic_button = (
-        constants.ActorCreationManager.create_interface_element(input_dict)
-    )
-
-    input_dict.update(
+    game_mode_navigation_collection = constants.ActorCreationManager.create_interface_element(
         {
             "coordinates": scaling.scale_coordinates(
-                switch_game_mode_buttons_x + 60, constants.default_display_height - 55
+                switch_game_mode_buttons_x, constants.default_display_height - 55
             ),
-            "image_id": actor_utility.generate_frame(
-                world_utility.generate_abstract_world_image(
-                    planet=constants.EARTH_WORLD, size=0.6
-                )
-            ),
-            "to_mode": constants.EARTH_MODE,
-            "keybind_id": pygame.K_2,
+            "width": 10,
+            "height": 10,
+            "modes": [
+                constants.STRATEGIC_MODE,
+                constants.EARTH_MODE,
+                constants.MINISTERS_MODE,
+                constants.TRIAL_MODE,
+                constants.LOCATION_MODE,
+            ],
+            "init_type": constants.ORDERED_COLLECTION,
+            "member_config": {"order_exempt": True},
+            "separation": 10,
+            "direction": "horizontal",
+        }
+    )
+    status.to_strategic_button = constants.ActorCreationManager.create_interface_element(
+        {
+            "height": scaling.scale_height(50),
+            "width": scaling.scale_width(50),
+            "keybind_id": pygame.K_1,
+            "image_id": "misc/empty.png", # Matches the planet
+            "to_mode": constants.STRATEGIC_MODE,
+            "init_type": constants.SWITCH_GAME_MODE_BUTTON,
+            "parent_collection": game_mode_navigation_collection,
         }
     )
     status.to_earth_button = constants.ActorCreationManager.create_interface_element(
-        input_dict
-    )
-
-    input_dict.update(
         {
-            "coordinates": scaling.scale_coordinates(
-                switch_game_mode_buttons_x + 120, constants.default_display_height - 55
-            ),
+            "height": scaling.scale_height(50),
             "width": scaling.scale_width(50),
-            "to_mode": constants.MINISTERS_MODE,
-            "image_id": "buttons/hq_button.png",
-            "keybind_id": pygame.K_3,
+            "keybind_id": pygame.K_2,
+            "image_id": actor_utility.generate_frame(world_utility.generate_abstract_world_image(planet=constants.EARTH_WORLD, size=0.6)),
+            "to_mode": constants.EARTH_MODE,
+            "init_type": constants.SWITCH_GAME_MODE_BUTTON,
+            "parent_collection": game_mode_navigation_collection,
         }
     )
+
     to_ministers_button = constants.ActorCreationManager.create_interface_element(
-        input_dict
+        {
+            "height": scaling.scale_height(50),
+            "width": scaling.scale_width(50),
+            "keybind_id": pygame.K_3,
+            "image_id": "buttons/hq_button.png",
+            "to_mode": constants.MINISTERS_MODE,
+            "init_type": constants.SWITCH_GAME_MODE_BUTTON,
+            "parent_collection": game_mode_navigation_collection,
+        }
     )
 
     rhs_menu_collection = constants.ActorCreationManager.create_interface_element(
@@ -239,7 +239,7 @@ def config_buttons() -> None:
             ],
             "init_type": constants.ORDERED_COLLECTION,
             "member_config": {"order_exempt": True},
-            "separation": 5,
+            "separation": 10,
         }
     )
 
@@ -266,36 +266,44 @@ def config_buttons() -> None:
         )
     )
 
-    input_dict["coordinates"] = scaling.scale_coordinates(
-        constants.default_display_width - 50, constants.default_display_height - 50
-    )
-    input_dict["image_id"] = "buttons/exit_earth_screen_button.png"
-    input_dict["init_type"] = constants.SWITCH_GAME_MODE_BUTTON
-    input_dict["width"] = scaling.scale_width(50)
-    input_dict["height"] = scaling.scale_height(50)
-    input_dict["modes"] = [
-        constants.STRATEGIC_MODE,
-        constants.EARTH_MODE,
-        constants.MINISTERS_MODE,
-        constants.TRIAL_MODE,
-        constants.LOCATION_MODE,
-    ]
-    input_dict["keybind_id"] = pygame.K_ESCAPE
-    input_dict["to_mode"] = constants.MAIN_MENU_MODE
     to_main_menu_button = constants.ActorCreationManager.create_interface_element(
-        input_dict
+        {
+            "coordinates": scaling.scale_coordinates(
+                constants.default_display_width - 50, constants.default_display_height - 50
+            ),
+            "width": scaling.scale_width(50),
+            "height": scaling.scale_height(50),
+            "keybind_id": pygame.K_ESCAPE,
+            "image_id": "buttons/exit_earth_screen_button.png",
+            "to_mode": constants.MAIN_MENU_MODE,
+            "init_type": constants.SWITCH_GAME_MODE_BUTTON,
+            "modes": [
+                constants.STRATEGIC_MODE,
+                constants.EARTH_MODE,
+                constants.MINISTERS_MODE,
+                constants.TRIAL_MODE,
+                constants.LOCATION_MODE,
+            ],
+            "parent_collection": rhs_menu_collection,
+        }
     )
-    rhs_menu_collection.add_member(to_main_menu_button)
-
-    input_dict["coordinates"] = scaling.scale_coordinates(
-        0, constants.default_display_height - 50
+    new_game_setup_to_main_menu_button = constants.ActorCreationManager.create_interface_element(
+        {
+            "coordinates": scaling.scale_coordinates(
+                0, constants.default_display_height - 50
+            ),
+            "width": scaling.scale_width(50),
+            "height": scaling.scale_height(50),
+            "keybind_id": pygame.K_ESCAPE,
+            "image_id": "buttons/exit_earth_screen_button.png",
+            "to_mode": constants.MAIN_MENU_MODE,
+            "init_type": constants.SWITCH_GAME_MODE_BUTTON,
+            "modes": [
+                constants.NEW_GAME_SETUP_MODE,
+            ],
+            "parent_collection": status.lhs_menu_collection,
+        }
     )
-    input_dict["modes"] = [constants.NEW_GAME_SETUP_MODE]
-    input_dict["keybind_id"] = pygame.K_ESCAPE
-    new_game_setup_to_main_menu_button = (
-        constants.ActorCreationManager.create_interface_element(input_dict)
-    )
-    status.lhs_menu_collection.add_member(new_game_setup_to_main_menu_button)
 
     input_dict = {
         "coordinates": scaling.scale_coordinates(
