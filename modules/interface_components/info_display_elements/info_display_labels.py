@@ -98,7 +98,7 @@ class actor_display_label(labels.label):
 
             del input_dict["keybind_id"]
             input_dict["image_id"] = [
-                "buttons/default_button_alt2.png",
+                "buttons/default_button_alt.png",
                 {
                     "image_id": "misc/circle.png",
                     "green_screen": status.item_types[

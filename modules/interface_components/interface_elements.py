@@ -69,7 +69,7 @@ class interface_element:
         elif self.has_parent_collection and self.parent_collection.outline_color:
             self.outline_color = self.parent_collection.outline_color
         else:
-            self.outline_color = constants.COLOR_ELECTRIC_BLUE
+            self.outline_color = constants.default_outline_color
 
         if "image_id" in input_dict:
             self.create_image(input_dict["image_id"])

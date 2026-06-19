@@ -665,9 +665,10 @@ class button(interface_elements.interface_element):
                 self.has_keybind
             ):  # The key to which a button is bound will appear on the button's image
                 message = self.keybind_name
-                color = constants.COLOR_WHITE
-                textsurface = constants.myfont.pygame_font.render(
-                    message, False, constants.color_dict[color]
+                message = message[:3] if not "space" in message else message
+                font = constants.fonts[constants.RED_FONT]
+                textsurface = font.pygame_font.render(
+                    message, False, font.color
                 )
                 constants.game_display.blit(
                     textsurface,

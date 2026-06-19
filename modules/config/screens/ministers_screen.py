@@ -68,7 +68,7 @@ def config_ministers_screen() -> None:
                     "actor_type": constants.MINISTER_ACTOR_TYPE,
                     "image_id": [
                         {
-                            "image_id": "ministers/empty_portrait.png",
+                            "image_id": "ministers/portraits/frame/frame.png",
                             "level": constants.BACKGROUND_LEVEL,
                         },
                         {
@@ -112,7 +112,7 @@ def config_ministers_screen() -> None:
                     "actor_type": constants.MINISTER_ACTOR_TYPE,
                     "image_id": [
                         {
-                            "image_id": "ministers/empty_portrait.png",
+                            "image_id": "ministers/portraits/frame/frame.png",
                             "level": constants.BACKGROUND_LEVEL,
                         },
                         {
@@ -157,7 +157,11 @@ def config_ministers_screen() -> None:
                 "actor_type": constants.MINISTER_ACTOR_TYPE,
                 "image_id": [
                     {
-                        "image_id": "ministers/empty_portrait.png",
+                        "image_id": "misc/actor_backgrounds/minister_background.png",
+                        "level": constants.BACKGROUND_LEVEL,
+                    },
+                    {
+                        "image_id": "ministers/portraits/frame/frame.png",
                         "level": constants.BACKGROUND_LEVEL,
                     },
                 ],

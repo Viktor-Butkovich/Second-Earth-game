@@ -260,6 +260,7 @@ WHITE_FONT: str = "white_font"
 DEFAULT_FONT: str = "default_font"
 DEFAULT_NOTIFICATION_FONT: str = "default_notification_font"
 WHITE_NOTIFICATION_FONT: str = "white_notification_font"
+RED_FONT: str = "red_font"
 LARGE_NOTIFICATION_FONT: str = "large_notification_font"
 LARGE_WHITE_NOTIFICATION_FONT: str = "large_white_notification_font"
 MAX_DETAIL_WHITE_FONT: str = "max_detail_white_font"
@@ -426,6 +427,8 @@ green_screen_colors: List[tuple[int, int, int]] = [
     color_dict[COLOR_GREEN_SCREEN_2],
     color_dict[COLOR_GREEN_SCREEN_3],
 ]
+default_outline_color: str = COLOR_ELECTRIC_BLUE
+space_background_outline_color: str = COLOR_ELECTRIC_BLUE
 
 resource_building_dict: Dict[str, str] = {
     "coffee": "plantation",

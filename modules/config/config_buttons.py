@@ -1,7 +1,7 @@
 from __future__ import annotations
 import pygame
 from modules.constants import constants, status, flags
-from modules.util import scaling, actor_utility, world_utility
+from modules.util import scaling, actor_utility, world_utility, text_utility
 
 
 def config_buttons() -> None:
@@ -157,7 +157,7 @@ def config_buttons() -> None:
             "member_config": {"order_exempt": True},
             "separation": 10,
             "direction": "horizontal",
-            "outline_color": constants.COLOR_WHITE,
+            "outline_color": constants.space_background_outline_color,
         }
     )
     status.to_strategic_button = constants.ActorCreationManager.create_interface_element(
@@ -188,7 +188,7 @@ def config_buttons() -> None:
             "height": scaling.scale_height(50),
             "width": scaling.scale_width(50),
             "keybind_id": pygame.K_3,
-            "image_id": "buttons/hq_button.png",
+            "image_id": actor_utility.generate_frame("buttons/hq_button.png"),
             "to_mode": constants.MINISTERS_MODE,
             "init_type": constants.SWITCH_GAME_MODE_BUTTON,
             "parent_collection": game_mode_navigation_collection,
@@ -214,7 +214,7 @@ def config_buttons() -> None:
             "init_type": constants.ORDERED_COLLECTION,
             "member_config": {"order_exempt": True},
             "separation": 10,
-            "outline_color": constants.COLOR_WHITE,
+            "outline_color": constants.space_background_outline_color,
         }
     )
 
@@ -278,14 +278,14 @@ def config_buttons() -> None:
                 constants.NEW_GAME_SETUP_MODE,
             ],
             "parent_collection": status.lhs_menu_collection,
-            "outline_color": constants.COLOR_WHITE,
+            "outline_color": constants.space_background_outline_color,
         }
     )
 
     wide_button_defaults = {
         "width": scaling.scale_width(round(constants.default_display_width * 0.2)),
         "height": scaling.scale_height(50),
-        "outline_color": constants.COLOR_WHITE,
+        "outline_color": constants.space_background_outline_color,
     }
     end_turn_button = constants.ActorCreationManager.create_interface_element(
         {
@@ -302,7 +302,10 @@ def config_buttons() -> None:
                 constants.LOCATION_MODE,
             ],
             "keybind_id": pygame.K_SPACE,
-            "image_id": "buttons/end_turn_button.png",
+            "image_id": [
+                "buttons/default_wide_button.png",
+                text_utility.prepare_render("End Turn", constants.fonts[constants.LARGE_NOTIFICATION_FONT]),
+            ],
             "init_type": constants.END_TURN_BUTTON,
         }
     )
@@ -315,7 +318,10 @@ def config_buttons() -> None:
             ),
             "modes": [constants.MAIN_MENU_MODE],
             "keybind_id": pygame.K_n,
-            "image_id": "buttons/new_game_button.png",
+            "image_id": [
+                "buttons/default_wide_button.png",
+                text_utility.prepare_render("New Game", constants.fonts[constants.LARGE_NOTIFICATION_FONT]),
+            ],
             "init_type": constants.NEW_GAME_BUTTON,
         }
     )
@@ -328,7 +334,10 @@ def config_buttons() -> None:
             ),
             "modes": [constants.NEW_GAME_SETUP_MODE],
             "keybind_id": pygame.K_n,
-            "image_id": "buttons/new_game_button.png",
+            "image_id": [
+                "buttons/default_wide_button.png",
+                text_utility.prepare_render("New Game", constants.fonts[constants.LARGE_NOTIFICATION_FONT]),
+            ],
             "init_type": constants.NEW_GAME_BUTTON,
         }
     )
@@ -341,7 +350,10 @@ def config_buttons() -> None:
             ),
             "modes": [constants.MAIN_MENU_MODE],
             "keybind_id": pygame.K_l,
-            "image_id": "buttons/load_game_button.png",
+            "image_id": [
+                "buttons/default_wide_button.png",
+                text_utility.prepare_render("Load Game", constants.fonts[constants.LARGE_NOTIFICATION_FONT]),
+            ],
             "init_type": constants.LOAD_GAME_BUTTON,
         }
     )
@@ -349,7 +361,7 @@ def config_buttons() -> None:
     rhs_button_defaults = {
         "width": scaling.scale_width(50),
         "height": scaling.scale_height(50),
-        "outline_color": constants.COLOR_WHITE,
+        "outline_color": constants.space_background_outline_color,
         "parent_collection": rhs_menu_collection,
     }
     save_game_button = constants.ActorCreationManager.create_interface_element(

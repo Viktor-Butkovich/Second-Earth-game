@@ -65,7 +65,7 @@ def config_earth_screen():
             "reversed": True,
             "second_dimension_increment": scaling.scale_width(125),
             "direction": "vertical",
-            "outline_color": constants.COLOR_WHITE,
+            "outline_color": constants.space_background_outline_color,
         }
     )
     purchase_button_grid_height = 7

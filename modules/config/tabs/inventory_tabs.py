@@ -26,7 +26,7 @@ def mob_inventory_tab() -> None:
                 "member_config": {
                     "tabbed": True,
                     "button_image_id": [
-                        "buttons/default_button_alt2.png",
+                        "buttons/default_button_alt.png",
                         {
                             "image_id": "misc/circle.png",
                             "green_screen": status.item_types[
@@ -138,7 +138,7 @@ def location_inventory_tab() -> None:
                 "member_config": {
                     "tabbed": True,
                     "button_image_id": [
-                        "buttons/default_button_alt2.png",
+                        "buttons/default_button_alt.png",
                         {
                             "image_id": "misc/circle.png",
                             "green_screen": status.item_types[
