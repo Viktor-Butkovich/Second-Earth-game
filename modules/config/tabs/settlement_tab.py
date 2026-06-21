@@ -1,6 +1,6 @@
 from __future__ import annotations
 from modules.constants import constants, status, flags
-from modules.util import scaling
+from modules.util import scaling, actor_utility
 
 
 def config_settlement_tab():
@@ -17,7 +17,7 @@ def config_settlement_tab():
                 "parent_collection": status.location_tabbed_collection,
                 "member_config": {
                     "tabbed": True,
-                    "button_image_id": "buttons/crew_train_button.png",
+                    "button_image_id": actor_utility.generate_frame("buttons/grid_line_button.png"),
                     "identifier": constants.SETTLEMENT_PANEL,
                     "tab_name": "settlement",
                 },

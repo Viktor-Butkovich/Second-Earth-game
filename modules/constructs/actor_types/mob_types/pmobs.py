@@ -32,9 +32,6 @@ class pmob(mob):
                 'movement_points': int value - Required if from save, how many movement points this actor currently has
                 'sentry_mode': boolean value - Required if from save, whether this unit is in sentry mode, preventing it from being in the turn order
                 'in_turn_queue': boolean value - Required if from save, whether this unit is in the turn order, allowing end unit turn commands, etc. to persist after saving/loading
-                'base_automatic_route': int tuple list value - Required if from save, list of the coordinates in this unit's automatic movement route, with the first coordinates being the start and the last being the end. List empty if
-                    no automatic movement route has been designated
-                'in_progress_automatic_route': string/int tuple list value - Required if from save, list of the coordinates and string commands this unit will execute, changes as the route is executed
                 'inventory': dictionary value - This actor's initial items carried, with an integer value corresponding to amount of each item type
                 'equipment': dictionary value - This actor's initial items equipped, with a boolean value corresponding to whether each type of equipment is equipped
         Output:
@@ -57,19 +54,11 @@ class pmob(mob):
                 self.add_to_turn_queue()
             else:
                 self.remove_from_turn_queue()
-            self.base_automatic_route = input_dict["base_automatic_route"]
-            self.in_progress_automatic_route = input_dict["in_progress_automatic_route"]
             self.wait_until_full = input_dict["wait_until_full"]
         else:
             self.default_name = self.name
             self.set_automatically_replace(True)
             self.add_to_turn_queue()
-            self.base_automatic_route = (
-                []
-            )  # first item is start of route/pickup, last item is end of route/dropoff
-            self.in_progress_automatic_route = (
-                []
-            )  # first item is next step, last item is current location
             self.wait_until_full = False
         self.finish_init(original_constructor, from_save, input_dict)
 
@@ -390,9 +379,6 @@ class pmob(mob):
                 'end_turn_destination_world_index': int value - Index of the world of the end turn destination, if any
                 'sentry_mode': boolean value - Whether this unit is in sentry mode, preventing it from being in the turn order
                 'in_turn_queue': boolean value - Whether this unit is in the turn order, allowing end unit turn commands, etc. to persist after saving/loading
-                'base_automatic_route': int tuple list value - List of the coordinates in this unit's automatic movement route, with the first coordinates being the start and the last being the end. List empty if
-                    no automatic movement route has been designated
-                'in_progress_automatic_route': string/int tuple list value - List of the coordinates and string commands this unit will execute, changes as the route is executed
                 'automatically_replace': boolean value  Whether this unit or any of its components should be replaced automatically in the event of attrition
                 'equipment': dictionary value - This actor's items equipped, with a boolean value corresponding to whether each type of equipment is equipped
         """
@@ -409,172 +395,10 @@ class pmob(mob):
             )
         save_dict["default_name"] = self.default_name
         save_dict["in_turn_queue"] = self in status.player_turn_queue
-        save_dict["base_automatic_route"] = self.base_automatic_route
-        save_dict["in_progress_automatic_route"] = self.in_progress_automatic_route
         save_dict["wait_until_full"] = self.wait_until_full
         save_dict["automatically_replace"] = self.automatically_replace
         save_dict["equipment"] = self.equipment
         return save_dict
-
-    def add_to_automatic_route(self, new_location):
-        """
-        Description:
-            Adds the inputted coordinates to this unit's automated movement route, changing the in-progress route as needed
-        Input:
-            location tuple new_coordinates: New x and y coordinates to add to the route
-        Output:
-            None
-        """
-        self.base_automatic_route.append(new_location)
-        self.calculate_automatic_route()
-        if self == status.displayed_mob:
-            actor_utility.calibrate_actor_info_display(status.mob_info_display, self)
-
-    def calculate_automatic_route(self):
-        """
-        Creates an in-progress movement route based on the base movement route when the base movement route changes
-        """
-        reversed_base_automatic_route = utility.copy_list(self.base_automatic_route)
-        reversed_base_automatic_route.reverse()
-
-        self.in_progress_automatic_route = ["start"]
-        # imagine base route is [0, 1, 2, 3, 4]
-        # reverse route is [4, 3, 2, 1, 0]
-        for current_index in range(
-            1, len(self.base_automatic_route)
-        ):  # first destination is 2nd item in list
-            self.in_progress_automatic_route.append(
-                self.base_automatic_route[current_index]
-            )
-        # now in progress route is ['start', 1, 2, 3, 4]
-
-        self.in_progress_automatic_route.append("end")
-        for current_index in range(1, len(reversed_base_automatic_route)):
-            self.in_progress_automatic_route.append(
-                reversed_base_automatic_route[current_index]
-            )
-        # now in progress route is ['start', 1, 2, 3, 4, 'end', 3, 2, 1, 0]
-
-    def can_follow_automatic_route(self):
-        """
-        Description:
-            Returns whether the next step of this unit's in-progress movement route could be completed at this moment
-        Input:
-            None
-        Output
-            boolean: Returns whether the next step of this unit's in-progress movement route could be completed at this moment
-        """
-        current_location = self.location
-        next_step = self.in_progress_automatic_route[0]
-        if next_step == "end":  # can drop off freely unless train without train station
-            if not (
-                self.all_permissions(
-                    constants.VEHICLE_PERMISSION, constants.TRAIN_PERMISSION
-                )
-                and not current_location.has_intact_building(constants.TRAIN_STATION)
-            ):
-                return True
-            else:
-                return False
-        elif next_step == "start":
-            # ignores consumer goods
-            if (
-                self.wait_until_full
-                and (
-                    current_location.get_inventory_used()
-                    >= self.inventory_capacity.value
-                    or current_location.insufficient_inventory_capacity
-                )
-            ) or (
-                (not self.wait_until_full)
-                and (
-                    len(current_location.get_held_items(ignore_consumer_goods=True)) > 0
-                    or self.get_inventory_used() > 0
-                )
-            ):  # Only start round trip if there is something to deliver, either from location or if already in inventory
-                # If wait until full, instead wait until full load to transport or no warehouse space left
-                if not (
-                    self.all_permissions(
-                        constants.VEHICLE_PERMISSION, constants.TRAIN_PERMISSION
-                    )
-                    and not current_location.has_intact_building(
-                        constants.TRAIN_STATION
-                    )
-                ):  # Pick up freely unless train without train station
-                    return True
-                else:
-                    return False
-            else:
-                return False
-        else:  # Must have enough movement points, not blocked
-            x_change = next_step.x - current_location.x
-            y_change = next_step.y - current_location.y
-            return self.can_move(x_change, y_change, False)
-
-    def follow_automatic_route(self):
-        """
-        Moves along this unit's in-progress movement route until it cannot complete the next step. A unit will wait for items to transport from the start, then pick them up and move along the path, picking up others along
-            the way. At the end of the path, it drops all items and moves back towards the start
-        """
-        progressed = False
-        if len(self.in_progress_automatic_route) > 0:
-            while self.can_follow_automatic_route():
-                next_step = self.in_progress_automatic_route[0]
-                if next_step == "start":
-                    self.pick_up_all_items(True)
-                elif next_step == "end":
-                    self.drop_inventory()
-                else:
-                    if not (
-                        self.all_permissions(
-                            constants.VEHICLE_PERMISSION, constants.TRAIN_PERMISSION
-                        )
-                        and not self.location.has_intact_building(
-                            constants.TRAIN_STATION
-                        )
-                    ):
-                        if (
-                            self.get_next_automatic_stop() == "end"
-                        ):  # Only pick up items on way to end
-                            self.pick_up_all_items(
-                                True
-                            )  # Attempt to pick up items both before and after moving
-                    initial_location = self.location
-                    x_change = next_step.x - initial_location.x
-                    y_change = next_step.y - initial_location.y
-                    self.move(x_change, y_change)
-                    if not (
-                        self.all_permissions(
-                            constants.VEHICLE_PERMISSION, constants.TRAIN_PERMISSION
-                        )
-                        and not self.location.has_intact_building(
-                            constants.TRAIN_STATION
-                        )
-                    ):
-                        if (
-                            self.get_next_automatic_stop() == "end"
-                        ):  # only pick up items on way to end
-                            self.pick_up_all_items(True)
-                progressed = True
-                self.in_progress_automatic_route.append(
-                    self.in_progress_automatic_route.pop(0)
-                )  # move first item to end
-
-        return progressed  # returns whether unit did anything to show unit in movement routes report
-
-    def get_next_automatic_stop(self):
-        """
-        Description:
-            Returns the next stop for this unit's in-progress automatic route, or None if there are stops
-        Input:
-            None
-        Output:
-            string: Returns the next stop for this unit's in-progress automatic route, or None if there are stops
-        """
-        for current_stop in self.in_progress_automatic_route:
-            if current_stop in ["start", "end"]:
-                return current_stop
-        return None
 
     def pick_up_all_items(self, ignore_consumer_goods=False):
         """
@@ -603,15 +427,6 @@ class pmob(mob):
             )
             self.change_inventory(items_present[0], amount_transferred)
             self.location.change_inventory(items_present[0], -amount_transferred)
-
-    def clear_automatic_route(self):
-        """
-        Removes this unit's saved automatic movement route
-        """
-        self.base_automatic_route = []
-        self.in_progress_automatic_route = []
-        if self == status.displayed_mob:
-            actor_utility.calibrate_actor_info_display(status.mob_info_display, self)
 
     def set_automatically_replace(self, new_value):
         """
@@ -818,7 +633,6 @@ class pmob(mob):
             )
             vehicle.select()
             constants.SoundManager.play_sound("effects/metal_footsteps", volume=1.0)
-        self.clear_automatic_route()
         constants.EventBus.publish(constants.VEHICLE_SUBMOB_ADDED_ROUTE)
 
     def disembark_vehicle(self, vehicle, focus=True):

@@ -1,6 +1,6 @@
 from __future__ import annotations
 from modules.constants import constants, status, flags
-from modules.util import scaling
+from modules.util import scaling, actor_utility
 from modules.managers import value_tracker
 
 
@@ -199,7 +199,7 @@ def config_value_trackers() -> None:
                 constants.TRIAL_MODE,
                 constants.LOCATION_MODE,
             ],
-            "image_id": "buttons/instructions.png",
+            "image_id": actor_utility.generate_frame("buttons/instructions.png", background="buttons/default_button_frameless.png"),
             "init_type": constants.SHOW_PREVIOUS_REPORTS_BUTTON,
         }
     )

@@ -31,7 +31,8 @@ def config_zone_info_display() -> None:
                 "width": scaling.scale_width(constants.earth_grid_width),
                 "height": scaling.scale_height(constants.earth_grid_width),
                 "image_id": actor_utility.generate_frame(
-                    "buttons/unmagnify_button.png"
+                    "buttons/unmagnify_button.png",
+                    background="buttons/default_button_frameless.png",
                 ),
                 "init_type": constants.UNFOCUS_LOCATION_BUTTON,
                 "modes": [constants.LOCATION_MODE],

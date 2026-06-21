@@ -18,7 +18,7 @@ def config_local_conditions_tab():
                 "parent_collection": status.location_tabbed_collection,
                 "member_config": {
                     "tabbed": True,
-                    "button_image_id": "buttons/crew_train_button.png",
+                    "button_image_id": "misc/empty.png",
                     "identifier": constants.LOCAL_CONDITIONS_PANEL,
                     "tab_name": "local conditions",
                 },

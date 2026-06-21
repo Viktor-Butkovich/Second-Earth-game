@@ -429,14 +429,13 @@ except Exception:  # Displays error message and records error message in crash l
 # Rework/remove automatic replacement system - probably use "stun" effects w/o replacement, or death effects w/o replacement - no automatic replacement actions required
 # Various resolution issues, particularly with tall resolutions
 # Add manually created Earth map - should look similar to the UN flag, with a north pole projection
-# Transcribe Super-Earth planet names from https://science.nasa.gov/exoplanets/exoplanet-catalog/?pageno=1&planet_type=Super+Earth&content_list=true
+# Transcribe Super-Earth planet names from https://science.nasab.gov/exoplanets/exoplanet-catalog/?pageno=1&planet_type=Super+Earth&content_list=true
 # God mode changes to make habitabilty deadly/not deadly not correctly calibrating reorganization projection of ship crew - fix if ever relevant outside of god mode
 # Maybe track when locations change habitability, as well as display habitability mode
 # Consider t-test to determine if minister results are statistically significant (reject hypothesis of default behavior)
 # If re-factored, an observer pattern with publish and subscribe events could be useful for syncing data, particularly button presses (click the buttons subscribed to this key)
 
 # Upcoming work queue:
-# Update file paths for new materials/resources/equipment system
 # Add materials
 # Add blueprint mode for building design, and buttons to enter it for each building type
 # Add construction sites

@@ -18,6 +18,7 @@ rm modules -force -Recurse
 rm misc -force -Recurse
 rm experiments -force -Recurse
 rm artifacts -force -Recurse
+rm tex_notes -force -Recurse
 rm -force main.py
 rm -force simulation.py
 rm -force configuration/dev_config.json

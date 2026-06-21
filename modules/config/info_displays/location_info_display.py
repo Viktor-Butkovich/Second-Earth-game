@@ -65,7 +65,7 @@ def config_location_info_display() -> None:
                 "coordinates": scaling.scale_coordinates(0, separation),
                 "width": scaling.scale_width(25),
                 "height": scaling.scale_height(15),
-                "image_id": "buttons/cycle_passengers_down_button.png",
+                "image_id": actor_utility.generate_frame("buttons/cycle_passengers_down_button.png", background="buttons/default_button_frameless.png"),
                 "init_type": constants.CYCLE_SAME_LOCATION_BUTTON,
                 "parent_collection": same_location_ordered_collection,
             }
@@ -80,38 +80,6 @@ def config_location_info_display() -> None:
             "height": scaling.scale_height(constants.actor_icon_dimensions),
             "init_type": constants.ACTOR_ICON,
             "parent_collection": status.location_info_display,
-        }
-    )
-
-    focus_location_button = constants.ActorCreationManager.create_interface_element(
-        {
-            "coordinates": scaling.scale_coordinates(
-                constants.actor_icon_dimensions + 5,
-                -1 * constants.actor_icon_dimensions,
-            ),
-            "width": scaling.scale_width(35),
-            "height": scaling.scale_height(35),
-            "image_id": actor_utility.generate_frame("buttons/magnify_button.png"),
-            "init_type": constants.FOCUS_LOCATION_BUTTON,
-            "parent_collection": status.location_info_display,
-            "member_config": {"order_exempt": True},
-            "modes": [constants.STRATEGIC_MODE],
-        }
-    )
-
-    unfocus_location_button = constants.ActorCreationManager.create_interface_element(
-        {
-            "coordinates": scaling.scale_coordinates(
-                constants.actor_icon_dimensions + 5,
-                -1 * constants.actor_icon_dimensions,
-            ),
-            "width": scaling.scale_width(35),
-            "height": scaling.scale_height(35),
-            "image_id": actor_utility.generate_frame("buttons/unmagnify_button.png"),
-            "init_type": constants.UNFOCUS_LOCATION_BUTTON,
-            "parent_collection": status.location_info_display,
-            "member_config": {"order_exempt": True},
-            "modes": [constants.LOCATION_MODE],
         }
     )
 

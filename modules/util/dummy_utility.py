@@ -17,7 +17,6 @@ required_dummy_attributes = [
     "equipment",
     "subscribed_passengers",
     "sentry_mode",
-    "base_automatic_route",
     "end_turn_destination",
     "officer",
     "worker",
@@ -257,8 +256,6 @@ def simulate_merge(officer, worker, required_dummy_attributes, dummy_input_dict)
         dummy_input_dict[constants.VETERAN_PERMISSION] = officer.get_permission(
             constants.VETERAN_PERMISSION
         )
-        if dummy_input_dict["unit_type"].key == constants.BATTALION:
-            dummy_input_dict[constants.DISORGANIZED_PERMISSION] = True
         dummy_input_dict["name"] = actor_utility.generate_group_name(
             worker, officer, add_veteran=True
         )

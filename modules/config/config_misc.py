@@ -94,6 +94,14 @@ def config_misc() -> None:
     )
     fonts.font(
         {
+            "descriptor": constants.BLUE_FONT,
+            "name": constants.font_name,
+            "size": constants.font_size,
+            "color": constants.COLOR_ELECTRIC_BLUE,
+        }
+    )
+    fonts.font(
+        {
             "descriptor": constants.LARGE_NOTIFICATION_FONT,
             "name": constants.font_name,
             "size": scaling.scale_height(30),

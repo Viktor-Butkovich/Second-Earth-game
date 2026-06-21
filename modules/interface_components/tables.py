@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 from typing import Dict, List, Tuple
-from modules.util import scaling, text_utility
+from modules.util import scaling, text_utility, actor_utility
 from modules.interface_components import cells, grids, buttons
 from modules.constructs.actor_types import actors
 from modules.constants import constants, status, flags
@@ -132,9 +132,9 @@ class table_grid(grids.grid):
                 "parent_collection": self.parent_collection,
                 "init_type": constants.ANONYMOUS_BUTTON,
                 "image_id": (
-                    "buttons/cycle_ministers_down_button.png"
+                    actor_utility.generate_frame("buttons/cycle_ministers_down_button.png", background="buttons/default_button_frameless.png")
                     if change > 0
-                    else "buttons/cycle_ministers_up_button.png"
+                    else actor_utility.generate_frame("buttons/cycle_ministers_up_button.png", background="buttons/default_button_frameless.png")
                 ),
                 "button_type": {
                     "on_click": [

@@ -3,6 +3,7 @@
 from __future__ import annotations
 from modules.util import scaling
 from modules.constants import constants, status, flags
+from typing import List
 
 
 class notification_manager:
@@ -10,7 +11,7 @@ class notification_manager:
     Object that controls the displaying of notifications
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         """
         Initializes this object
         """
@@ -30,7 +31,7 @@ class notification_manager:
         ]
         self.font = constants.fonts[constants.DEFAULT_NOTIFICATION_FONT]
 
-    def update_notification_layout(self, notification_height=0):
+    def update_notification_layout(self, notification_height=0) -> None:
         """
         Description:
             Changes where notifications are displayed depending on the current game mode to avoid blocking relevant information. Also changes the height of the notification based on how much text it contains
@@ -47,7 +48,7 @@ class notification_manager:
             self.notification_height = notification_height
         self.notification_y -= self.notification_height / 2
 
-    def format_message(self, message):
+    def format_message(self, message: str) -> List[str]:
         """
         Description:
             Converts a message string with newlines designated by /n's to a list of strings
@@ -91,7 +92,7 @@ class notification_manager:
         new_message.append(next_line)
         return new_message
 
-    def handle_next_notification(self, transferred_interface_elements=None):
+    def handle_next_notification(self, transferred_interface_elements=None) -> None:
         """
         Creates the next queued notification, if any, whenever a notification is removed
         """
@@ -143,7 +144,7 @@ class notification_manager:
             for element in transferred_interface_elements:
                 element.remove_recursive(complete=True)
 
-    def set_lock(self, new_lock):
+    def set_lock(self, new_lock) -> None:
         """
         Description:
             Sets this notification manager's lock to the new lock value - any notifications received when locked will be displayed once the lock is removed
@@ -156,9 +157,7 @@ class notification_manager:
         if (not new_lock) and status.displayed_notification == None:
             self.handle_next_notification()
 
-    def display_notification(
-        self, input_dict, insert_index=None
-    ):  # default, exploration, or roll
+    def display_notification(self, input_dict, insert_index=None) -> None:
         """
         Description:
             Adds a future notification to the notification queue with the inputted text and type. If other notifications are already in the notification queue, adds this notification to the back, causing it to appear last. When a
@@ -193,7 +192,7 @@ class notification_manager:
         else:
             self.notification_to_front(input_dict)
 
-    def notification_to_front(self, notification_dict):
+    def notification_to_front(self, notification_dict) -> None:
         """
         Description:
             Displays and returns new notification with text matching the inputted string and a type based on what is in the front of this object's notification type queue
@@ -311,7 +310,7 @@ class notification_manager:
                     )
         return new_notification
 
-    def clear_notification_queue(self):
+    def clear_notification_queue(self) -> None:
         """
         Clears the notification queue
         """

@@ -144,7 +144,7 @@ class unit_type:
 
         return actor_utility.generate_frame(
             dummy_recruited_unit.image_dict[constants.IMAGE_ID_LIST_FULL_MOB],
-            background="buttons/default_button_alt.png",
+            background="buttons/default_button_frameless.png",
             frame="buttons/default_button_alt_frame.png",
             size=0.9,
             y_offset=0.02,

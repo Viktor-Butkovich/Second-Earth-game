@@ -250,7 +250,7 @@ def config_buttons() -> None:
             "width": scaling.scale_width(50),
             "height": scaling.scale_height(50),
             "keybind_id": pygame.K_ESCAPE,
-            "image_id": "buttons/exit_earth_screen_button.png",
+            "image_id": actor_utility.generate_frame("buttons/exit_earth_screen_button.png", background="buttons/default_button_frameless.png"),
             "to_mode": constants.MAIN_MENU_MODE,
             "init_type": constants.SWITCH_GAME_MODE_BUTTON,
             "modes": [
@@ -271,7 +271,7 @@ def config_buttons() -> None:
             "width": scaling.scale_width(50),
             "height": scaling.scale_height(50),
             "keybind_id": pygame.K_ESCAPE,
-            "image_id": "buttons/exit_earth_screen_button.png",
+            "image_id": actor_utility.generate_frame("buttons/exit_earth_screen_button.png", background="buttons/default_button_frameless.png"),
             "to_mode": constants.MAIN_MENU_MODE,
             "init_type": constants.SWITCH_GAME_MODE_BUTTON,
             "modes": [
@@ -374,7 +374,9 @@ def config_buttons() -> None:
                 constants.TRIAL_MODE,
                 constants.LOCATION_MODE,
             ],
-            "image_id": "buttons/save_game_button.png",
+            "image_id": actor_utility.generate_frame(
+                "buttons/save_game_button.png", background="buttons/default_button_frameless.png"
+            ),
             "init_type": constants.SAVE_GAME_BUTTON,
         }
     )
@@ -389,7 +391,7 @@ def config_buttons() -> None:
                 constants.TRIAL_MODE,
                 constants.LOCATION_MODE,
             ],
-            "image_id": "buttons/text_box_size_button.png",
+            "image_id": actor_utility.generate_frame("buttons/text_box_size_button.png", background="buttons/default_button_frameless.png"),
             "init_type": constants.TOGGLE_BUTTON,
             "toggle_variable": "expand_text_box",
             "attached_to_actor": False,
@@ -400,7 +402,7 @@ def config_buttons() -> None:
         {
             **rhs_button_defaults,
             "modes": [constants.STRATEGIC_MODE],
-            "image_id": "buttons/grid_line_button.png",
+            "image_id": actor_utility.generate_frame("buttons/grid_line_button.png"),
             "init_type": constants.TOGGLE_BUTTON,
             "toggle_variable": "show_grid_lines",
             "attached_to_actor": False,
@@ -451,7 +453,7 @@ def config_buttons() -> None:
             {
                 **rhs_button_defaults,
                 "modes": [constants.STRATEGIC_MODE],
-                "image_id": "buttons/toggle_god_mode_button.png",
+                "image_id": actor_utility.generate_frame("buttons/toggle_god_mode_button.png"),
                 "init_type": constants.TOGGLE_BUTTON,
                 "toggle_variable": "god_mode",
                 "attached_to_actor": False,
@@ -486,7 +488,7 @@ def config_buttons() -> None:
                 constants.LOCATION_MODE,
             ],
             "keybind_id": pygame.K_TAB,
-            "image_id": "buttons/cycle_units_button.png",
+            "image_id": actor_utility.generate_frame("buttons/cycle_units_button.png", background="buttons/default_button_frameless.png"),
             "init_type": constants.CYCLE_UNITS_BUTTON,
         }
     )
@@ -495,7 +497,7 @@ def config_buttons() -> None:
         {
             **lhs_button_defaults,
             "modes": [constants.MAIN_MENU_MODE],
-            "image_id": ["buttons/exit_earth_screen_button.png"],
+            "image_id": actor_utility.generate_frame("buttons/exit_earth_screen_button.png", background="buttons/default_button_frameless.png"),
             "init_type": constants.GENERATE_CRASH_BUTTON,
         }
     )

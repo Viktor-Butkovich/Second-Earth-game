@@ -73,25 +73,25 @@ class actor_display_label(labels.label):
             self.message_start = "Unit type: "
 
             input_dict["init_type"] = constants.EMBARK_VEHICLE_BUTTON
-            input_dict["image_id"] = "buttons/embark_spaceship_button.png"
+            input_dict["image_id"] = actor_utility.generate_frame("buttons/embark_spaceship_button.png")
             input_dict["keybind_id"] = pygame.K_b
             input_dict["vehicle_type"] = constants.SPACESHIP_PERMISSION
             self.add_attached_button(input_dict)
 
             input_dict["init_type"] = constants.EMBARK_VEHICLE_BUTTON
-            input_dict["image_id"] = "buttons/embark_train_button.png"
+            input_dict["image_id"] = actor_utility.generate_frame("buttons/embark_train_button.png")
             input_dict["keybind_id"] = pygame.K_b
             input_dict["vehicle_type"] = constants.TRAIN_PERMISSION
             self.add_attached_button(input_dict)
 
             input_dict["init_type"] = constants.WORK_CREW_TO_BUILDING_BUTTON
-            input_dict["image_id"] = "buttons/work_crew_to_building_button.png"
+            input_dict["image_id"] = actor_utility.generate_frame("buttons/work_crew_to_building_button.png", background="buttons/default_button_frameless.png")
             input_dict["keybind_id"] = pygame.K_g
             input_dict["building_type"] = constants.RESOURCE
             self.add_attached_button(input_dict)
 
             input_dict["init_type"] = constants.SWITCH_THEATRE_BUTTON
-            input_dict["image_id"] = "buttons/switch_theatre_button.png"
+            input_dict["image_id"] = actor_utility.generate_frame("buttons/switch_theatre_button.png")
             input_dict["keybind_id"] = pygame.K_g
             input_dict["width"], input_dict["height"] = (m_size, m_size)
             self.add_attached_button(input_dict)
@@ -124,18 +124,6 @@ class actor_display_label(labels.label):
                 "modes": self.modes,
                 "attached_label": self,
             }
-            input_dict["init_type"] = constants.CLEAR_AUTOMATIC_ROUTE_BUTTON
-            input_dict["image_id"] = "buttons/clear_automatic_route_button.png"
-            self.add_attached_button(input_dict)
-
-            input_dict["image_id"] = "buttons/draw_automatic_route_button.png"
-            input_dict["init_type"] = constants.DRAW_AUTOMATIC_ROUTE_BUTTON
-            self.add_attached_button(input_dict)
-
-            input_dict["image_id"] = "buttons/execute_single_movement_route_button.png"
-            input_dict["init_type"] = constants.EXECUTE_AUTOMATIC_ROUTE_BUTTON
-            self.add_attached_button(input_dict)
-
             for action_type in status.actions:
                 if (
                     status.actions[action_type].actor_type in [constants.MOB_ACTOR_TYPE]
@@ -181,7 +169,13 @@ class actor_display_label(labels.label):
             input_dict["init_type"] = constants.DISABLE_AUTOMATIC_REPLACEMENT_BUTTON
             input_dict[
                 "image_id"
-            ] = "buttons/disable_automatic_replacement_officer_button.png"
+            ] = actor_utility.generate_frame(
+                [
+                    {"image_id": "buttons/enable_automatic_replacement_officer_button.png"},
+                    {"image_id": "misc/x.png"}
+                ],
+                background="buttons/default_button_frameless.png"
+            )
             self.add_attached_button(input_dict)
 
             input_dict["init_type"] = constants.ENABLE_AUTOMATIC_REPLACEMENT_BUTTON
@@ -194,7 +188,13 @@ class actor_display_label(labels.label):
             input_dict["init_type"] = constants.DISABLE_AUTOMATIC_REPLACEMENT_BUTTON
             input_dict[
                 "image_id"
-            ] = "buttons/disable_automatic_replacement_worker_button.png"
+            ] = actor_utility.generate_frame(
+                [
+                    {"image_id": "buttons/enable_automatic_replacement_worker_button.png"},
+                    {"image_id": "misc/x.png"}
+                ],
+                background="buttons/default_button_frameless.png"
+            )
             self.add_attached_button(input_dict)
 
             input_dict["init_type"] = constants.ENABLE_AUTOMATIC_REPLACEMENT_BUTTON
@@ -207,21 +207,33 @@ class actor_display_label(labels.label):
             input_dict["init_type"] = constants.DISABLE_AUTOMATIC_REPLACEMENT_BUTTON
             input_dict[
                 "image_id"
-            ] = "buttons/disable_automatic_replacement_officer_button.png"
+            ] = actor_utility.generate_frame(
+                [
+                    {"image_id": "buttons/enable_automatic_replacement_officer_button.png"},
+                    {"image_id": "misc/x.png"}
+                ],
+                background="buttons/default_button_frameless.png"
+            )
             self.add_attached_button(input_dict)
             del input_dict["target_type"]
             """
 
             input_dict["init_type"] = constants.ENABLE_SENTRY_MODE_BUTTON
-            input_dict["image_id"] = "buttons/enable_sentry_mode_button.png"
+            input_dict["image_id"] = actor_utility.generate_frame("buttons/enable_sentry_mode_button.png", background="buttons/default_button_frameless.png")
             self.add_attached_button(input_dict)
 
             input_dict["init_type"] = constants.DISABLE_SENTRY_MODE_BUTTON
-            input_dict["image_id"] = "buttons/disable_sentry_mode_button.png"
+            input_dict["image_id"] = actor_utility.generate_frame(
+                [
+                    {"image_id": "buttons/enable_sentry_mode_button.png"},
+                    {"image_id": "misc/x.png"}
+                ],
+                background="buttons/default_button_frameless.png"
+            )
             self.add_attached_button(input_dict)
 
             input_dict["init_type"] = constants.END_UNIT_TURN_BUTTON
-            input_dict["image_id"] = "buttons/end_unit_turn_button.png"
+            input_dict["image_id"] = actor_utility.generate_frame("buttons/end_unit_turn_button.png", background="buttons/default_button_frameless.png")
             input_dict["keybind_id"] = pygame.K_f
             self.add_attached_button(input_dict)
             del input_dict["keybind_id"]
@@ -229,31 +241,37 @@ class actor_display_label(labels.label):
         elif self.actor_label_type == constants.BUILDING_WORK_CREWS_LABEL:
             self.message_start = "Work crews: "
             input_dict["init_type"] = constants.CYCLE_WORK_CREWS_BUTTON
-            input_dict["image_id"] = "buttons/cycle_passengers_down_button.png"
+            input_dict["image_id"] = actor_utility.generate_frame("buttons/cycle_passengers_down_button.png", background="buttons/default_button_frameless.png")
             self.add_attached_button(input_dict)
 
         elif self.actor_label_type == constants.CURRENT_BUILDING_WORK_CREW_LABEL:
             self.message_start = ""
             self.attached_building = None
             input_dict["init_type"] = constants.REMOVE_WORK_CREW_BUTTON
-            input_dict["image_id"] = "buttons/remove_work_crew_button.png"
+            input_dict["image_id"] = actor_utility.generate_frame(
+                [
+                    {"image_id": "buttons/work_crew_to_building_button.png"},
+                    {"image_id": "misc/x.png"}
+                ],
+                background="buttons/default_button_frameless.png"
+            )
             input_dict["building_type"] = constants.RESOURCE
             self.add_attached_button(input_dict)
 
         elif self.actor_label_type == constants.PASSENGERS_LABEL:
             self.message_start = "Passengers: "
             input_dict["init_type"] = constants.CYCLE_PASSENGERS_BUTTON
-            input_dict["image_id"] = "buttons/cycle_passengers_down_button.png"
+            input_dict["image_id"] = actor_utility.generate_frame("buttons/cycle_passengers_down_button.png", background="buttons/default_button_frameless.png")
             input_dict["keybind_id"] = pygame.K_4
             self.add_attached_button(input_dict)
 
             input_dict["init_type"] = constants.EMBARK_ALL_PASSENGERS_BUTTON
-            input_dict["image_id"] = "buttons/embark_spaceship_button.png"
+            input_dict["image_id"] = actor_utility.generate_frame("buttons/embark_spaceship_button.png")
             input_dict["keybind_id"] = pygame.K_z
             self.add_attached_button(input_dict)
 
             input_dict["init_type"] = constants.DISEMBARK_ALL_PASSENGERS_BUTTON
-            input_dict["image_id"] = "buttons/disembark_spaceship_button.png"
+            input_dict["image_id"] = actor_utility.generate_frame([{"image_id": "buttons/embark_spaceship_button.png"}, {"image_id": "misc/x.png"}], background="buttons/default_button_frameless.png")
             input_dict["keybind_id"] = pygame.K_x
             self.add_attached_button(input_dict)
 
@@ -267,7 +285,7 @@ class actor_display_label(labels.label):
             elif self.list_index == 2:
                 input_dict["keybind_id"] = pygame.K_F3
             input_dict["init_type"] = constants.DISEMBARK_VEHICLE_BUTTON
-            input_dict["image_id"] = "buttons/disembark_spaceship_button.png"
+            input_dict["image_id"] = actor_utility.generate_frame([{"image_id": "buttons/embark_spaceship_button.png"}, {"image_id": "misc/x.png"}], background="buttons/default_button_frameless.png")
             self.add_attached_button(input_dict)
 
         elif self.actor_label_type == constants.MOB_INVENTORY_CAPACITY_LABEL:
@@ -282,7 +300,7 @@ class actor_display_label(labels.label):
         elif self.actor_label_type == constants.PLANET_NAME_LABEL:
             self.message_start = ""
             input_dict["init_type"] = constants.RENAME_PLANET_BUTTON
-            input_dict["image_id"] = "buttons/rename.png"
+            input_dict["image_id"] = actor_utility.generate_frame("buttons/rename.png", background="buttons/default_button_frameless.png")
             self.add_attached_button(input_dict)
 
         elif self.actor_label_type == constants.MINISTER_LABEL:
@@ -330,10 +348,10 @@ class actor_display_label(labels.label):
         elif self.actor_label_type == constants.MINISTER_OFFICE_LABEL:
             self.message_start = "Office: "
             input_dict["init_type"] = constants.FIRE_MINISTER_BUTTON
-            input_dict["image_id"] = "buttons/fire_minister_button.png"
+            input_dict["image_id"] = actor_utility.generate_frame("buttons/fire_minister_button.png", background="buttons/default_button_frameless.png")
             self.add_attached_button(input_dict)
             input_dict["init_type"] = constants.REAPPOINT_MINISTER_BUTTON
-            input_dict["image_id"] = "buttons/reappoint_minister_button.png"
+            input_dict["image_id"] = actor_utility.generate_frame("buttons/reappoint_minister_button.png", background="buttons/default_button_frameless.png")
             self.add_attached_button(input_dict)
             input_dict["init_type"] = constants.APPOINT_MINISTER_BUTTON
             input_dict["width"], input_dict["height"] = (s_size, s_size)
@@ -370,9 +388,9 @@ class actor_display_label(labels.label):
         elif self.actor_label_type == constants.INVENTORY_QUANTITY_LABEL:
             self.message_start = "Quantity: "
             if self.actor_type == constants.MOB_ACTOR_TYPE:
-                input_dict["init_type"] = constants.ANONYMOUS_BUTTON
                 # constants.DROP_ITEM_BUTTON - helps to find anonymous button without constant type
-                input_dict["image_id"] = "buttons/item_pick_up_button.png"
+                input_dict["init_type"] = constants.ANONYMOUS_BUTTON
+                input_dict["image_id"] = actor_utility.generate_frame("buttons/item_pick_up_button.png", background="buttons/default_button_frameless.png")
                 input_dict["button_type"] = {
                     "on_click": [
                         (
@@ -388,8 +406,7 @@ class actor_display_label(labels.label):
                 }
                 self.add_attached_button(input_dict)
 
-                # constants.DROP_ALL_ITEM_BUTTON
-                input_dict["image_id"] = "buttons/item_pick_up_all_button.png"
+                input_dict["image_id"] = actor_utility.generate_frame("buttons/item_pick_up_all_button.png", background="buttons/default_button_frameless.png")
                 input_dict["button_type"] = {
                     "on_click": [
                         (
@@ -408,7 +425,7 @@ class actor_display_label(labels.label):
         elif self.actor_label_type == constants.SETTLEMENT:
             self.message_start = "Name: "
             input_dict["init_type"] = constants.RENAME_SETTLEMENT_BUTTON
-            input_dict["image_id"] = "buttons/rename.png"
+            input_dict["image_id"] = actor_utility.generate_frame("buttons/rename.png", background="buttons/default_button_frameless.png")
             self.add_attached_button(input_dict)
 
         elif (
@@ -423,7 +440,7 @@ class actor_display_label(labels.label):
             input_dict["init_type"] = constants.CHANGE_PARAMETER_BUTTON
             input_dict["width"], input_dict["height"] = (ss_size, ss_size)
             input_dict["change"] = -1
-            input_dict["image_id"] = "buttons/item_drop_button.png"
+            input_dict["image_id"] = actor_utility.generate_frame("buttons/item_drop_button.png", background="buttons/default_button_frameless.png")
             offset = scaling.scale_width(-130)
             if (
                 self.actor_label_type == constants.WATER_LABEL
@@ -435,7 +452,7 @@ class actor_display_label(labels.label):
             )
 
             input_dict["change"] = 1
-            input_dict["image_id"] = "buttons/item_pick_up_button.png"
+            input_dict["image_id"] = actor_utility.generate_frame("buttons/item_pick_up_button.png", background="buttons/default_button_frameless.png")
             if (
                 self.actor_label_type == constants.WATER_LABEL
                 and constants.EffectManager.effect_active("map_customization")
@@ -450,7 +467,7 @@ class actor_display_label(labels.label):
             )
 
             input_dict["change"] = -6
-            input_dict["image_id"] = "buttons/item_drop_all_button.png"
+            input_dict["image_id"] = actor_utility.generate_frame("buttons/item_drop_all_button.png", background="buttons/default_button_frameless.png")
             if (
                 self.actor_label_type == constants.WATER_LABEL
                 and constants.EffectManager.effect_active("map_customization")
@@ -466,7 +483,7 @@ class actor_display_label(labels.label):
             )
 
             input_dict["change"] = 6
-            input_dict["image_id"] = "buttons/item_pick_up_all_button.png"
+            input_dict["image_id"] = actor_utility.generate_frame("buttons/item_pick_up_all_button.png", background="buttons/default_button_frameless.png")
             if (
                 self.actor_label_type == constants.WATER_LABEL
                 and constants.EffectManager.effect_active("map_customization")
@@ -533,13 +550,13 @@ class actor_display_label(labels.label):
                 input_dict["init_type"] = constants.CHANGE_PARAMETER_BUTTON
                 input_dict["width"], input_dict["height"] = (ss_size, ss_size)
                 input_dict["change"] = -1 * change_magnitude
-                input_dict["image_id"] = "buttons/item_drop_button.png"
+                input_dict["image_id"] = actor_utility.generate_frame("buttons/item_drop_button.png", background="buttons/default_button_frameless.png")
                 self.add_attached_button(
                     input_dict, member_config={"order_exempt": True, "x_offset": offset}
                 )
 
                 input_dict["change"] = change_magnitude
-                input_dict["image_id"] = "buttons/item_pick_up_button.png"
+                input_dict["image_id"] = actor_utility.generate_frame("buttons/item_pick_up_button.png", background="buttons/default_button_frameless.png")
                 self.add_attached_button(
                     input_dict,
                     member_config={
@@ -555,7 +572,7 @@ class actor_display_label(labels.label):
                 else:
                     change_magnitude = 1000
                 input_dict["change"] = -1 * change_magnitude
-                input_dict["image_id"] = "buttons/item_drop_all_button.png"
+                input_dict["image_id"] = actor_utility.generate_frame("buttons/item_drop_all_button.png", background="buttons/default_button_frameless.png")
                 self.add_attached_button(
                     input_dict,
                     member_config={
@@ -566,7 +583,7 @@ class actor_display_label(labels.label):
                 )
 
                 input_dict["change"] = change_magnitude
-                input_dict["image_id"] = "buttons/item_pick_up_all_button.png"
+                input_dict["image_id"] = actor_utility.generate_frame("buttons/item_pick_up_all_button.png", background="buttons/default_button_frameless.png")
                 self.add_attached_button(
                     input_dict,
                     member_config={
@@ -606,6 +623,17 @@ class actor_display_label(labels.label):
             )
         elif self.actor_label_type == constants.ZONE_COORDINATES_LABEL:
             self.message_start = "Coordinates: "
+        elif self.actor_label_type == constants.COORDINATES_LABEL:
+            self.message_start = "Coordinates: "
+            input_dict["image_id"] = actor_utility.generate_frame("buttons/magnify_button.png", background="buttons/default_button_frameless.png")
+            input_dict["init_type"] = constants.FOCUS_LOCATION_BUTTON
+            input_dict["modes"] = [constants.STRATEGIC_MODE]
+            self.add_attached_button(input_dict)
+
+            input_dict["image_id"] = actor_utility.generate_frame("buttons/unmagnify_button.png", background="buttons/default_button_frameless.png")
+            input_dict["init_type"] = constants.UNFOCUS_LOCATION_BUTTON
+            input_dict["modes"] = [constants.LOCATION_MODE]
+            self.add_attached_button(input_dict)
         else:
             self.message_start = (
                 utility.capitalize(

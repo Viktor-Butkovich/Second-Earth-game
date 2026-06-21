@@ -133,29 +133,6 @@ class grid(interface_elements.interface_element):
                 for cell in status.displayed_location.subscribed_cells:
                     if cell.grid.showing:
                         cell.draw_outline(constants.COLOR_BRIGHT_GREEN)
-
-                        if len(status.displayed_mob.base_automatic_route) > 0:
-                            start_coordinates = (
-                                status.displayed_mob.base_automatic_route[0]
-                            )
-                            end_coordinates = status.displayed_mob.base_automatic_route[
-                                -1
-                            ]
-                            for (
-                                current_coordinates
-                            ) in status.displayed_mob.base_automatic_route:
-                                if current_coordinates == start_coordinates:
-                                    color = constants.COLOR_PURPLE
-                                elif current_coordinates == end_coordinates:
-                                    color = constants.COLOR_YELLOW
-                                else:
-                                    color = constants.COLOR_BRIGHT_BLUE
-                                for (
-                                    automatic_route_cell
-                                ) in status.displayed_location.world_handler.find_location(
-                                    current_coordinates[0], current_coordinates[1]
-                                ).subscribed_cells:
-                                    automatic_route_cell.draw_outline(color)
                 if status.displayed_mob.end_turn_destination:
                     for (
                         destination_cell

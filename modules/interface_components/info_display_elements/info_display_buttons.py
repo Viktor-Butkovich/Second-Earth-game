@@ -98,13 +98,13 @@ class embark_all_passengers_button(buttons.button):
                 and self.vehicle_type != constants.SPACESHIP_PERMISSION
             ):
                 self.vehicle_type = constants.SPACESHIP_PERMISSION
-                self.image.set_image(f"buttons/embark_spaceship_button.png")
+                self.image.set_image(actor_utility.generate_frame(f"buttons/embark_spaceship_button.png"))
             elif (
                 status.displayed_mob.get_permission(constants.TRAIN_PERMISSION)
                 and self.vehicle_type != constants.TRAIN_PERMISSION
             ):
                 self.vehicle_type = constants.TRAIN_PERMISSION
-                self.image.set_image(f"buttons/embark_train_button.png")
+                self.image.set_image(actor_utility.generate_frame(f"buttons/embark_train_button.png"))
         return result
 
 
@@ -176,13 +176,23 @@ class disembark_all_passengers_button(buttons.button):
                 and self.vehicle_type != constants.SPACESHIP_PERMISSION
             ):
                 self.vehicle_type = constants.SPACESHIP_PERMISSION
-                self.image.set_image(f"buttons/disembark_spaceship_button.png")
+                self.image.set_image(actor_utility.generate_frame(
+                    [
+                        {"image_id": "buttons/embark_spaceship_button.png"},
+                        {"image_id": "misc/x.png"}
+                    ],
+                ))
             elif (
                 status.displayed_mob.get_permission(constants.TRAIN_PERMISSION)
                 and self.vehicle_type != constants.TRAIN_PERMISSION
             ):
                 self.vehicle_type = constants.TRAIN_PERMISSION
-                self.image.set_image(f"buttons/disembark_train_button.png")
+                self.image.set_image(actor_utility.generate_frame(
+                    [
+                        {"image_id": "buttons/embark_train_button.png"},
+                        {"image_id": "misc/x.png"}
+                    ],
+                ))
         return result
 
 
@@ -375,7 +385,6 @@ class disable_automatic_replacement_button(buttons.button):
             None
         """
         self.target_type = input_dict["target_type"]
-        input_dict["button_type"] = "disable automatic replacement"
         super().__init__(input_dict)
 
     def can_show(self, skip_parent_collection=False):
@@ -440,29 +449,6 @@ class end_unit_turn_button(buttons.button):
     """
     Button that ends a unit's turn, removing it from the current turn's turn cycle queue
     """
-
-    def __init__(self, input_dict):
-        """
-        Description:
-            Initializes this object
-        Input:
-            dictionary input_dict: Keys corresponding to the values needed to initialize this object
-                'coordinates': int tuple value - Two values representing x and y coordinates for the pixel location of this element
-                'width': int value - pixel width of this element
-                'height': int value - pixel height of this element
-                'modes': string list value - Game modes during which this element can appear
-                'parent_collection' = None: interface_collection value - Interface collection that this element directly reports to, not passed for independent element
-                'color': string value - Color in the color_dict dictionary for this button when it has no image, like 'bright blue'
-                'keybind_id' = None: pygame key object value: Determines the keybind id that activates this button, like pygame.K_n, not passed for no-keybind buttons
-                'image_id': string/dictionary/list value - String file path/offset image dictionary/combined list used for this object's image bundle
-                    Example of possible image_id: ['buttons/default_button_alt.png', {'image_id': 'mobs/default/default.png', 'size': 0.95, 'x_offset': 0, 'y_offset': 0, 'level': 1}]
-                    - Signifies default button image overlayed by a default mob image scaled to 0.95x size
-        Output:
-            None
-        """
-        input_dict["button_type"] = "end unit turn"
-        super().__init__(input_dict)
-
     def can_show(self, skip_parent_collection=False):
         """
         Description:
@@ -604,14 +590,14 @@ class disembark_vehicle_button(buttons.button):
                 and self.vehicle_type != constants.SPACESHIP_PERMISSION
             ):
                 self.vehicle_type = constants.SPACESHIP_PERMISSION
-                self.image.set_image(f"buttons/disembark_spaceship_button.png")
+                self.image.set_image(actor_utility.generate_frame([{"image_id": "buttons/embark_spaceship_button.png"}, {"image_id": "misc/x.png"}], background="buttons/default_button_frameless.png"))
 
             elif (
                 self.attached_label.actor.get_permission(constants.TRAIN_PERMISSION)
                 and self.vehicle_type != constants.TRAIN_PERMISSION
             ):
                 self.vehicle_type = constants.TRAIN_PERMISSION
-                self.image.set_image(f"buttons/disembark_train_button.png")
+                self.image.set_image(actor_utility.generate_frame([{"image_id": "buttons/embark_train_button.png"}, {"image_id": "misc/x.png"}], background="buttons/default_button_frameless.png"))
         return result
 
     def on_click(self):
@@ -1071,7 +1057,6 @@ class switch_theatre_button(buttons.button):
                 current_mob.set_permission(constants.SENTRY_MODE_PERMISSION, False)
                 if constants.current_game_mode != constants.STRATEGIC_MODE:
                     game_transitions.set_game_mode(constants.STRATEGIC_MODE)
-                current_mob.clear_automatic_route()
                 current_mob.end_turn_destination = None
                 status.displayed_mob.set_permission(
                     constants.TRAVELING_PERMISSION, False
@@ -1270,7 +1255,7 @@ class to_trial_button(buttons.button):
             None
         """
         input_dict["modes"] = input_dict["attached_label"].modes
-        input_dict["image_id"] = "buttons/to_trial_button.png"
+        input_dict["image_id"] = actor_utility.generate_frame("buttons/to_trial_button.png", background="buttons/default_button_frameless.png")
         super().__init__(input_dict)
 
     def can_show(self, skip_parent_collection=False):
@@ -1341,7 +1326,7 @@ class fabricate_evidence_button(buttons.button):
             None
         """
         input_dict["modes"] = [constants.TRIAL_MODE, constants.MINISTERS_MODE]
-        input_dict["image_id"] = "buttons/fabricate_evidence_button.png"
+        input_dict["image_id"] = actor_utility.generate_frame("buttons/fabricate_evidence_button.png", background="buttons/default_button_frameless.png")
         super().__init__(input_dict)
 
     def get_cost(self):
@@ -1402,7 +1387,7 @@ class bribe_judge_button(buttons.button):
             None
         """
         input_dict["modes"] = [constants.TRIAL_MODE]
-        input_dict["image_id"] = "buttons/bribe_judge_button.png"
+        input_dict["image_id"] = actor_utility.generate_frame("buttons/bribe_judge_button.png")
         super().__init__(input_dict)
 
     def get_cost(self):
@@ -1455,91 +1440,6 @@ class bribe_judge_button(buttons.button):
                 )
         else:
             text_utility.print_to_screen("You are busy and cannot fabricate evidence.")
-
-
-class automatic_route_button(buttons.button):
-    """
-    Button that modifies a unit's automatic movement route, with an effect depending on the button's type
-    """
-
-    def can_show(self, skip_parent_collection=False):
-        """
-        Description:
-            Returns whether this button should be drawn. All automatic route buttons can only appear if the selected unit is porters or a crewed vehicle. Additionally, clear and execute automatic route buttons require that an automatic
-                route already exists
-        Input:
-            None
-        Output:
-            boolean: Returns whether this button should be drawn
-        """
-        if super().can_show(skip_parent_collection=skip_parent_collection):
-            attached_mob = status.displayed_mob
-            if (
-                attached_mob.inventory_capacity.value > 0
-                and not attached_mob.any_permissions(
-                    constants.CARAVAN_PERMISSION, constants.INACTIVE_VEHICLE_PERMISSION
-                )
-            ):
-                if self.button_type in [
-                    constants.CLEAR_AUTOMATIC_ROUTE_BUTTON,
-                    constants.EXECUTE_AUTOMATIC_ROUTE_BUTTON,
-                ]:
-                    if len(attached_mob.base_automatic_route) > 0:
-                        return True
-                else:
-                    return True
-        return False
-
-    def on_click(self):
-        """
-        Does a certain action when clicked or when corresponding key is pressed, depending on button_type. Clear automatic route buttons remove the selected unit's automatic route. Draw automatic route buttons enter the route
-            drawing mode, in which the player can click on consecutive locations to add them to the route. Execute automatic route buttons command the selected unit to execute its in-progress automatic route, stopping when it cannot
-            continue the route for any reason
-        """
-        attached_mob = status.displayed_mob
-        if main_loop_utility.action_possible():
-            if not attached_mob.location.is_abstract_location:
-                if self.button_type == constants.CLEAR_AUTOMATIC_ROUTE_BUTTON:
-                    attached_mob.clear_automatic_route()
-
-                elif self.button_type == constants.DRAW_AUTOMATIC_ROUTE_BUTTON:
-                    if (
-                        attached_mob.get_permission(constants.VEHICLE_PERMISSION)
-                        and attached_mob.vehicle_type == constants.TRAIN_PERMISSION
-                        and not attached_mob.location.has_intact_building(
-                            constants.TRAIN_STATION
-                        )
-                    ):
-                        text_utility.print_to_screen(
-                            "A train can only start a movement route from a train station."
-                        )
-                        return ()
-                    attached_mob.clear_automatic_route()
-                    attached_mob.add_to_automatic_route(attached_mob.location)
-                    constants.SelectorManager.start(constants.AUTOMATIC_ROUTE_SELECTOR)
-
-                elif self.button_type == constants.EXECUTE_AUTOMATIC_ROUTE_BUTTON:
-                    if attached_mob.can_follow_automatic_route():
-                        attached_mob.follow_automatic_route()
-                        attached_mob.remove_from_turn_queue()
-                        actor_utility.calibrate_actor_info_display(
-                            status.mob_info_display, attached_mob
-                        )  # updates mob info display if automatic route changed anything
-                    else:
-                        text_utility.print_to_screen(
-                            "This unit is currently not able to progress along its designated route."
-                        )
-            else:
-                text_utility.print_to_screen(
-                    f"You can only create movement routes on a planetary surface."
-                )
-        else:
-            if self.button_type == constants.EXECUTE_AUTOMATIC_ROUTE_BUTTON:
-                text_utility.print_to_screen("You are busy and cannot move this unit.")
-            else:
-                text_utility.print_to_screen(
-                    "You are busy and cannot modify this unit's movement route."
-                )
 
 
 class toggle_button(buttons.button):
@@ -1638,11 +1538,7 @@ class toggle_button(buttons.button):
             constants.PMOB_PERMISSION
         ):
             self.showing_outline = self.get_value()
-            if super().can_show(skip_parent_collection=skip_parent_collection):
-                if self.toggle_variable == "wait_until_full":
-                    return bool(status.displayed_mob.base_automatic_route)
-                else:
-                    return True
+            return super().can_show(skip_parent_collection=skip_parent_collection)
         return False
 
     @property

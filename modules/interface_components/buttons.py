@@ -155,15 +155,7 @@ class button(interface_elements.interface_element):
                 adjacent_location = status.displayed_mob.location.adjacent_locations[
                     non_cardinal_direction
                 ]
-                local_infrastructure = (
-                    status.displayed_mob.location.get_intact_building(
-                        constants.INFRASTRUCTURE
-                    )
-                )
                 tooltip_text.append(f"Press to move to the {direction}")
-                adjacent_infrastructure = adjacent_location.get_intact_building(
-                    constants.INFRASTRUCTURE
-                )
                 connecting_roads = False
                 if (
                     status.displayed_mob.get_permission(constants.BATTALION_PERMISSION)
@@ -175,34 +167,11 @@ class button(interface_elements.interface_element):
                     if status.displayed_mob.all_permissions(
                         constants.VEHICLE_PERMISSION, constants.TRAIN_PERMISSION
                     ):
-                        if (
-                            adjacent_infrastructure
-                            and adjacent_infrastructure.is_railroad
-                            and local_infrastructure
-                            and local_infrastructure.is_railroad
-                        ):
-                            message = f"Costs {movement_cost} movement point{utility.generate_plural(movement_cost)} because the adjacent location has connecting railroads"
-                        else:
-                            message = "Not possible because the adjacent location does not have connecting railroads"
+                        message = "Not possible because the adjacent location does not have connecting railroads"
                         tooltip_text.append(message)
                         tooltip_text.append("A train can only move along railroads")
                     else:
-                        message = f"Costs {movement_cost} movement point{utility.generate_plural(movement_cost)} because the adjacent location has {adjacent_location.terrain_type.name} terrain"
-                        if (
-                            local_infrastructure and adjacent_infrastructure
-                        ):  # if both have infrastructure
-                            connecting_roads = True
-                            message += " and connecting roads"
-                        elif (
-                            local_infrastructure == None and adjacent_infrastructure
-                        ):  # if local has no infrastructure but adjacent does
-                            message += " and no connecting roads"
-                        elif (
-                            local_infrastructure
-                        ):  # if local has infrastructure but not adjacent
-                            message += " and no connecting roads"  # + local_infrastructure.infrastructure_type
-                        else:
-                            message += " and no connecting roads"
+                        message = f"Costs {movement_cost} movement point{utility.generate_plural(movement_cost)} because the adjacent location has {adjacent_location.terrain_type.name} terrain and no connecting roads"
 
                         tooltip_text.append(message)
                         tooltip_text.append(
@@ -487,21 +456,6 @@ class button(interface_elements.interface_element):
                 "Ends this unit's turn, skipping it when cycling through unmoved units for the rest of the turn"
             ]
 
-        elif self.button_type == constants.CLEAR_AUTOMATIC_ROUTE_BUTTON:
-            return ["Removes this unit's currently designated movement route"]
-
-        elif self.button_type == constants.DRAW_AUTOMATIC_ROUTE_BUTTON:
-            return [
-                "Starts customizing a new movement route for this unit",
-                "Add to the route by clicking on valid locations adjacent to the current destination",
-                "The start is outlined in purple, the destination is outlined in yellow, and the path is outlined in blue",
-                "When moving along its route, a unit will pick up as many items as possible at the start and drop them at the destination",
-                "A unit may not be able to move along its route because of enemy units, a lack of movement points, or not having any items to pick up at the start",
-            ]
-
-        elif self.button_type == constants.EXECUTE_AUTOMATIC_ROUTE_BUTTON:
-            return ["Moves this unit along its currently designated movement route"]
-
         elif self.button_type == constants.GENERATE_CRASH_BUTTON:
             return ["Exits the game and generates a dummy crash report"]
 
@@ -666,9 +620,9 @@ class button(interface_elements.interface_element):
             ):  # The key to which a button is bound will appear on the button's image
                 message = self.keybind_name
                 message = message[:3] if not "space" in message else message
-                font = constants.fonts[constants.RED_FONT]
+                font = constants.fonts[constants.WHITE_FONT]
                 textsurface = font.pygame_font.render(
-                    message, False, font.color
+                    message, False, constants.color_dict[font.color]
                 )
                 constants.game_display.blit(
                     textsurface,
@@ -728,7 +682,6 @@ class button(interface_elements.interface_element):
                                 current_mob.set_permission(
                                     constants.SENTRY_MODE_PERMISSION, False
                                 )
-                                current_mob.clear_automatic_route()
 
                             elif current_mob.get_permission(
                                 constants.VEHICLE_PERMISSION
@@ -779,74 +732,6 @@ class button(interface_elements.interface_element):
                             )
             else:
                 text_utility.print_to_screen("You are busy and cannot move.")
-
-        elif self.button_type == constants.EXECUTE_MOVEMENT_ROUTES_BUTTON:
-            if main_loop_utility.action_possible():
-                if minister_utility.positions_filled():
-                    if not constants.current_game_mode == constants.STRATEGIC_MODE:
-                        game_transitions.set_game_mode(constants.STRATEGIC_MODE)
-
-                    unit_types = [
-                        constants.PORTERS,
-                        constants.SPACESHIP,
-                        constants.TRAIN,
-                    ]
-                    moved_units = {}
-                    attempted_units = {}
-                    for current_unit_type in unit_types:
-                        moved_units[current_unit_type] = 0
-                        attempted_units[current_unit_type] = 0
-                    last_moved = None
-                    for current_pmob in status.pmob_list:
-                        if len(current_pmob.base_automatic_route) > 0:
-                            unit_type = current_pmob.unit_type.key
-                            attempted_units[unit_type] += 1
-
-                            progressed = current_pmob.follow_automatic_route()
-                            if progressed:
-                                moved_units[unit_type] += 1
-                                last_moved = current_pmob
-                            current_pmob.remove_from_turn_queue()
-                    if last_moved:
-                        last_moved.select()  # updates mob info display if automatic route changed anything
-                    types_moved = 0
-                    text = ""
-                    for current_unit_type in unit_types:
-                        if attempted_units[current_unit_type] > 0:
-
-                            if current_unit_type == constants.PORTERS:
-                                singular = "unit of porters"
-                                plural = "units of porters"
-                            else:
-                                singular = current_unit_type
-                                plural = singular + "s"
-                            types_moved += 1
-                            num_attempted = attempted_units[current_unit_type]
-                            num_progressed = moved_units[current_unit_type]
-                            if num_attempted == num_progressed:
-                                if num_attempted == 1:
-                                    text += f"The {singular} made progress on its designated movement route. /n /n"
-                                else:
-                                    text += f"All {num_attempted} of the {plural} made progress on their designated movement routes. /n /n"
-                            else:
-                                if num_progressed == 0:
-                                    if num_attempted == 1:
-                                        text += f"The {singular} made no progress on its designated movement route. /n /n"
-                                    else:
-                                        text += f"None of the {plural} made progress on their designated movement routes. /n /n"
-                                else:
-                                    text += f"Only {num_progressed} of the {num_attempted} {plural} made progress on their designated movement routes. /n /n"
-                    transportation_minister = minister_utility.get_minister(
-                        constants.TRANSPORTATION_MINISTER
-                    )
-                    if types_moved > 0:
-                        transportation_minister.display_message(text)
-                    else:
-                        transportation_minister.display_message(
-                            "There were no units with designated movement routes. /n /n"
-                        )
-            else:
-                text_utility.print_to_screen("You are busy and cannot move units.")
 
         elif self.button_type == constants.REMOVE_WORK_CREW_BUTTON:
             if main_loop_utility.action_possible():
@@ -1347,7 +1232,7 @@ class button(interface_elements.interface_element):
                     return True
                 return False
             elif self.button_type == constants.FOCUS_LOCATION_BUTTON:
-                return not status.displayed_location.world_handler.is_abstract_world
+                return status.displayed_location and not status.displayed_location.world_handler.is_abstract_world
                 # Only show if on the planetary surface
             return True
         return False
@@ -1598,7 +1483,7 @@ class same_location_icon(button):
                         self.previous_subscribed_mobs.append(current_item)
                     if self.is_last and len(new_subscribed_mobs) > self.index:
                         self.attached_mob = "last"
-                        self.image.set_image("buttons/extra_selected_button.png")
+                        self.image.set_image([{"image_id": "buttons/default_button_frameless.png"}, {"image_id": "buttons/extra_selected_button.png"}])
                         name_list = []
                         for current_mob_index in range(
                             len(self.previous_subscribed_mobs)

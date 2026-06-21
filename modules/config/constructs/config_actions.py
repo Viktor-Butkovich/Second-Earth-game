@@ -1,10 +1,8 @@
 from __future__ import annotations
 from modules.constants import constants, status, flags
 from modules.action_types import (
-    public_relations_campaign,
     advertising_campaign,
     combat,
-    exploration,
     construction,
     loan_search,
     active_investigation,
@@ -23,10 +21,8 @@ def config_actions() -> None:
         #     repair.repair(building_type=building_type)
         # for upgrade_type in building_type.upgrade_fields.keys():
         #     upgrade.upgrade(building_type=building_type, upgrade_type=upgrade_type)
-    public_relations_campaign.public_relations_campaign()
     advertising_campaign.advertising_campaign()
     combat.combat()
-    exploration.exploration()
     loan_search.loan_search()
     active_investigation.active_investigation()
     trial.trial()

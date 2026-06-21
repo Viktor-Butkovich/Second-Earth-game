@@ -1025,12 +1025,6 @@ class mob(actor):
                     tooltip_list.append(
                         f"    {item_type.name.capitalize()}: {self.get_inventory(item_type)}"
                     )
-            if len(self.base_automatic_route) > 1:
-                start_coordinates = self.base_automatic_route[0]
-                end_coordinates = self.base_automatic_route[-1]
-                tooltip_list.append(
-                    f"This unit has a designated movement route of length {len(self.base_automatic_route)}, picking up items at ({start_coordinates[0]}, {start_coordinates[1]}) and dropping them off at ({end_coordinates[0]}, {end_coordinates[1]})"
-                )
 
             if self.equipment:
                 tooltip_list.append(f"Equipment: {', '.join(self.equipment.keys())}")

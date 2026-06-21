@@ -1,7 +1,7 @@
 from __future__ import annotations
 import pygame
 from modules.constants import constants, status, flags
-from modules.util import scaling
+from modules.util import scaling, actor_utility
 
 
 def config_mob_info_display() -> None:
@@ -69,7 +69,7 @@ def config_mob_info_display() -> None:
             ),
             "width": scaling.scale_width(35),
             "height": scaling.scale_height(35),
-            "image_id": "buttons/fire_minister_button.png",
+            "image_id": actor_utility.generate_frame("buttons/fire_minister_button.png", background="buttons/default_button_frameless.png"),
             "init_type": constants.FIRE_UNIT_BUTTON,
             "parent_collection": status.mob_info_display,
             "member_config": {"order_exempt": True},
@@ -80,25 +80,25 @@ def config_mob_info_display() -> None:
         {
             "coordinates": scaling.scale_coordinates(200, -105),
             "keybind_id": pygame.K_a,
-            "image_id": "buttons/left_button.png",
+            "image_id": actor_utility.generate_frame("buttons/left_button.png", background="buttons/default_button_frameless.png"),
             "init_type": constants.MOVE_LEFT_BUTTON,
         },
         {
             "coordinates": scaling.scale_coordinates(245, -105),
             "keybind_id": pygame.K_s,
-            "image_id": "buttons/down_button.png",
+            "image_id": actor_utility.generate_frame("buttons/down_button.png", background="buttons/default_button_frameless.png"),
             "init_type": constants.MOVE_DOWN_BUTTON,
         },
         {
             "coordinates": scaling.scale_coordinates(245, -60),
             "keybind_id": pygame.K_w,
-            "image_id": "buttons/up_button.png",
+            "image_id": actor_utility.generate_frame("buttons/up_button.png", background="buttons/default_button_frameless.png"),
             "init_type": constants.MOVE_UP_BUTTON,
         },
         {
             "coordinates": scaling.scale_coordinates(290, -105),
             "keybind_id": pygame.K_d,
-            "image_id": "buttons/right_button.png",
+            "image_id": actor_utility.generate_frame("buttons/right_button.png", background="buttons/default_button_frameless.png"),
             "init_type": constants.MOVE_RIGHT_BUTTON,
         },
     ]:

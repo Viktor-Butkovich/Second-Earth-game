@@ -11,6 +11,7 @@ from modules.util import (
     minister_utility,
     game_transitions,
     scaling,
+    actor_utility,
 )
 from modules.constants import constants, status, flags
 
@@ -66,7 +67,7 @@ class trial(action.campaign):
         initial_input_dict["width"] = scaling.scale_width(button_width)
         initial_input_dict["height"] = scaling.scale_height(button_width)
         initial_input_dict["modes"] = [constants.TRIAL_MODE]
-        initial_input_dict["image_id"] = "buttons/to_trial_button.png"
+        initial_input_dict["image_id"] = actor_utility.generate_frame("buttons/to_trial_button.png", background="buttons/default_button_frameless.png")
         return super().button_setup(initial_input_dict)
 
     def pre_start(self, unit):

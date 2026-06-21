@@ -1,7 +1,7 @@
 from __future__ import annotations
 import pygame
 from modules.constants import constants, status, flags
-from modules.util import scaling
+from modules.util import scaling, actor_utility
 
 
 def config_ministers_screen() -> None:
@@ -134,7 +134,7 @@ def config_ministers_screen() -> None:
         "height": scaling.scale_height(50),
         "keybind_id": pygame.K_w,
         "modes": [constants.MINISTERS_MODE],
-        "image_id": "buttons/cycle_ministers_up_button.png",
+        "image_id": actor_utility.generate_frame("buttons/cycle_ministers_up_button.png", background="buttons/default_button_frameless.png"),
         "init_type": constants.CYCLE_AVAILABLE_MINISTERS_BUTTON,
         "direction": "left",
     }
@@ -180,7 +180,7 @@ def config_ministers_screen() -> None:
                 scaling.scale_height(available_minister_display_y),
             ),
             "keybind_id": pygame.K_s,
-            "image_id": "buttons/cycle_ministers_down_button.png",
+            "image_id": actor_utility.generate_frame("buttons/cycle_ministers_down_button.png", background="buttons/default_button_frameless.png"),
             "direction": "right",
         }
     )
