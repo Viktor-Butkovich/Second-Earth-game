@@ -30,6 +30,7 @@ from modules.config.info_displays import (
     zone_info_display,
 )
 from modules.config import config_misc, config_buttons, config_value_trackers
+from modules.util import main_loop_utility
 
 
 def setup() -> None:
@@ -43,6 +44,10 @@ def setup() -> None:
     """
     flags.startup_complete = False
     config_misc.config_misc()
+    if not flags.loading:
+        main_loop_utility.update_display()
+    else:
+        main_loop_utility.draw_loading_screen()
     config_misc.config_info_displays()
     config_item_types.config_item_types()
     config_terrain_feature_types.config_terrain_feature_types()

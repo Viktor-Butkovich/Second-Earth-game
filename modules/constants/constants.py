@@ -1183,5 +1183,4 @@ ADVERTISING_SELECTOR: str = "advertising_selector"
 CONSTRUCTION_SELECTOR: str = "construction_selector"
 SELECTOR_CONFIG_CONSTRUCTION_ACTION: str = "selector_config_construction_action"
 
-USE_PIL: bool = True
 total_seconds: int = 0

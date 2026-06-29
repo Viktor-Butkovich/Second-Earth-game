@@ -8,7 +8,6 @@ from modules.managers import (
     character_manager,
     help_manager,
     terrain_manager,
-    value_tracker,
     notification_manager,
     supply_chain_request_engine,
 )
