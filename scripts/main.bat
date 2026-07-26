@@ -1,1 +1,3 @@
-conda run --no-capture-output -n second_earth python main.py
+call conda activate second_earth
+black .
+python main.py

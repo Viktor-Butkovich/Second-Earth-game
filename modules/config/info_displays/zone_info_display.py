@@ -9,7 +9,7 @@ def config_zone_info_display() -> None:
     """
     status.zone_info_display = constants.ActorCreationManager.create_interface_element(
         {
-            "coordinates": scaling.scale_coordinates(0, 0),  # (0, -400),
+            "coordinates": scaling.scale_coordinates(0, -400),
             "width": scaling.scale_width(775),
             "height": scaling.scale_height(10),
             "modes": [
@@ -20,6 +20,9 @@ def config_zone_info_display() -> None:
             "actor_type": constants.ZONE_ACTOR_TYPE,
             "description": "zone information panel",
             "parent_collection": status.info_displays_collection,
+            "member_config": {
+                "order_exempt": True,
+            },
         }
     )
     free_unfocus_location_button = (

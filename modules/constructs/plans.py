@@ -126,7 +126,7 @@ class supply_chain_plan:
                 ],
             },
             "delivering": {
-                constants.TABLEDATA_TEXT_KEY: "Delivering",
+                constants.TABLEDATA_TEXT_KEY: "In/Out",
                 constants.TABLEDATA_BATCH_TOOLTIP_KEY: [
                     [
                         "Ingoing and outgoing deliveries are forecasted to cause a net change of this amount in stored inventory."

@@ -475,6 +475,7 @@ Does a building ever have to access the location it is in? Likely not, even for 
 #   A request should include item type, amount, origin, destination, and an optional priority level
 #   Once a request is made, it can be executed, with possible success or failure
 #   These connections should be made in a manner that a prescriptive request engine can create these plans in an optimal manner
+# Add adventurer's pack-style kits of different sizes of initial items
 # Use pre-calculated supply chain plans to actually execute the upkeep, rather than calculating during immediate upkee
 # Have the concept of a transportation or power "grid" object that can be selected
 #   Ideally, you can jump to a tile's transportation or power grid, which will highlight all members and provide summaries

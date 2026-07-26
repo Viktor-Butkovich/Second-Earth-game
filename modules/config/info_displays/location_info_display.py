@@ -10,7 +10,7 @@ def config_location_info_display() -> None:
     status.location_info_display = (
         constants.ActorCreationManager.create_interface_element(
             {
-                "coordinates": scaling.scale_coordinates(0, 0),  # (0, -400),
+                "coordinates": scaling.scale_coordinates(0, -400),
                 "width": scaling.scale_width(775),
                 "height": scaling.scale_height(10),
                 "modes": [
@@ -23,6 +23,9 @@ def config_location_info_display() -> None:
                 "actor_type": constants.LOCATION_ACTOR_TYPE,
                 "description": "location information panel",
                 "parent_collection": status.info_displays_collection,
+                "member_config": {
+                    "order_exempt": True,
+                },
             }
         )
     )

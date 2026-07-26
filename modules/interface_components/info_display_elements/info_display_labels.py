@@ -434,7 +434,7 @@ class actor_display_label(labels.label):
                 # constants.DROP_ITEM_BUTTON - helps to find anonymous button without constant type
                 input_dict["init_type"] = constants.ANONYMOUS_BUTTON
                 input_dict["image_id"] = actor_utility.generate_frame(
-                    "buttons/item_pick_up_button.png",
+                    "buttons/item_drop_button.png",
                     background="buttons/default_button_frameless.png",
                 )
                 input_dict["button_type"] = {
@@ -453,7 +453,7 @@ class actor_display_label(labels.label):
                 self.add_attached_button(input_dict)
 
                 input_dict["image_id"] = actor_utility.generate_frame(
-                    "buttons/item_pick_up_all_button.png",
+                    "buttons/item_drop_button.png",
                     background="buttons/default_button_frameless.png",
                 )
                 input_dict["button_type"] = {
@@ -838,7 +838,7 @@ class actor_display_label(labels.label):
                             f"This location currently contains an inventory of {self.actor.get_inventory_used()} items"
                         )
                         tooltip_text.append(
-                            f"This location can retain a maximum inventory of {self.actor.inventory_capacity} items"
+                            f"This location can retain a maximum inventory of {self.actor.inventory_capacity.value} items"
                         )
                         tooltip_text.append(
                             "If this location's inventory exceeds its capacity before resource production at the end of the turn, extra items will be lost"

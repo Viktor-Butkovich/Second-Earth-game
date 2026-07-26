@@ -14,7 +14,7 @@ def config_mob_info_display() -> None:
 
     status.mob_info_display = constants.ActorCreationManager.create_interface_element(
         {
-            "coordinates": scaling.scale_coordinates(0, -400),
+            "coordinates": scaling.scale_coordinates(0, 0),
             "width": scaling.scale_width(400),
             "height": scaling.scale_height(430),
             "modes": [
@@ -27,9 +27,9 @@ def config_mob_info_display() -> None:
             "actor_type": constants.MOB_ACTOR_TYPE,
             "description": "unit information panel",
             "parent_collection": status.info_displays_collection,
-            "member_config": {
-                "order_exempt": True,
-            },
+            # "member_config": {
+            #    "order_exempt": True,
+            # },
         }
     )
 

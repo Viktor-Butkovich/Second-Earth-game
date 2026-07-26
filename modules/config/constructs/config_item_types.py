@@ -27,32 +27,35 @@ def define_materials() -> None:
             "background_color": constants.color_dict[constants.COLOR_DARKER_GRAY],
             "allow_price_variation": True,
             "abbreviated_name": "struct. metals",
+            "name": "structural metals",
         }
     )
     item_types.material_type(
         {
-            "key": constants.MATERIAL_CONSTRUCTION_MATERIALS,
+            "key": constants.MATERIAL_STRUCTURAL_NONMETALS,
             "can_purchase": True,
             "can_sell": True,
             "price": 5,
-            "description": ["Placeholder construction materials description"],
-            "item_image": "items/material/construction_materials.png",
+            "description": ["Placeholder structural nonmetals description"],
+            "item_image": "items/material/structural_nonmetals.png",
             "background_color": constants.color_dict[constants.COLOR_DARK_GRAY],
             "allow_price_variation": True,
-            "abbreviated_name": "const. matls",
+            "abbreviated_name": "struct. nonmetals",
+            "name": "structural nonmetals",
         }
     )
     item_types.material_type(
         {
-            "key": constants.MATERIAL_ADVANCED_MATERIALS,
+            "key": constants.MATERIAL_ADVANCED_METALS,
             "can_purchase": True,
             "can_sell": True,
             "price": 5,
             "description": ["Placeholder advanced materials description"],
-            "item_image": "items/material/advanced_materials.png",
+            "item_image": "items/material/advanced_metals.png",
             "background_color": constants.color_dict[constants.COLOR_RED],
             "allow_price_variation": True,
-            "abbreviated_name": "adv. matls",
+            "abbreviated_name": "adv. metals",
+            "name": "advanced materials",
         }
     )
     item_types.material_type(
@@ -65,6 +68,8 @@ def define_materials() -> None:
             "item_image": "items/material/fuels.png",
             "background_color": constants.color_dict[constants.COLOR_FIRE_ORANGE],
             "allow_price_variation": True,
+            "abbreviated_name": "fuels",
+            "name": "fuels",
         }
     )
     item_types.material_type(
@@ -77,6 +82,8 @@ def define_materials() -> None:
             "item_image": "items/material/chemicals.png",
             "background_color": constants.color_dict[constants.COLOR_YELLOW_GREEN],
             "allow_price_variation": True,
+            "abbreviated_name": "chemicals",
+            "name": "chemicals",
         }
     )
     item_types.material_type(
@@ -89,7 +96,8 @@ def define_materials() -> None:
             "item_image": "items/material/biomaterials.png",
             "background_color": constants.color_dict[constants.COLOR_DARK_GREEN],
             "allow_price_variation": True,
-            "abbreviated_name": "bio. matls",
+            "abbreviated_name": "biomats",
+            "name": "biomaterials",
         }
     )
     item_types.material_type(
@@ -102,7 +110,8 @@ def define_materials() -> None:
             "item_image": "items/material/nuclear_materials.png",
             "background_color": constants.color_dict[constants.COLOR_BRIGHT_GREEN],
             "allow_price_variation": True,
-            "abbreviated_name": "nuc. matls",
+            "abbreviated_name": "nuc. mats",
+            "name": "nuclear materials",
         }
     )
 

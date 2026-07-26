@@ -325,7 +325,7 @@ def inventory_info_display_interface() -> None:
                 (
                     constants.PICK_UP_EACH_ITEM_BUTTON,
                     actor_utility.generate_frame(
-                        "buttons/item_drop_each_button.png",
+                        "buttons/item_pick_up_each_button.png",
                         background="buttons/default_button_frameless.png",
                     ),
                 ),
@@ -342,7 +342,7 @@ def inventory_info_display_interface() -> None:
                 (
                     constants.DROP_EACH_ITEM_BUTTON,
                     actor_utility.generate_frame(
-                        "buttons/item_pick_up_each_button.png",
+                        "buttons/item_drop_each_button.png",
                         background="buttons/default_button_frameless.png",
                     ),
                 ),
@@ -458,7 +458,7 @@ def inventory_info_display_interface() -> None:
                         "tooltip": ["Orders the selected unit to pick up this item"],
                     },
                     actor_utility.generate_frame(
-                        "buttons/item_drop_button.png",
+                        "buttons/item_pick_up_button.png",
                         background="buttons/default_button_frameless.png",
                     ),
                 ),
@@ -476,7 +476,7 @@ def inventory_info_display_interface() -> None:
                         ],
                     },
                     actor_utility.generate_frame(
-                        "buttons/item_drop_all_button.png",
+                        "buttons/item_pick_up_all_button.png",
                         background="buttons/default_button_frameless.png",
                     ),
                 ),
@@ -519,7 +519,7 @@ def inventory_info_display_interface() -> None:
                         "tooltip": ["Orders the selected unit to drop this item"],
                     },
                     actor_utility.generate_frame(
-                        "buttons/item_pick_up_button.png",
+                        "buttons/item_drop_button.png",
                         background="buttons/default_button_frameless.png",
                     ),
                 ),
@@ -533,11 +533,11 @@ def inventory_info_display_interface() -> None:
                             ),  # item_icon.transfer(
                         ],
                         "tooltip": [
-                            "Orders the selected unit to drop up all of this item"
+                            "Orders the selected unit to drop all of this item"
                         ],
                     },
                     actor_utility.generate_frame(
-                        "buttons/item_pick_up_all_button.png",
+                        "buttons/item_drop_all_button.png",
                         background="buttons/default_button_frameless.png",
                     ),
                 ),

@@ -46,7 +46,7 @@ def config_earth_screen():
                     "image_id": "misc/circle.png",
                     "green_screen": current_item_type.background_color,
                 },
-                f"items/{current_item_type.item_category}/{current_item_type.key}.png",
+                current_item_type.item_image,
             ]
             input_dict["item_type"] = current_item_type
             new_sellable_item_button = (

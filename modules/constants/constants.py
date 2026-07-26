@@ -247,9 +247,9 @@ old_mouse_y: int = pygame.mouse.get_pos()[1]
 
 small_font_name: str = "times new roman"
 font_name: str = "microsoftsansserif"
-default_font_size: int = 18
+default_font_size: int = 16
 font_size: float = None
-default_notification_font_size: int = 22
+default_notification_font_size: int = 20
 notification_font_size: float = None
 myfont: font = None
 fonts: Dict[str, font] = {}
@@ -959,8 +959,8 @@ RESOURCE_AIR: str = "air"
 EQUIPMENT_SPACESUITS: str = "spacesuits"
 
 MATERIAL_STRUCTURAL_METALS: str = "structural_metals"
-MATERIAL_CONSTRUCTION_MATERIALS: str = "construction_materials"
-MATERIAL_ADVANCED_MATERIALS: str = "advanced_materials"
+MATERIAL_STRUCTURAL_NONMETALS: str = "structural_nonmetals"
+MATERIAL_ADVANCED_METALS: str = "advanced_metals"
 MATERIAL_FUELS: str = "fuels"
 MATERIAL_CHEMICALS: str = "chemicals"
 MATERIAL_BIOMATERIALS: str = "biomaterials"
