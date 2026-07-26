@@ -1,6 +1,7 @@
 # Contains human character appearance/background/name generation utility singleton
 
 from __future__ import annotations
+import re
 import json
 import random
 import pygame
@@ -823,6 +824,17 @@ class character_manager:
             self.ethnic_group_weights.append(
                 round(ethnic_group_total_weights[ethnic_group])
             )
+            if ethnic_group == "diaspora":
+                continue
+            for last in [True, False]:
+                for masculine in [True, False]:
+                    # Assert all names use solely A-Z, a-z, and punctuation characters
+                    assert all(
+                        re.match("^[A-Za-z .'-]+$", name)
+                        for name in self.all_names(
+                            ethnic_group, last=last, masculine=masculine
+                        )
+                    ), f"Invalid name found for {ethnic_group} {'last' if last else 'first'} {'masculine' if masculine else 'feminine'} names: {self.all_names(ethnic_group, last=last, masculine=masculine)}"
 
     def demographics_test(self) -> None:
         """
@@ -884,6 +896,28 @@ class character_manager:
             self.get_name(ethnicity, last=True),
         )
 
+    def all_names(
+        self, ethnicity: str, last: bool = False, masculine: bool = False
+    ) -> List[str]:
+        """
+        Description:
+            Returns a list of all names for an ethnicity, first/last, and masculine/feminine combination
+        Input:
+            string ethnicity: Ethnicity of the character
+            bool last: Whether the name should be a last name
+            bool masculine: Whether the name should be masculine or feminine, if a first name
+        Output:
+            string list: Returns list of names for a character
+        """
+        if last:
+            return csv_utility.read_csv(
+                f"text/names/{ethnicity.lower().replace(' ', '_')}_last_names.csv"
+            )
+        else:
+            return csv_utility.read_csv(
+                f"text/names/{ethnicity.lower().replace(' ', '_')}_first_names_{'male' if masculine else 'female'}.csv"
+            )
+
     def get_name(
         self, ethnicity: str, last: bool = False, masculine: bool = False
     ) -> str:
@@ -897,13 +931,4 @@ class character_manager:
         Output:
             string: Returns name for a character
         """
-        if last:
-            file_name = (
-                f"text/names/{ethnicity.lower().replace(' ', '_')}_last_names.csv"
-            )
-        else:
-            if masculine:
-                file_name = f"text/names/{ethnicity.lower().replace(' ', '_')}_first_names_male.csv"
-            else:
-                file_name = f"text/names/{ethnicity.lower().replace(' ', '_')}_first_names_female.csv"
-        return random.choice(csv_utility.read_csv(file_name))[0]
+        return random.choice(self.all_names(ethnicity, last=last, masculine=masculine))

@@ -14,28 +14,15 @@ class flavor_text_manager:
         """
         Initializes this object
         """
-        self.subject_dict = {}
-        self.set_flavor_text("exploration", "text/explorer.csv")
-        self.set_flavor_text("advertising_campaign", "text/advertising.csv")
-        self.set_flavor_text("settlement_names", "text/settlement_names.csv")
-        self.set_flavor_text("loading_screen_quotes", "text/loading_screen_quotes.csv")
-        self.set_flavor_text("planet_names", "text/planet_names.csv")
-
-    def set_flavor_text(self, topic, file):
-        """
-        Description:
-            Sets this flavor text manager's list of flavor text for the inputted topic to the contents of the inputted csv file
-        Input:
-            string topic: Topic for the flavor text to set, like 'minister_first_names'
-            string file: File to set flavor text to, like 'text/flavor_minister_first_names.csv'
-        Output:
-            None
-        """
-        flavor_text_list = []
-        current_flavor_text = csv_utility.read_csv(file)
-        for line in current_flavor_text:  # each line is a list
-            flavor_text_list.append(line[0])
-        self.subject_dict[topic] = flavor_text_list
+        self.subject_dict = {
+            "exploration": csv_utility.read_csv("text/explorer.csv"),
+            "advertising_campaign": csv_utility.read_csv("text/advertising.csv"),
+            "settlement_names": csv_utility.read_csv("text/settlement_names.csv"),
+            "loading_screen_quotes": csv_utility.read_csv(
+                "text/loading_screen_quotes.csv"
+            ),
+            "planet_names": csv_utility.read_csv("text/planet_names.csv"),
+        }
 
     def generate_substituted_flavor_text(self, subject, replace_char, replace_with):
         """

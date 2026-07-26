@@ -132,9 +132,15 @@ class table_grid(grids.grid):
                 "parent_collection": self.parent_collection,
                 "init_type": constants.ANONYMOUS_BUTTON,
                 "image_id": (
-                    actor_utility.generate_frame("buttons/cycle_ministers_down_button.png", background="buttons/default_button_frameless.png")
+                    actor_utility.generate_frame(
+                        "buttons/cycle_ministers_down_button.png",
+                        background="buttons/default_button_frameless.png",
+                    )
                     if change > 0
-                    else actor_utility.generate_frame("buttons/cycle_ministers_up_button.png", background="buttons/default_button_frameless.png")
+                    else actor_utility.generate_frame(
+                        "buttons/cycle_ministers_up_button.png",
+                        background="buttons/default_button_frameless.png",
+                    )
                 ),
                 "button_type": {
                     "on_click": [

@@ -19,7 +19,10 @@ def config_unit_organization_tab() -> None:
                 "parent_collection": status.mob_tabbed_collection,
                 "member_config": {
                     "tabbed": True,
-                    "button_image_id": actor_utility.generate_frame("buttons/merge_button.png", background="buttons/default_button_frameless.png"),
+                    "button_image_id": actor_utility.generate_frame(
+                        "buttons/merge_button.png",
+                        background="buttons/default_button_frameless.png",
+                    ),
                     "identifier": constants.REORGANIZATION_PANEL,
                     "tab_name": "reorganization",
                 },
@@ -183,7 +186,10 @@ def unit_organization_interface() -> None:
                 "height": scaling.scale_height(25),
                 "init_type": constants.REORGANIZE_UNIT_BUTTON,
                 "parent_collection": status.group_reorganization_collection,
-                "image_id": actor_utility.generate_frame("buttons/cycle_units_button.png", background="buttons/default_button_frameless.png"),
+                "image_id": actor_utility.generate_frame(
+                    "buttons/cycle_units_button.png",
+                    background="buttons/default_button_frameless.png",
+                ),
                 "allowed_procedures": [
                     constants.MERGE_PROCEDURE,
                 ],
@@ -205,7 +211,10 @@ def unit_organization_interface() -> None:
                 "height": scaling.scale_height(25),
                 "init_type": constants.REORGANIZE_UNIT_BUTTON,
                 "parent_collection": status.group_reorganization_collection,
-                "image_id": actor_utility.generate_frame("buttons/cycle_units_reverse_button.png", background="buttons/default_button_frameless.png"),
+                "image_id": actor_utility.generate_frame(
+                    "buttons/cycle_units_reverse_button.png",
+                    background="buttons/default_button_frameless.png",
+                ),
                 "allowed_procedures": [
                     constants.SPLIT_PROCEDURE,
                 ],
@@ -395,7 +404,10 @@ def vehicle_organization_interface() -> None:
                 "height": scaling.scale_height(25),
                 "init_type": constants.REORGANIZE_UNIT_BUTTON,
                 "parent_collection": status.vehicle_reorganization_collection,
-                "image_id": actor_utility.generate_frame("buttons/cycle_units_button.png", background="buttons/default_button_frameless.png"),
+                "image_id": actor_utility.generate_frame(
+                    "buttons/cycle_units_button.png",
+                    background="buttons/default_button_frameless.png",
+                ),
                 "allowed_procedures": [
                     constants.CREW_PROCEDURE,
                 ],
@@ -417,7 +429,10 @@ def vehicle_organization_interface() -> None:
                 "height": scaling.scale_height(25),
                 "init_type": constants.REORGANIZE_UNIT_BUTTON,
                 "parent_collection": status.vehicle_reorganization_collection,
-                "image_id": actor_utility.generate_frame("buttons/cycle_units_reverse_button.png", background="buttons/default_button_frameless.png"),
+                "image_id": actor_utility.generate_frame(
+                    "buttons/cycle_units_reverse_button.png",
+                    background="buttons/default_button_frameless.png",
+                ),
                 "allowed_procedures": [
                     constants.UNCREW_PROCEDURE,
                 ],

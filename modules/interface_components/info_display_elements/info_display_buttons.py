@@ -98,13 +98,17 @@ class embark_all_passengers_button(buttons.button):
                 and self.vehicle_type != constants.SPACESHIP_PERMISSION
             ):
                 self.vehicle_type = constants.SPACESHIP_PERMISSION
-                self.image.set_image(actor_utility.generate_frame(f"buttons/embark_spaceship_button.png"))
+                self.image.set_image(
+                    actor_utility.generate_frame(f"buttons/embark_spaceship_button.png")
+                )
             elif (
                 status.displayed_mob.get_permission(constants.TRAIN_PERMISSION)
                 and self.vehicle_type != constants.TRAIN_PERMISSION
             ):
                 self.vehicle_type = constants.TRAIN_PERMISSION
-                self.image.set_image(actor_utility.generate_frame(f"buttons/embark_train_button.png"))
+                self.image.set_image(
+                    actor_utility.generate_frame(f"buttons/embark_train_button.png")
+                )
         return result
 
 
@@ -176,23 +180,27 @@ class disembark_all_passengers_button(buttons.button):
                 and self.vehicle_type != constants.SPACESHIP_PERMISSION
             ):
                 self.vehicle_type = constants.SPACESHIP_PERMISSION
-                self.image.set_image(actor_utility.generate_frame(
-                    [
-                        {"image_id": "buttons/embark_spaceship_button.png"},
-                        {"image_id": "misc/x.png"}
-                    ],
-                ))
+                self.image.set_image(
+                    actor_utility.generate_frame(
+                        [
+                            {"image_id": "buttons/embark_spaceship_button.png"},
+                            {"image_id": "misc/x.png"},
+                        ],
+                    )
+                )
             elif (
                 status.displayed_mob.get_permission(constants.TRAIN_PERMISSION)
                 and self.vehicle_type != constants.TRAIN_PERMISSION
             ):
                 self.vehicle_type = constants.TRAIN_PERMISSION
-                self.image.set_image(actor_utility.generate_frame(
-                    [
-                        {"image_id": "buttons/embark_train_button.png"},
-                        {"image_id": "misc/x.png"}
-                    ],
-                ))
+                self.image.set_image(
+                    actor_utility.generate_frame(
+                        [
+                            {"image_id": "buttons/embark_train_button.png"},
+                            {"image_id": "misc/x.png"},
+                        ],
+                    )
+                )
         return result
 
 
@@ -449,6 +457,7 @@ class end_unit_turn_button(buttons.button):
     """
     Button that ends a unit's turn, removing it from the current turn's turn cycle queue
     """
+
     def can_show(self, skip_parent_collection=False):
         """
         Description:
@@ -590,14 +599,30 @@ class disembark_vehicle_button(buttons.button):
                 and self.vehicle_type != constants.SPACESHIP_PERMISSION
             ):
                 self.vehicle_type = constants.SPACESHIP_PERMISSION
-                self.image.set_image(actor_utility.generate_frame([{"image_id": "buttons/embark_spaceship_button.png"}, {"image_id": "misc/x.png"}], background="buttons/default_button_frameless.png"))
+                self.image.set_image(
+                    actor_utility.generate_frame(
+                        [
+                            {"image_id": "buttons/embark_spaceship_button.png"},
+                            {"image_id": "misc/x.png"},
+                        ],
+                        background="buttons/default_button_frameless.png",
+                    )
+                )
 
             elif (
                 self.attached_label.actor.get_permission(constants.TRAIN_PERMISSION)
                 and self.vehicle_type != constants.TRAIN_PERMISSION
             ):
                 self.vehicle_type = constants.TRAIN_PERMISSION
-                self.image.set_image(actor_utility.generate_frame([{"image_id": "buttons/embark_train_button.png"}, {"image_id": "misc/x.png"}], background="buttons/default_button_frameless.png"))
+                self.image.set_image(
+                    actor_utility.generate_frame(
+                        [
+                            {"image_id": "buttons/embark_train_button.png"},
+                            {"image_id": "misc/x.png"},
+                        ],
+                        background="buttons/default_button_frameless.png",
+                    )
+                )
         return result
 
     def on_click(self):
@@ -1255,7 +1280,10 @@ class to_trial_button(buttons.button):
             None
         """
         input_dict["modes"] = input_dict["attached_label"].modes
-        input_dict["image_id"] = actor_utility.generate_frame("buttons/to_trial_button.png", background="buttons/default_button_frameless.png")
+        input_dict["image_id"] = actor_utility.generate_frame(
+            "buttons/to_trial_button.png",
+            background="buttons/default_button_frameless.png",
+        )
         super().__init__(input_dict)
 
     def can_show(self, skip_parent_collection=False):
@@ -1326,7 +1354,10 @@ class fabricate_evidence_button(buttons.button):
             None
         """
         input_dict["modes"] = [constants.TRIAL_MODE, constants.MINISTERS_MODE]
-        input_dict["image_id"] = actor_utility.generate_frame("buttons/fabricate_evidence_button.png", background="buttons/default_button_frameless.png")
+        input_dict["image_id"] = actor_utility.generate_frame(
+            "buttons/fabricate_evidence_button.png",
+            background="buttons/default_button_frameless.png",
+        )
         super().__init__(input_dict)
 
     def get_cost(self):
@@ -1387,7 +1418,9 @@ class bribe_judge_button(buttons.button):
             None
         """
         input_dict["modes"] = [constants.TRIAL_MODE]
-        input_dict["image_id"] = actor_utility.generate_frame("buttons/bribe_judge_button.png")
+        input_dict["image_id"] = actor_utility.generate_frame(
+            "buttons/bribe_judge_button.png"
+        )
         super().__init__(input_dict)
 
     def get_cost(self):

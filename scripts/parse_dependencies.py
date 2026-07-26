@@ -1,6 +1,7 @@
 import ast
 import sys
 
+
 def extract_python_modules(path):
     with open(path, "r", encoding="utf-8", errors="replace") as f:
         content = f.read()
@@ -13,8 +14,9 @@ def extract_python_modules(path):
             continue
         if entry_type not in ("PYMODULE", "EXTENSION"):
             continue
-        modules.add(name.split('.')[0])
+        modules.add(name.split(".")[0])
     return sorted(modules)
+
 
 if __name__ == "__main__":
     if len(sys.argv) != 3:

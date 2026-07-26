@@ -405,9 +405,7 @@ class bundle_image:
                 self.green_screen_colors = []
                 if type(image_id["green_screen"]) == list:
                     for index in range(0, len(image_id["green_screen"])):
-                        self.green_screen_colors.append(
-                            image_id["green_screen"][index]
-                        )
+                        self.green_screen_colors.append(image_id["green_screen"][index])
                 elif type(image_id["green_screen"]) == dict:
                     self.green_screen_colors = image_id["green_screen"]
                 else:
@@ -531,9 +529,7 @@ class bundle_image:
             if full_image_id.endswith(".png"):
                 self.text = False
                 if not pathlib.Path(full_image_id).exists():
-                    raise FileNotFoundError(
-                        f"Image file not found: {full_image_id}"
-                    )
+                    raise FileNotFoundError(f"Image file not found: {full_image_id}")
                 self.image = self.load_image_pil(full_image_id)
             else:
                 self.text = True

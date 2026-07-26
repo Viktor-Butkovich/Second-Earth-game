@@ -65,7 +65,10 @@ def config_location_info_display() -> None:
                 "coordinates": scaling.scale_coordinates(0, separation),
                 "width": scaling.scale_width(25),
                 "height": scaling.scale_height(15),
-                "image_id": actor_utility.generate_frame("buttons/cycle_passengers_down_button.png", background="buttons/default_button_frameless.png"),
+                "image_id": actor_utility.generate_frame(
+                    "buttons/cycle_passengers_down_button.png",
+                    background="buttons/default_button_frameless.png",
+                ),
                 "init_type": constants.CYCLE_SAME_LOCATION_BUTTON,
                 "parent_collection": same_location_ordered_collection,
             }

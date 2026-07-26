@@ -73,7 +73,10 @@ class action:
         """
         initial_input_dict["init_type"] = constants.ACTION_BUTTON
         initial_input_dict["corresponding_action"] = self
-        initial_input_dict["image_id"] = actor_utility.generate_frame(f"buttons/actions/{self.action_type}_button.png", background="buttons/default_button_frameless.png")
+        initial_input_dict["image_id"] = actor_utility.generate_frame(
+            f"buttons/actions/{self.action_type}_button.png",
+            background="buttons/default_button_frameless.png",
+        )
         return initial_input_dict
 
     def can_show(self):

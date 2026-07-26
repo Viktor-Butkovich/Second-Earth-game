@@ -139,44 +139,52 @@ def config_buttons() -> None:
         + globe_projection_size
         + 15
     )
-    game_mode_navigation_collection = constants.ActorCreationManager.create_interface_element(
-        {
-            "coordinates": scaling.scale_coordinates(
-                switch_game_mode_buttons_x, constants.default_display_height - 55
-            ),
-            "width": 10,
-            "height": 10,
-            "modes": [
-                constants.STRATEGIC_MODE,
-                constants.EARTH_MODE,
-                constants.MINISTERS_MODE,
-                constants.TRIAL_MODE,
-                constants.LOCATION_MODE,
-            ],
-            "init_type": constants.ORDERED_COLLECTION,
-            "member_config": {"order_exempt": True},
-            "separation": 10,
-            "direction": "horizontal",
-            "outline_color": constants.space_background_outline_color,
-        }
+    game_mode_navigation_collection = (
+        constants.ActorCreationManager.create_interface_element(
+            {
+                "coordinates": scaling.scale_coordinates(
+                    switch_game_mode_buttons_x, constants.default_display_height - 55
+                ),
+                "width": 10,
+                "height": 10,
+                "modes": [
+                    constants.STRATEGIC_MODE,
+                    constants.EARTH_MODE,
+                    constants.MINISTERS_MODE,
+                    constants.TRIAL_MODE,
+                    constants.LOCATION_MODE,
+                ],
+                "init_type": constants.ORDERED_COLLECTION,
+                "member_config": {"order_exempt": True},
+                "separation": 10,
+                "direction": "horizontal",
+                "outline_color": constants.space_background_outline_color,
+            }
+        )
     )
-    status.to_strategic_button = constants.ActorCreationManager.create_interface_element(
-        {
-            "height": scaling.scale_height(50),
-            "width": scaling.scale_width(50),
-            "keybind_id": pygame.K_1,
-            "image_id": "misc/empty.png", # Matches the planet
-            "to_mode": constants.STRATEGIC_MODE,
-            "init_type": constants.SWITCH_GAME_MODE_BUTTON,
-            "parent_collection": game_mode_navigation_collection,
-        }
+    status.to_strategic_button = (
+        constants.ActorCreationManager.create_interface_element(
+            {
+                "height": scaling.scale_height(50),
+                "width": scaling.scale_width(50),
+                "keybind_id": pygame.K_1,
+                "image_id": "misc/empty.png",  # Matches the planet
+                "to_mode": constants.STRATEGIC_MODE,
+                "init_type": constants.SWITCH_GAME_MODE_BUTTON,
+                "parent_collection": game_mode_navigation_collection,
+            }
+        )
     )
     status.to_earth_button = constants.ActorCreationManager.create_interface_element(
         {
             "height": scaling.scale_height(50),
             "width": scaling.scale_width(50),
             "keybind_id": pygame.K_2,
-            "image_id": actor_utility.generate_frame(world_utility.generate_abstract_world_image(planet=constants.EARTH_WORLD, size=0.6)),
+            "image_id": actor_utility.generate_frame(
+                world_utility.generate_abstract_world_image(
+                    planet=constants.EARTH_WORLD, size=0.6
+                )
+            ),
             "to_mode": constants.EARTH_MODE,
             "init_type": constants.SWITCH_GAME_MODE_BUTTON,
             "parent_collection": game_mode_navigation_collection,
@@ -245,12 +253,16 @@ def config_buttons() -> None:
     to_main_menu_button = constants.ActorCreationManager.create_interface_element(
         {
             "coordinates": scaling.scale_coordinates(
-                constants.default_display_width - 50, constants.default_display_height - 50
+                constants.default_display_width - 50,
+                constants.default_display_height - 50,
             ),
             "width": scaling.scale_width(50),
             "height": scaling.scale_height(50),
             "keybind_id": pygame.K_ESCAPE,
-            "image_id": actor_utility.generate_frame("buttons/exit_earth_screen_button.png", background="buttons/default_button_frameless.png"),
+            "image_id": actor_utility.generate_frame(
+                "buttons/exit_earth_screen_button.png",
+                background="buttons/default_button_frameless.png",
+            ),
             "to_mode": constants.MAIN_MENU_MODE,
             "init_type": constants.SWITCH_GAME_MODE_BUTTON,
             "modes": [
@@ -263,23 +275,28 @@ def config_buttons() -> None:
             "parent_collection": rhs_menu_collection,
         }
     )
-    new_game_setup_to_main_menu_button = constants.ActorCreationManager.create_interface_element(
-        {
-            "coordinates": scaling.scale_coordinates(
-                0, constants.default_display_height - 50
-            ),
-            "width": scaling.scale_width(50),
-            "height": scaling.scale_height(50),
-            "keybind_id": pygame.K_ESCAPE,
-            "image_id": actor_utility.generate_frame("buttons/exit_earth_screen_button.png", background="buttons/default_button_frameless.png"),
-            "to_mode": constants.MAIN_MENU_MODE,
-            "init_type": constants.SWITCH_GAME_MODE_BUTTON,
-            "modes": [
-                constants.NEW_GAME_SETUP_MODE,
-            ],
-            "parent_collection": status.lhs_menu_collection,
-            "outline_color": constants.space_background_outline_color,
-        }
+    new_game_setup_to_main_menu_button = (
+        constants.ActorCreationManager.create_interface_element(
+            {
+                "coordinates": scaling.scale_coordinates(
+                    0, constants.default_display_height - 50
+                ),
+                "width": scaling.scale_width(50),
+                "height": scaling.scale_height(50),
+                "keybind_id": pygame.K_ESCAPE,
+                "image_id": actor_utility.generate_frame(
+                    "buttons/exit_earth_screen_button.png",
+                    background="buttons/default_button_frameless.png",
+                ),
+                "to_mode": constants.MAIN_MENU_MODE,
+                "init_type": constants.SWITCH_GAME_MODE_BUTTON,
+                "modes": [
+                    constants.NEW_GAME_SETUP_MODE,
+                ],
+                "parent_collection": status.lhs_menu_collection,
+                "outline_color": constants.space_background_outline_color,
+            }
+        )
     )
 
     wide_button_defaults = {
@@ -304,7 +321,9 @@ def config_buttons() -> None:
             "keybind_id": pygame.K_SPACE,
             "image_id": [
                 "buttons/default_wide_button.png",
-                text_utility.prepare_render("End Turn", constants.fonts[constants.LARGE_NOTIFICATION_FONT]),
+                text_utility.prepare_render(
+                    "End Turn", constants.fonts[constants.LARGE_NOTIFICATION_FONT]
+                ),
             ],
             "init_type": constants.END_TURN_BUTTON,
         }
@@ -320,7 +339,9 @@ def config_buttons() -> None:
             "keybind_id": pygame.K_n,
             "image_id": [
                 "buttons/default_wide_button.png",
-                text_utility.prepare_render("New Game", constants.fonts[constants.LARGE_NOTIFICATION_FONT]),
+                text_utility.prepare_render(
+                    "New Game", constants.fonts[constants.LARGE_NOTIFICATION_FONT]
+                ),
             ],
             "init_type": constants.NEW_GAME_BUTTON,
         }
@@ -336,7 +357,9 @@ def config_buttons() -> None:
             "keybind_id": pygame.K_n,
             "image_id": [
                 "buttons/default_wide_button.png",
-                text_utility.prepare_render("New Game", constants.fonts[constants.LARGE_NOTIFICATION_FONT]),
+                text_utility.prepare_render(
+                    "New Game", constants.fonts[constants.LARGE_NOTIFICATION_FONT]
+                ),
             ],
             "init_type": constants.NEW_GAME_BUTTON,
         }
@@ -352,7 +375,9 @@ def config_buttons() -> None:
             "keybind_id": pygame.K_l,
             "image_id": [
                 "buttons/default_wide_button.png",
-                text_utility.prepare_render("Load Game", constants.fonts[constants.LARGE_NOTIFICATION_FONT]),
+                text_utility.prepare_render(
+                    "Load Game", constants.fonts[constants.LARGE_NOTIFICATION_FONT]
+                ),
             ],
             "init_type": constants.LOAD_GAME_BUTTON,
         }
@@ -375,7 +400,8 @@ def config_buttons() -> None:
                 constants.LOCATION_MODE,
             ],
             "image_id": actor_utility.generate_frame(
-                "buttons/save_game_button.png", background="buttons/default_button_frameless.png"
+                "buttons/save_game_button.png",
+                background="buttons/default_button_frameless.png",
             ),
             "init_type": constants.SAVE_GAME_BUTTON,
         }
@@ -391,7 +417,10 @@ def config_buttons() -> None:
                 constants.TRIAL_MODE,
                 constants.LOCATION_MODE,
             ],
-            "image_id": actor_utility.generate_frame("buttons/text_box_size_button.png", background="buttons/default_button_frameless.png"),
+            "image_id": actor_utility.generate_frame(
+                "buttons/text_box_size_button.png",
+                background="buttons/default_button_frameless.png",
+            ),
             "init_type": constants.TOGGLE_BUTTON,
             "toggle_variable": "expand_text_box",
             "attached_to_actor": False,
@@ -410,29 +439,33 @@ def config_buttons() -> None:
     )
 
     if constants.EffectManager.effect_active("allow_planet_mask"):
-        toggle_planet_mask_button = constants.ActorCreationManager.create_interface_element(
-            {
-                **rhs_button_defaults,
-                "modes": [constants.STRATEGIC_MODE],
-                "image_id": "buttons/toggle_planet_mask_button.png",
-                "init_type": constants.TOGGLE_BUTTON,
-                "toggle_variable": "show_planet_mask",
-                "attached_to_actor": False,
-            }
+        toggle_planet_mask_button = (
+            constants.ActorCreationManager.create_interface_element(
+                {
+                    **rhs_button_defaults,
+                    "modes": [constants.STRATEGIC_MODE],
+                    "image_id": "buttons/toggle_planet_mask_button.png",
+                    "init_type": constants.TOGGLE_BUTTON,
+                    "toggle_variable": "show_planet_mask",
+                    "attached_to_actor": False,
+                }
+            )
         )
 
     if constants.EffectManager.effect_active("allow_toggle_fog_of_war"):
-        toggle_fog_of_war_button = constants.ActorCreationManager.create_interface_element(
-            {
-                **rhs_button_defaults,
-                "modes": [constants.STRATEGIC_MODE],
-                "image_id": actor_utility.generate_frame(
-                    "buttons/toggle_fog_of_war_button.png"
-                ),
-                "init_type": constants.TOGGLE_BUTTON,
-                "toggle_variable": "remove_fog_of_war",
-                "attached_to_actor": False,
-            }
+        toggle_fog_of_war_button = (
+            constants.ActorCreationManager.create_interface_element(
+                {
+                    **rhs_button_defaults,
+                    "modes": [constants.STRATEGIC_MODE],
+                    "image_id": actor_utility.generate_frame(
+                        "buttons/toggle_fog_of_war_button.png"
+                    ),
+                    "init_type": constants.TOGGLE_BUTTON,
+                    "toggle_variable": "remove_fog_of_war",
+                    "attached_to_actor": False,
+                }
+            )
         )
     if constants.EffectManager.effect_active("allow_toggle_clouds"):
         toggle_clouds_button = constants.ActorCreationManager.create_interface_element(
@@ -449,22 +482,30 @@ def config_buttons() -> None:
         )
 
     if constants.EffectManager.effect_active("allow_toggle_god_mode"):
-        toggle_god_mode_button = constants.ActorCreationManager.create_interface_element(
-            {
-                **rhs_button_defaults,
-                "modes": [constants.STRATEGIC_MODE],
-                "image_id": actor_utility.generate_frame("buttons/toggle_god_mode_button.png"),
-                "init_type": constants.TOGGLE_BUTTON,
-                "toggle_variable": "god_mode",
-                "attached_to_actor": False,
-            }
+        toggle_god_mode_button = (
+            constants.ActorCreationManager.create_interface_element(
+                {
+                    **rhs_button_defaults,
+                    "modes": [constants.STRATEGIC_MODE],
+                    "image_id": actor_utility.generate_frame(
+                        "buttons/toggle_god_mode_button.png"
+                    ),
+                    "init_type": constants.TOGGLE_BUTTON,
+                    "toggle_variable": "god_mode",
+                    "attached_to_actor": False,
+                }
+            )
         )
     if constants.EffectManager.effect_active("map_modes"):
         for map_mode in constants.map_modes:
             constants.ActorCreationManager.create_interface_element(
                 {
                     **rhs_button_defaults,
-                    "modes": [constants.STRATEGIC_MODE, constants.EARTH_MODE, constants.LOCATION_MODE],
+                    "modes": [
+                        constants.STRATEGIC_MODE,
+                        constants.EARTH_MODE,
+                        constants.LOCATION_MODE,
+                    ],
                     "image_id": actor_utility.generate_frame(
                         f"misc/map_modes/{map_mode}.png"
                     ),
@@ -488,7 +529,10 @@ def config_buttons() -> None:
                 constants.LOCATION_MODE,
             ],
             "keybind_id": pygame.K_TAB,
-            "image_id": actor_utility.generate_frame("buttons/cycle_units_button.png", background="buttons/default_button_frameless.png"),
+            "image_id": actor_utility.generate_frame(
+                "buttons/cycle_units_button.png",
+                background="buttons/default_button_frameless.png",
+            ),
             "init_type": constants.CYCLE_UNITS_BUTTON,
         }
     )
@@ -497,7 +541,10 @@ def config_buttons() -> None:
         {
             **lhs_button_defaults,
             "modes": [constants.MAIN_MENU_MODE],
-            "image_id": actor_utility.generate_frame("buttons/exit_earth_screen_button.png", background="buttons/default_button_frameless.png"),
+            "image_id": actor_utility.generate_frame(
+                "buttons/exit_earth_screen_button.png",
+                background="buttons/default_button_frameless.png",
+            ),
             "init_type": constants.GENERATE_CRASH_BUTTON,
         }
     )
@@ -507,7 +554,7 @@ def config_buttons() -> None:
             "width": scaling.scale_width(100),
             "height": scaling.scale_height(100),
             "parent_collection": rhs_menu_collection,
-            "member_config": {"order_x_offset": scaling.scale_width(-50)}
+            "member_config": {"order_x_offset": scaling.scale_width(-50)},
         }
         mars_preset_button = constants.ActorCreationManager.create_interface_element(
             {

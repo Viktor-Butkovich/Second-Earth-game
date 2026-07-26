@@ -1232,7 +1232,10 @@ class button(interface_elements.interface_element):
                     return True
                 return False
             elif self.button_type == constants.FOCUS_LOCATION_BUTTON:
-                return status.displayed_location and not status.displayed_location.world_handler.is_abstract_world
+                return (
+                    status.displayed_location
+                    and not status.displayed_location.world_handler.is_abstract_world
+                )
                 # Only show if on the planetary surface
             return True
         return False
@@ -1483,7 +1486,12 @@ class same_location_icon(button):
                         self.previous_subscribed_mobs.append(current_item)
                     if self.is_last and len(new_subscribed_mobs) > self.index:
                         self.attached_mob = "last"
-                        self.image.set_image([{"image_id": "buttons/default_button_frameless.png"}, {"image_id": "buttons/extra_selected_button.png"}])
+                        self.image.set_image(
+                            [
+                                {"image_id": "buttons/default_button_frameless.png"},
+                                {"image_id": "buttons/extra_selected_button.png"},
+                            ]
+                        )
                         name_list = []
                         for current_mob_index in range(
                             len(self.previous_subscribed_mobs)

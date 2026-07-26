@@ -93,7 +93,10 @@ def mob_inventory_tab() -> None:
             "width": scaling.scale_width(35),
             "height": scaling.scale_width(35),
             "parent_collection": status.mob_inventory_grid,
-            "image_id": actor_utility.generate_frame("buttons/cycle_ministers_up_button.png", background="buttons/default_button_frameless.png"),
+            "image_id": actor_utility.generate_frame(
+                "buttons/cycle_ministers_up_button.png",
+                background="buttons/default_button_frameless.png",
+            ),
             "value_name": "inventory_page",
             "increment": -1,
             "member_config": {
@@ -110,7 +113,10 @@ def mob_inventory_tab() -> None:
             "width": scaling.scale_width(35),
             "height": scaling.scale_width(35),
             "parent_collection": status.mob_inventory_grid,
-            "image_id": actor_utility.generate_frame("buttons/cycle_ministers_down_button.png", background="buttons/default_button_frameless.png"),
+            "image_id": actor_utility.generate_frame(
+                "buttons/cycle_ministers_down_button.png",
+                background="buttons/default_button_frameless.png",
+            ),
             "value_name": "inventory_page",
             "increment": 1,
             "member_config": {
@@ -194,7 +200,10 @@ def location_inventory_tab() -> None:
             "width": scaling.scale_width(35),
             "height": scaling.scale_height(35),
             "parent_collection": status.location_inventory_grid,
-            "image_id": actor_utility.generate_frame("buttons/cycle_ministers_up_button.png", background="buttons/default_button_frameless.png"),
+            "image_id": actor_utility.generate_frame(
+                "buttons/cycle_ministers_up_button.png",
+                background="buttons/default_button_frameless.png",
+            ),
             "value_name": "inventory_page",
             "increment": -1,
             "member_config": {
@@ -213,7 +222,10 @@ def location_inventory_tab() -> None:
                 "width": scaling.scale_width(35),
                 "height": scaling.scale_height(35),
                 "parent_collection": status.location_inventory_grid,
-                "image_id": actor_utility.generate_frame("buttons/cycle_ministers_down_button.png", background="buttons/default_button_frameless.png"),
+                "image_id": actor_utility.generate_frame(
+                    "buttons/cycle_ministers_down_button.png",
+                    background="buttons/default_button_frameless.png",
+                ),
                 "value_name": "inventory_page",
                 "increment": 1,
                 "member_config": {
@@ -312,15 +324,27 @@ def inventory_info_display_interface() -> None:
                 ),
                 (
                     constants.PICK_UP_EACH_ITEM_BUTTON,
-                    actor_utility.generate_frame("buttons/item_drop_each_button.png", background="buttons/default_button_frameless.png"),
+                    actor_utility.generate_frame(
+                        "buttons/item_drop_each_button.png",
+                        background="buttons/default_button_frameless.png",
+                    ),
                 ),
-                (constants.SELL_EACH_ITEM_BUTTON, actor_utility.generate_frame("buttons/item_sell_each_button.png", background="buttons/default_button_frameless.png")),
+                (
+                    constants.SELL_EACH_ITEM_BUTTON,
+                    actor_utility.generate_frame(
+                        "buttons/item_sell_each_button.png",
+                        background="buttons/default_button_frameless.png",
+                    ),
+                ),
             ]
         elif inventory_collection == status.mob_inventory_collection:
             button_definitions = [
                 (
                     constants.DROP_EACH_ITEM_BUTTON,
-                    actor_utility.generate_frame("buttons/item_pick_up_each_button.png", background="buttons/default_button_frameless.png"),
+                    actor_utility.generate_frame(
+                        "buttons/item_pick_up_each_button.png",
+                        background="buttons/default_button_frameless.png",
+                    ),
                 ),
             ]
         for init_type, image_id in button_definitions:
@@ -433,7 +457,10 @@ def inventory_info_display_interface() -> None:
                         ],
                         "tooltip": ["Orders the selected unit to pick up this item"],
                     },
-                    actor_utility.generate_frame("buttons/item_drop_button.png", background="buttons/default_button_frameless.png"),
+                    actor_utility.generate_frame(
+                        "buttons/item_drop_button.png",
+                        background="buttons/default_button_frameless.png",
+                    ),
                 ),
                 (
                     constants.ANONYMOUS_BUTTON,
@@ -448,22 +475,34 @@ def inventory_info_display_interface() -> None:
                             "Orders the selected unit to pick up all of this item"
                         ],
                     },
-                    actor_utility.generate_frame("buttons/item_drop_all_button.png", background="buttons/default_button_frameless.png"),
+                    actor_utility.generate_frame(
+                        "buttons/item_drop_all_button.png",
+                        background="buttons/default_button_frameless.png",
+                    ),
                 ),
                 (
                     constants.SELL_ITEM_BUTTON,
                     constants.SELL_ITEM_BUTTON,
-                    actor_utility.generate_frame("buttons/item_sell_button.png", background="buttons/default_button_frameless.png"),
+                    actor_utility.generate_frame(
+                        "buttons/item_sell_button.png",
+                        background="buttons/default_button_frameless.png",
+                    ),
                 ),
                 (
                     constants.SELL_ALL_ITEM_BUTTON,
                     constants.SELL_ALL_ITEM_BUTTON,
-                    actor_utility.generate_frame("buttons/item_sell_all_button.png", background="buttons/default_button_frameless.png"),
+                    actor_utility.generate_frame(
+                        "buttons/item_sell_all_button.png",
+                        background="buttons/default_button_frameless.png",
+                    ),
                 ),
                 (
                     constants.USE_EQUIPMENT_BUTTON,
                     constants.USE_EQUIPMENT_BUTTON,
-                    actor_utility.generate_frame("buttons/use_equipment_button.png", background="buttons/default_button_frameless.png"),
+                    actor_utility.generate_frame(
+                        "buttons/use_equipment_button.png",
+                        background="buttons/default_button_frameless.png",
+                    ),
                 ),
             ]
         elif inventory_info_display.actor_type == constants.MOB_INVENTORY_ACTOR_TYPE:
@@ -479,7 +518,10 @@ def inventory_info_display_interface() -> None:
                         ],
                         "tooltip": ["Orders the selected unit to drop this item"],
                     },
-                    actor_utility.generate_frame("buttons/item_pick_up_button.png", background="buttons/default_button_frameless.png"),
+                    actor_utility.generate_frame(
+                        "buttons/item_pick_up_button.png",
+                        background="buttons/default_button_frameless.png",
+                    ),
                 ),
                 (
                     constants.ANONYMOUS_BUTTON,
@@ -494,12 +536,18 @@ def inventory_info_display_interface() -> None:
                             "Orders the selected unit to drop up all of this item"
                         ],
                     },
-                    actor_utility.generate_frame("buttons/item_pick_up_all_button.png", background="buttons/default_button_frameless.png"),
+                    actor_utility.generate_frame(
+                        "buttons/item_pick_up_all_button.png",
+                        background="buttons/default_button_frameless.png",
+                    ),
                 ),
                 (
                     constants.USE_EQUIPMENT_BUTTON,
                     constants.USE_EQUIPMENT_BUTTON,
-                    actor_utility.generate_frame("buttons/use_equipment_button.png", background="buttons/default_button_frameless.png"),
+                    actor_utility.generate_frame(
+                        "buttons/use_equipment_button.png",
+                        background="buttons/default_button_frameless.png",
+                    ),
                 ),
             ]
 
