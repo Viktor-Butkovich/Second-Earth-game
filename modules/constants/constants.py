@@ -166,14 +166,12 @@ if EffectManager.effect_active("fullscreen"):
         (0, 0), pygame.FULLSCREEN | pygame.HWSURFACE | pygame.DOUBLEBUF
     )
 else:
-    display_width: float = resolution_finder.current_w - round(
-        default_display_width / 10
-    )
+    aspect_ratio: float = default_display_width / default_display_height
+    windowed_ratio: float = 0.95
+    display_width: int = round(windowed_ratio * resolution_finder.current_w)
     if EffectManager.effect_active("skinny_screen"):
         display_width /= 2
-    display_height: float = resolution_finder.current_h - round(
-        default_display_height / 10
-    )
+    display_height: float = display_width / aspect_ratio
     if EffectManager.effect_active("short_screen"):
         display_height /= 2
     game_display: pygame.Surface = pygame.display.set_mode(
