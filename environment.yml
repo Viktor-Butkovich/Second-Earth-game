@@ -1,16 +1,19 @@
 name: second_earth
-channel_priority: strict
 channels:
   - conda-forge
 dependencies:
   - python=3.11
   - pydub
   - numpy
+  - networkx
+  - plotly
+  - imageio
   - pyinstaller
   - pyautogui
   - scmrepo
   - pynput
   - opencv
+  - pandas
   - black
   - pip
   - pip:

@@ -1,5 +1,5 @@
 {
-    "chosen_simulation": 3,
+    "chosen_simulation": 4,
     "possible_simulations": [
         "1. investing_strategies",
         "2. dice_game",

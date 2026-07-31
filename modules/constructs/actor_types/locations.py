@@ -1,5 +1,6 @@
 from __future__ import annotations
 import random
+import pygame
 import math
 from typing import List, Dict, Any
 from modules.util import (
@@ -199,6 +200,16 @@ class location(actors.actor):
         return (
             not self.infinite_inventory_capacity
         ) and self.get_inventory_used() > self.inventory_capacity.value
+
+    def get_high_res_surface(self) -> pygame.Surface:
+        return drawing_utility.image_id_to_surface(
+            self.get_image_id_list(
+                terrain_only=True,
+                allow_clouds=True,  # Only show clouds in orbital view for focused tile, regardless of global settings
+                allow_ground_overlays=True,
+                allow_zone_details=False,
+            )
+        )
 
     def focus_location(self, force_refresh: bool = False) -> None:
         """
@@ -931,6 +942,11 @@ class location(actors.actor):
                 'local_weather_offset': float value - Temperature offset of this location from expected for the latitude
                 'warehouses_built': int value - Level of warehouses in this location
         """
+        # if not self.world_handler.is_abstract_world:
+        #     pygame.image.save(
+        #         self.get_high_res_surface(),
+        #         f"cached_images/{self.x}_{self.y}.png",
+        #     )
         return {
             **super().to_save_dict(),
             "init_type": constants.LOCATION,

@@ -1,1 +1,3 @@
-conda run --no-capture-output -n second_earth python simulation.py load_and_select_first_unit
+call conda activate second_earth
+black .
+python simulation.py load_and_select_first_unit
