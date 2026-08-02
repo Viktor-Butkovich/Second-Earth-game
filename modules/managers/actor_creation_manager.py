@@ -21,6 +21,7 @@ from modules.interface_components import (
     instructions,
     action_notifications,
     interface_elements,
+    containers,
     earth_transactions,
     inventory_interface,
     grids,
@@ -31,6 +32,7 @@ from modules.interface_components.info_display_elements import (
     info_display_buttons,
     info_display_labels,
 )
+from modules.workflow_types import workflows
 from modules.constructs import (
     buildings,
     hosted_icons,
@@ -110,6 +112,10 @@ class actor_creation_manager:
             constants.ORDERED_COLLECTION: interface_elements.ordered_collection,
             constants.INVENTORY_GRID: inventory_interface.inventory_grid,
             constants.TABBED_COLLECTION: interface_elements.tabbed_collection,
+            constants.CONTAINER: containers.container,
+            constants.WORKFLOW_CONTAINER: containers.workflow_container,
+            constants.CLOSE_WORKFLOW_BUTTON: workflows.close_workflow_button,
+            constants.OPEN_WORKFLOW_BUTTON: workflows.open_workflow_button,
             constants.END_TURN_BUTTON: buttons.end_turn_button,
             constants.CYCLE_SAME_LOCATION_BUTTON: buttons.cycle_same_location_button,
             constants.FIRE_UNIT_BUTTON: buttons.fire_unit_button,

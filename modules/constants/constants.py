@@ -1181,4 +1181,10 @@ ADVERTISING_SELECTOR: str = "advertising_selector"
 CONSTRUCTION_SELECTOR: str = "construction_selector"
 SELECTOR_CONFIG_CONSTRUCTION_ACTION: str = "selector_config_construction_action"
 
+CONTAINER: str = "container"
+WORKFLOW_CONTAINER: str = "workflow_container"
+CLOSE_WORKFLOW_BUTTON: str = "close_workflow_button"
+OPEN_WORKFLOW_BUTTON: str = "open_workflow_button"
+DESIGN_BUILDING_WORKFLOW: str = "design_building_workflow"
+
 total_seconds: int = 0

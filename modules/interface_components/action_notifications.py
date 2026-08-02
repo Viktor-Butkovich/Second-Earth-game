@@ -160,7 +160,7 @@ class dice_rolling_notification(action_notification):
     """
 
     @property
-    def tooltip_text(self) -> List[List[str]]:
+    def tooltip_text(self) -> List[str]:
         """
         Provides the tooltip for this object
         """

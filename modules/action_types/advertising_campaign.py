@@ -12,11 +12,11 @@ from modules.util import (
     game_transitions,
 )
 from modules.constructs import item_types
-from modules.action_types import action
+from modules.action_types import actions
 from modules.constants import constants, status, flags
 
 
-class advertising_campaign(action.campaign):
+class advertising_campaign(actions.campaign):
     """
     Action for merchant on Earth to increase the price of a particular item while lowering a random other
     """
@@ -66,7 +66,7 @@ class advertising_campaign(action.campaign):
         return super().button_setup(initial_input_dict)
 
     @property
-    def tooltip_text(self) -> List[List[str]]:
+    def tooltip_text(self) -> List[str]:
         """
         Provides the tooltip for this object
         """

@@ -64,7 +64,7 @@ class recruitment_button(button):
             text_utility.print_to_screen("You are busy and cannot recruit a unit")
 
     @property
-    def tooltip_text(self) -> List[List[str]]:
+    def tooltip_text(self) -> List[str]:
         """
         Provides the tooltip for this object
         """
@@ -174,7 +174,7 @@ class buy_item_button(button):
             )
 
     @property
-    def tooltip_text(self) -> List[List[str]]:
+    def tooltip_text(self) -> List[str]:
         """
         Provides the tooltip for this object
         """

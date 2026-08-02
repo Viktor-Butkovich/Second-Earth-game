@@ -2,13 +2,13 @@
 
 from __future__ import annotations
 from typing import List
-from modules.action_types import action
+from modules.action_types import actions
 from modules.util import actor_utility, action_utility
 from modules.constructs import building_types
 from modules.constants import constants, status, flags
 
 
-class upgrade(action.action):
+class upgrade(actions.action):
     """
     Action for construction crew to upgrade a particular aspect of a building
     """
@@ -64,7 +64,7 @@ class upgrade(action.action):
         return initial_input_dict
 
     @property
-    def tooltip_text(self) -> List[List[str]]:
+    def tooltip_text(self) -> List[str]:
         """
         Provides the tooltip for this object
         """

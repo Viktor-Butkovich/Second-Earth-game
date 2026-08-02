@@ -63,7 +63,7 @@ class label(button):
         self.image.Rect = self.Rect
 
     @property
-    def tooltip_text(self) -> List[List[str]]:
+    def tooltip_text(self) -> List[str]:
         """
         Provides the tooltip for this object
         """
@@ -140,7 +140,7 @@ class value_label(label):
         self.set_label(utility.capitalize(label))
 
     @property
-    def tooltip_text(self) -> List[List[str]]:
+    def tooltip_text(self) -> List[str]:
         """
         Provides the tooltip for this object
         """
@@ -216,7 +216,7 @@ class money_label(value_label):
         self.update_label(getattr(constants, self.tracker.value_key))
 
     @property
-    def tooltip_text(self) -> List[List[str]]:
+    def tooltip_text(self) -> List[str]:
         """
         Provides the tooltip for this object
         """
@@ -374,7 +374,7 @@ class item_prices_label_template(label):
                 )
 
     @property
-    def tooltip_text(self) -> List[List[str]]:
+    def tooltip_text(self) -> List[str]:
         """
         Provides the tooltip for this object
         """
@@ -440,7 +440,7 @@ class multi_line_label(label):
                 )
 
     @property
-    def tooltip_text(self) -> List[List[str]]:
+    def tooltip_text(self) -> List[str]:
         """
         Provides the tooltip for this object
         """

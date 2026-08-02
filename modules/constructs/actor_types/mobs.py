@@ -965,7 +965,7 @@ class mob(actor):
             self.location.update_image_bundle(update_mob_only=True)
 
     @property
-    def tooltip_text(self) -> List[List[str]]:
+    def tooltip_text(self) -> List[str]:
         """
         Provides the tooltip for this object
         """

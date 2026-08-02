@@ -77,7 +77,7 @@ class notification(multi_line_label):
             self.message.append("Click to remove this notification.")
 
     @property
-    def tooltip_text(self) -> List[List[str]]:
+    def tooltip_text(self) -> List[str]:
         """
         Provides the tooltip for this object
         """

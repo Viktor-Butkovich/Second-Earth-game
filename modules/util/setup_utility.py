@@ -11,6 +11,7 @@ from modules.config.constructs import (
     config_terrain_feature_types,
     config_unit_types,
     config_actions,
+    config_workflows,
 )
 from modules.config.info_displays import (
     location_info_display,
@@ -55,6 +56,7 @@ def setup() -> None:
     config_building_types.config_building_types()
     config_unit_types.config_unit_types()
     config_actions.config_actions()
+    config_workflows.config_workflows()
     config_value_trackers.config_value_trackers()
     config_buttons.config_buttons()
     earth_screen.config_earth_screen()

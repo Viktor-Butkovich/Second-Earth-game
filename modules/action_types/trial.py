@@ -3,7 +3,7 @@
 from __future__ import annotations
 import random
 from typing import List
-from modules.action_types import action
+from modules.action_types import actions
 from modules.util import (
     text_utility,
     trial_utility,
@@ -16,7 +16,7 @@ from modules.util import (
 from modules.constants import constants, status, flags
 
 
-class trial(action.campaign):
+class trial(actions.campaign):
     """
     Action to launch trial against a minister
     """
@@ -87,7 +87,7 @@ class trial(action.campaign):
         self.current_min_crit_success = 5
 
     @property
-    def tooltip_text(self) -> List[List[str]]:
+    def tooltip_text(self) -> List[str]:
         """
         Provides the tooltip for this object
         """

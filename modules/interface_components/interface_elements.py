@@ -389,6 +389,28 @@ class interface_collection(interface_element):
         if self.is_info_display:
             setattr(status, f"displayed_{self.actor_type}", new_actor)
 
+    def yield_tooltip_drawer(self):
+        """
+        Description:
+            Given the precondition that self.can_show_tooltip(), returns which object in this collection's hierarchy
+                should have its tooltip shown.
+        Input:
+            None
+        Output:
+            interface_element: Chosen element for tooltip display
+        """
+        tooltip_drawer = None
+        for current_element in self.members:
+            if hasattr(current_element, "members"):
+                tooltip_drawer = current_element.yield_tooltip_drawer()
+            elif hasattr(current_element, "can_show_tooltip"):
+                tooltip_drawer = (
+                    current_element if current_element.can_show_tooltip() else None
+                )
+            if tooltip_drawer:
+                return tooltip_drawer
+        return None
+
     def add_member(self, new_member, member_config=None):
         """
         Description:

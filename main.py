@@ -436,6 +436,12 @@ except Exception:  # Displays error message and records error message in crash l
 # If re-factored, an observer pattern with publish and subscribe events could be useful for syncing data, particularly button presses (click the buttons subscribed to this key)
 
 # Upcoming work queue:
+# Test out container and notification interactions and how they depend on initialization order
+# Add container movement - make sure interface elements move with the container. Requires basic click and drag
+#   functionality, respecting boundaries. Also add container closing logic and an automatic `x` out button
+# Make sure button clicking logic within containers follows the tooltip priority order logic, including the extra
+#   check for container buttons before any other buttons are considered
+# .in_notification logic for interface? And make sure to show notifications above containers
 # Add materials
 # Add blueprint mode for building design, and buttons to enter it for each building type
 # Add construction sites

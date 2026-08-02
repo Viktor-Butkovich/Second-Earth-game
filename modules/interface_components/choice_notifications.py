@@ -82,7 +82,7 @@ class choice_notification(action_notifications.action_notification):
         return  # does not remove self when clicked
 
     @property
-    def tooltip_text(self) -> List[List[str]]:
+    def tooltip_text(self) -> List[str]:
         """
         Provides the tooltip for this object
         """
@@ -179,7 +179,7 @@ class choice_button(buttons.button):
             )
 
     @property
-    def tooltip_text(self) -> List[List[str]]:
+    def tooltip_text(self) -> List[str]:
         """
         Provides the tooltip for this object
         """

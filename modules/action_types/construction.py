@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 from typing import List
-from modules.action_types import action
+from modules.action_types import actions
 from modules.util import (
     action_utility,
     utility,
@@ -14,7 +14,7 @@ from modules.constructs.actor_types.mob_types import pmobs
 from modules.constants import constants, status, flags
 
 
-class construction(action.action):
+class construction(actions.action):
     """
     Action for construction crew to construct a certain type of building
     """
@@ -59,7 +59,7 @@ class construction(action.action):
         return initial_input_dict
 
     @property
-    def tooltip_text(self) -> List[List[str]]:
+    def tooltip_text(self) -> List[str]:
         """
         Provides the tooltip for this object
         """

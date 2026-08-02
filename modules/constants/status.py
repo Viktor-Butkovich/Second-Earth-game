@@ -22,6 +22,7 @@ from modules.interface_components.interface_elements import (
     ordered_collection,
     autofill_collection,
 )
+from modules.interface_components.containers import container
 from modules.interface_components.inventory_interface import inventory_grid
 from modules.interface_components.grids import (
     grid,
@@ -38,6 +39,7 @@ from modules.interface_components.buttons import (
     reorganize_unit_button,
     switch_game_mode_button,
 )
+from modules.interface_components.containers import container
 from modules.interface_components.inventory_interface import item_icon
 from modules.interface_components.instructions import instructions_page
 from modules.interface_components.dice import die
@@ -56,7 +58,8 @@ from modules.constructs.actor_types.mob_types.pmobs import pmob
 from modules.constructs.actor_types.mob_types.npmobs import npmob
 from modules.constructs.world_handlers import world_handler
 from modules.util.market_utility import loan
-from modules.action_types.action import action
+from modules.action_types.actions import action
+from modules.workflow_types.workflows import workflow
 from modules.constructs.effects import effect
 
 scrolling_strategic_map_grid: mini_grid = None
@@ -69,6 +72,7 @@ supply_chain_table: table_grid = None
 location_mode_focus: location = None
 
 actions: Dict[str, action] = {}
+workflows: Dict[str, workflow] = {}
 
 displayed_mob: mob = None
 displayed_mob_inventory: item_icon = None
@@ -78,6 +82,7 @@ displayed_minister: minister = None
 displayed_defense: minister = None
 displayed_prosecution: minister = None
 displayed_notification: notification = None
+displayed_container: container = None
 displayed_zone: zone = None
 
 cached_images: Dict[str, pygame.Surface] = {}

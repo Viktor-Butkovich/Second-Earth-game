@@ -965,7 +965,7 @@ class tooltip_free_image(free_image):
         return [self.tooltip_text]
 
     @property
-    def tooltip_text(self) -> List[List[str]]:
+    def tooltip_text(self) -> List[str]:
         """
         Provides the tooltip for this object
         """
@@ -1008,7 +1008,7 @@ class directional_indicator_image(tooltip_free_image):
         super().__init__(input_dict)
 
     @property
-    def tooltip_text(self) -> List[List[str]]:
+    def tooltip_text(self) -> List[str]:
         """
         Provides the tooltip for this object
         """
@@ -1176,7 +1176,7 @@ class indicator_image(tooltip_free_image):
         return False
 
     @property
-    def tooltip_text(self) -> List[List[str]]:
+    def tooltip_text(self) -> List[str]:
         """
         Provides the tooltip for this object
         """

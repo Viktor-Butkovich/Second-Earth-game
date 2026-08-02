@@ -122,7 +122,7 @@ class building:
         status.building_list = utility.remove_from_list(status.building_list, self)
 
     @property
-    def tooltip_text(self) -> List[List[str]]:
+    def tooltip_text(self) -> List[str]:
         """
         Provides the tooltip for this object
         """

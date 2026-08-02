@@ -420,6 +420,8 @@ def detect_tooltip_drawer():
         object: The object that can show a tooltip, or None if no such object exists
             This can be any object that supports @tooltip_text
     """
+    if status.displayed_container and status.displayed_container.can_show_tooltip():
+        return status.displayed_container.yield_tooltip_drawer()
     if (
         status.current_instructions_page
         and status.current_instructions_page.can_show_tooltip()

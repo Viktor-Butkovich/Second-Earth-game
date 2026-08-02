@@ -116,7 +116,7 @@ class button(interface_elements.interface_element):
         self.outline.x = self.Rect.x - self.outline_width
 
     @property
-    def tooltip_text(self) -> List[List[str]]:
+    def tooltip_text(self) -> List[str]:
         """
         Provides the tooltip for this object
         """
@@ -1541,7 +1541,7 @@ class same_location_icon(button):
             super().draw()
 
     @property
-    def tooltip_text(self) -> List[List[str]]:
+    def tooltip_text(self) -> List[str]:
         """
         Provides the tooltip for this object
         """
@@ -1625,7 +1625,7 @@ class fire_unit_button(button):
         return False
 
     @property
-    def tooltip_text(self) -> List[List[str]]:
+    def tooltip_text(self) -> List[str]:
         """
         Provides the tooltip for this object
         """
@@ -1706,7 +1706,7 @@ class switch_game_mode_button(button):
             text_utility.print_to_screen("You are busy and cannot switch screens.")
 
     @property
-    def tooltip_text(self) -> List[List[str]]:
+    def tooltip_text(self) -> List[str]:
         """
         Provides the tooltip for this object
         """
@@ -1850,7 +1850,7 @@ class scroll_button(button):
         ) and self.parent_collection.show_scroll_button(self)
 
     @property
-    def tooltip_text(self) -> List[List[str]]:
+    def tooltip_text(self) -> List[str]:
         """
         Provides the tooltip for this object
         """
@@ -2126,7 +2126,7 @@ class reorganize_unit_button(button):
         return result
 
     @property
-    def tooltip_text(self) -> List[List[str]]:
+    def tooltip_text(self) -> List[str]:
         """
         Provides the tooltip for this object
         """
@@ -2464,7 +2464,7 @@ class action_button(button):
         )
 
     @property
-    def tooltip_text(self) -> List[List[str]]:
+    def tooltip_text(self) -> List[str]:
         """
         Provides the tooltip for this object
         """
@@ -2574,7 +2574,7 @@ class anonymous_button(button):
             )
 
     @property
-    def tooltip_text(self) -> List[List[str]]:
+    def tooltip_text(self) -> List[str]:
         """
         Provides the tooltip for this object
         """
@@ -2628,7 +2628,7 @@ class map_mode_button(button):
             text_utility.print_to_screen("You are busy and cannot switch map modes.")
 
     @property
-    def tooltip_text(self) -> List[List[str]]:
+    def tooltip_text(self) -> List[str]:
         """
         Provides the tooltip for this object
         """

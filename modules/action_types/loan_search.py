@@ -3,12 +3,12 @@
 from __future__ import annotations
 import pygame
 from typing import List
-from modules.action_types import action
+from modules.action_types import actions
 from modules.util import action_utility, text_utility, market_utility
 from modules.constants import constants, status, flags
 
 
-class loan_search(action.campaign):
+class loan_search(actions.campaign):
     """
     Action for merchant on Earth to search for a loan offer
     """
@@ -45,7 +45,7 @@ class loan_search(action.campaign):
         return super().button_setup(initial_input_dict)
 
     @property
-    def tooltip_text(self) -> List[List[str]]:
+    def tooltip_text(self) -> List[str]:
         """
         Provides the tooltip for this object
         """

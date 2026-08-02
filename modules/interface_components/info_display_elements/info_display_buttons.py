@@ -1016,7 +1016,7 @@ class work_crew_to_building_button(buttons.button):
         )
 
     @property
-    def tooltip_text(self) -> List[List[str]]:
+    def tooltip_text(self) -> List[str]:
         """
         Provides the tooltip for this object
         """
@@ -1575,7 +1575,7 @@ class toggle_button(buttons.button):
         return False
 
     @property
-    def tooltip_text(self) -> List[List[str]]:
+    def tooltip_text(self) -> List[str]:
         """
         Provides the tooltip for this object
         """
@@ -1723,7 +1723,7 @@ class help_button(buttons.button):
             )
 
     @property
-    def tooltip_text(self) -> List[List[str]]:
+    def tooltip_text(self) -> List[str]:
         """
         Provides the tooltip for this object
         """

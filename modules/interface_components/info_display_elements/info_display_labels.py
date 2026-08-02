@@ -698,6 +698,14 @@ class actor_display_label(labels.label):
             )
         elif self.actor_label_type == constants.ZONE_COORDINATES_LABEL:
             self.message_start = "Coordinates: "
+            self.add_attached_button(
+                {
+                    **input_dict,
+                    **status.workflows[
+                        constants.DESIGN_BUILDING_WORKFLOW
+                    ].get_configuration(constants.OPEN_WORKFLOW_BUTTON),
+                }
+            )
         elif self.actor_label_type == constants.COORDINATES_LABEL:
             self.message_start = "Coordinates: "
             input_dict["image_id"] = actor_utility.generate_frame(
@@ -766,7 +774,7 @@ class actor_display_label(labels.label):
         )
 
     @property
-    def tooltip_text(self) -> List[List[str]]:
+    def tooltip_text(self) -> List[str]:
         """
         Provides the tooltip for this object
         """

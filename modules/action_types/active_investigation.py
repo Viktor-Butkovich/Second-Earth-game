@@ -4,11 +4,11 @@ from __future__ import annotations
 import random
 from typing import Tuple, Dict, List
 from modules.util import text_utility, minister_utility, utility
-from modules.action_types import action
+from modules.action_types import actions
 from modules.constants import constants, status, flags
 
 
-class active_investigation(action.campaign):
+class active_investigation(actions.campaign):
     """
     Action for prosecutor to investigate another minister for information
     """
@@ -44,7 +44,7 @@ class active_investigation(action.campaign):
         return super().button_setup(initial_input_dict)
 
     @property
-    def tooltip_text(self) -> List[List[str]]:
+    def tooltip_text(self) -> List[str]:
         """
         Provides the tooltip for this object
         """

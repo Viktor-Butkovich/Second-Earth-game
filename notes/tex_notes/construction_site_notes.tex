@@ -42,12 +42,16 @@ breaklines=true
     \begin{enumerate}
         \item Click on a zone
         \item Click button to start designing a building. Each building type can have its own button.
-        \item Initiating design enters a new "blueprint mode", where you specify any desired details of the building - this creates a
-            hypothetical building "blueprint" visible at the zone. Only one such blueprint can exist per zone at a time.
+        \item Initiating design enters a new `blueprint mode', where you specify any desired details of the building - this creates a
+            hypothetical building `blueprint' visible at the zone. Only one such blueprint can exist per zone at a time.
         \begin{itemize}
             \item Building details include building type, tolerance to environmental conditions, quality, etc., which determine materials
                 required per construction step attempt, number of successful attempts required to complete, and expected value of step
                 attempts and materials spent to complete
+            \item New concept: \textbf{interface container}: Subclass of interface collection which is dynamically created
+                and removed, contains a variety of interface, includes an intrinsic image with tooltip and boundaries, and
+                can be moved around the screen. Throughout the game, this pattern should be re-used for temporary, complex
+                configuration interfaces, like the blueprint mode, organism design, contract bids, complex events, etc.
         \end{itemize}
         \item Upon confirming details, a small amount of construction materials are immediately allocated, and a construction site is
             created. There should be another interface mode that describes any construction sites or completed buildings in the

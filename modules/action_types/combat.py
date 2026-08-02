@@ -3,7 +3,7 @@
 from __future__ import annotations
 import random
 from typing import List
-from modules.action_types import action
+from modules.action_types import actions
 from modules.util import (
     action_utility,
     actor_utility,
@@ -14,7 +14,7 @@ from modules.util import (
 from modules.constants import constants, status, flags
 
 
-class combat(action.action):
+class combat(actions.action):
     """
     Action for battalion to attack or for any unit to defend
     """
@@ -55,7 +55,7 @@ class combat(action.action):
         return
 
     @property
-    def tooltip_text(self) -> List[List[str]]:
+    def tooltip_text(self) -> List[str]:
         """
         Provides the tooltip for this object
         """
