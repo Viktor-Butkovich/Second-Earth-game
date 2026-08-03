@@ -66,22 +66,6 @@ class container(interface_elements.interface_collection):
         else:
             return False
 
-    def yield_tooltip_drawer(self) -> interface_elements.interface_element:
-        """
-        Description:
-            Given the precondition that self.can_show_tooltip(), returns which object in this collection's hierarchy
-                should have its tooltip shown, using self if none is found.
-        Input:
-            None
-        Output:
-            interface_element: Chosen element for tooltip display
-        """
-        return (
-            chosen_tooltip_drawer
-            if (chosen_tooltip_drawer := super().yield_tooltip_drawer())
-            else self
-        )
-
     @property
     def batch_tooltip_list(self) -> List[List[str]]:
         """

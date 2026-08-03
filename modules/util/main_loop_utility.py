@@ -13,6 +13,7 @@ from modules.util import (
     world_utility,
     drawing_utility,
 )
+from modules.interface_components import interface_elements
 from modules.constants import constants, status, flags
 
 
@@ -209,28 +210,24 @@ def manage_mouse_down(lmb: bool) -> None:
         None
     """
     clicked_button = False
-    for current_button in [
-        button
-        for button in reversed(status.button_list)
-        if button.showing and button.in_notification
-    ] + [
-        button
-        for button in reversed(status.button_list)
-        if button.showing and not button.in_notification
-    ]:  # Iterate through foreground notifications before other buttons
-        if current_button.touching_mouse():
-            click_result = None
-            clicked_button = True
-            if lmb:
-                click_result = current_button.on_click()
-                current_button.on_release()
-            else:
-                click_result = current_button.on_rmb_click()
-                current_button.on_rmb_release()
-            if click_result != True:
-                # When on_click returns True, it indicates that it should still allow other buttons to be clicked
-                #   This is utilized by safe click panel to prevent deselecting units while allowing other buttons to be clicked
-                return
+    for draw_priority in reversed(sorted(status.draw_list_prioritized.keys())):
+        for current_interface_element in status.draw_list_prioritized[draw_priority]:
+            if (
+                hasattr(current_interface_element, "on_click")
+                and current_interface_element.touching_mouse()
+            ):
+                click_result = None
+                clicked_button = True
+                if lmb:
+                    click_result = current_interface_element.on_click()
+                    current_interface_element.on_release()
+                else:
+                    click_result = current_interface_element.on_rmb_click()
+                    current_interface_element.on_rmb_release()
+                if click_result != True:
+                    # When on_click returns True, it indicates that it should still allow other buttons to be clicked
+                    #   This is utilized by safe click panel to prevent deselecting units while allowing other buttons to be clicked
+                    return
 
     if (
         action_possible() or constants.SelectorManager.any_active()
@@ -410,50 +407,19 @@ def update_display():
         constants.mouse_position_tracker.set(pygame.mouse.get_pos())
 
 
-def detect_tooltip_drawer():
+def detect_tooltip_drawer() -> interface_elements.interface_element:
     """
     Description:
         Detects and returns the highest priority object (if any) that can show a tooltip based on mouse position
     Input:
         None
     Output:
-        object: The object that can show a tooltip, or None if no such object exists
-            This can be any object that supports @tooltip_text
+        interface_element: Returns the highest priority object that can show a tooltip, otherwise returns None
     """
-    if status.displayed_container and status.displayed_container.can_show_tooltip():
-        return status.displayed_container.yield_tooltip_drawer()
-    if (
-        status.current_instructions_page
-        and status.current_instructions_page.can_show_tooltip()
-    ):
-        return status.current_instructions_page
-
-    tooltip_drawer = None
-    for current_button in status.button_list:
-        if current_button.can_show_tooltip():
-            if current_button.in_notification:
-                return current_button  # Notifications take precedence over other interface elements, which they cover
-            else:  # If overlapping with a button, wait to find out whether a notification tooltip should be used instead
-                tooltip_drawer = current_button
-    if tooltip_drawer:
-        return tooltip_drawer
-
-    for current_grid in status.grid_list:
-        tooltip_drawer = next(
-            (
-                current_cell
-                for current_cell in current_grid.get_flat_cell_list()
-                if current_cell.can_show_tooltip()
-            ),
-            None,
-        )
-        if tooltip_drawer:
-            return tooltip_drawer
-
-    for current_free_image in status.free_image_list:
-        if current_free_image.can_show_tooltip():
-            return current_free_image
-
+    for draw_priority in reversed(sorted(status.draw_list_prioritized.keys())):
+        for current_interface_element in status.draw_list_prioritized[draw_priority]:
+            if current_interface_element.can_show_tooltip():
+                return current_interface_element
     return None
 
 

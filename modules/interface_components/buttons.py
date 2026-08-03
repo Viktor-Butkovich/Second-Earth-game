@@ -579,20 +579,6 @@ class button(interface_elements.interface_element):
         else:
             return [self.tooltip_text]
 
-    def touching_mouse(self):
-        """
-        Description:
-            Returns whether this button is colliding with the mouse
-        Input:
-            None
-        Output:
-            boolean: Returns True if this button is colliding with the mouse, otherwise returns False
-        """
-        if self.Rect.collidepoint(pygame.mouse.get_pos()):  # if mouse is in button
-            return True
-        else:
-            return False
-
     def can_show_tooltip(self):
         """
         Returns whether this button's tooltip can be shown. By default, its tooltip can be shown when it is visible and colliding with the mouse

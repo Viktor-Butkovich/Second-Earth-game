@@ -145,6 +145,26 @@ class interface_element:
         else:
             return self.can_show_override.can_show(skip_parent_collection=True)
 
+    def can_show_tooltip(self) -> bool:
+        """
+        Returns whether this element's tooltip can currently be shown.
+        """
+        return False
+
+    def touching_mouse(self) -> bool:
+        """
+        Description:
+            Returns True if this element is colliding with the mouse, otherwise returns False
+        Input:
+            None
+        Output:
+            boolean: Returns True if this element is colliding with the mouse, otherwise returns False
+        """
+        if self.Rect.collidepoint(pygame.mouse.get_pos()):
+            return True
+        else:
+            return False
+
     def set_origin(self, new_x, new_y):
         """
         Description:
@@ -390,28 +410,6 @@ class interface_collection(interface_element):
                     member.calibrate(new_actor)
         if self.is_info_display:
             setattr(status, f"displayed_{self.actor_type}", new_actor)
-
-    def yield_tooltip_drawer(self) -> interface_element:
-        """
-        Description:
-            Given the precondition that self.can_show_tooltip(), returns which object in this collection's hierarchy
-                should have its tooltip shown.
-        Input:
-            None
-        Output:
-            interface_element: Chosen element for tooltip display
-        """
-        tooltip_drawer = None
-        for current_element in self.members:
-            if hasattr(current_element, "members"):
-                tooltip_drawer = current_element.yield_tooltip_drawer()
-            elif hasattr(current_element, "can_show_tooltip"):
-                tooltip_drawer = (
-                    current_element if current_element.can_show_tooltip() else None
-                )
-            if tooltip_drawer:
-                return tooltip_drawer
-        return None
 
     def add_member(
         self, new_member: interface_element, member_config: Dict[str, Any] = None

@@ -17,12 +17,12 @@ def draw_interface_elements(
         interface_element list interface_elements: List of interface elements to traverse through - no element in the list should be a member of any other element in the
             list, either directly or indirectly. This will preferably be the list of all 'root' elements
     """
+    status.draw_list_prioritized = {}
     for current_interface_element in interface_elements:
         update_showing_recursive(current_interface_element)
     for draw_priority in sorted(status.draw_list_prioritized.keys()):
         for current_interface_element in status.draw_list_prioritized[draw_priority]:
             current_interface_element.draw()
-    status.draw_list_prioritized = {}
 
 
 def update_showing_recursive(

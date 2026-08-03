@@ -137,17 +137,3 @@ class cell(interface_elements.interface_element):
                 self.Rect,
                 self.image.outline_width,
             )
-
-    def touching_mouse(self) -> bool:
-        """
-        Description:
-            Returns True if this cell is colliding with the mouse, otherwise returns False
-        Input:
-            None
-        Output:
-            boolean: Returns True if this cell is colliding with the mouse, otherwise returns False
-        """
-        if self.Rect.collidepoint(pygame.mouse.get_pos()) and self.visible:
-            return True
-        else:
-            return False

@@ -379,6 +379,33 @@ class grid(interface_elements.interface_element):
         """
         return constants.current_game_mode in self.modes
 
+    def can_show_tooltip(self):
+        """
+        Returns whether this grid's tooltip can be shown.
+        """
+        if self.touching_mouse() and self.showing:
+            return True
+        else:
+            return False
+
+    @property
+    def batch_tooltip_list(self) -> List[List[str]]:
+        """
+        Gets a 2D list of strings to use as this object's tooltip
+        """
+        tooltip_drawer = next(
+            (
+                current_cell
+                for current_cell in self.get_flat_cell_list()
+                if current_cell.can_show_tooltip() and current_cell.visible
+            ),
+            None,
+        )
+        if tooltip_drawer:
+            return tooltip_drawer.batch_tooltip_list
+        else:
+            return []
+
     def can_draw(self) -> bool:
         """
         Description:
