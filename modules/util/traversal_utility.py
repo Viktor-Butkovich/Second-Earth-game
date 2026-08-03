@@ -2,9 +2,13 @@
 
 from __future__ import annotations
 from modules.constants import constants, status, flags
+from modules.interface_components import interface_elements
+from typing import List
 
 
-def draw_interface_elements(interface_elements):
+def draw_interface_elements(
+    interface_elements: List[interface_elements.interface_element],
+) -> None:
     """
     Description:
         Recursively traverses through each of the inputted interface elements and their member trees, updating each element's showing attribute to its current can_show()
@@ -14,19 +18,36 @@ def draw_interface_elements(interface_elements):
             list, either directly or indirectly. This will preferably be the list of all 'root' elements
     """
     for current_interface_element in interface_elements:
-        collection_traversal(
-            current_interface_element,
-            pretraversal_action=set_showing,
-            alternative_action=set_not_showing,
-            condition=check_showing,
-            posttraversal_action=update_collection,
-        )
-    for current_interface_element in status.draw_list:
-        current_interface_element.draw()
-    status.draw_list = []
+        update_showing_recursive(current_interface_element)
+    for draw_priority in sorted(status.draw_list_prioritized.keys()):
+        for current_interface_element in status.draw_list_prioritized[draw_priority]:
+            current_interface_element.draw()
+    status.draw_list_prioritized = {}
 
 
-def collection_traversal(current_element, **kwargs):
+def update_showing_recursive(
+    current_interface_element: interface_elements.interface_element,
+) -> None:
+    """
+    Description:
+        Efficiently updates the `showing` status of the inputted interface element and its members
+    Input:
+        interface_element current_interface_element: Element being traversed through
+    Output:
+        None
+    """
+    collection_traversal(
+        current_interface_element,
+        pretraversal_action=set_showing,
+        alternative_action=set_not_showing,
+        condition=check_showing,
+        posttraversal_action=update_collection,
+    )
+
+
+def collection_traversal(
+    current_element: interface_elements.interface_element, **kwargs
+) -> None:
     """
     Description:
         Recursively traverses through an interface element/collection, any of its members, any of their members, and so on, doing a particular action for each member based
@@ -84,7 +105,7 @@ def collection_traversal(current_element, **kwargs):
             posttraversal_action(current_element)
 
 
-def set_showing(current_element):
+def set_showing(current_element: interface_elements.interface_element) -> bool:
     """
     Description:
         Updates the inputted elements showing attribute
@@ -100,7 +121,7 @@ def set_showing(current_element):
     )  # if wasn't showing and still not showing, lower collection elements don't need to be updated - can skip traversal
 
 
-def update_collection(current_element):
+def update_collection(current_element: interface_elements.interface_element) -> None:
     """
     Description:
         Updates the inputted element's collection and tells it to draw, if it is showing
@@ -112,8 +133,16 @@ def update_collection(current_element):
     if current_element.showing:
         if hasattr(current_element, "members"):
             current_element.update_collection()
+        assert current_element.draw_priority is not None
         if current_element.can_draw():
-            status.draw_list.append(current_element)
+            if current_element.draw_priority in status.draw_list_prioritized:
+                status.draw_list_prioritized[current_element.draw_priority].append(
+                    current_element
+                )
+            else:
+                status.draw_list_prioritized[current_element.draw_priority] = [
+                    current_element
+                ]
 
 
 def set_not_showing(current_element):

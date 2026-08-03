@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 from modules.constants import constants, status, flags
-from modules.interface_components import buttons, containers
+from modules.interface_components import buttons, containers, interface_elements
 from modules.util import scaling, main_loop_utility, actor_utility
 from typing import Dict, List, Any
 from abc import ABC, abstractmethod
@@ -27,7 +27,7 @@ class workflow(ABC):
         self.workflow_type: str = input_dict["workflow_type"]
         status.workflows[self.workflow_type] = self
         self.open_workflow_button: buttons.open_workflow_button = None
-        self.current_container: containers.container = None
+        self.current_container: containers.workflow_container = None
 
     def get_configuration(self, init_type: str) -> Dict[str, Any]:
         """
@@ -43,21 +43,6 @@ class workflow(ABC):
                 "init_type": constants.OPEN_WORKFLOW_BUTTON,
                 "image_id": "buttons/default_button.png",
                 "workflow": self,
-            }
-        elif init_type == constants.CLOSE_WORKFLOW_BUTTON:
-            button_size = 20
-            return {
-                "coordinates": (
-                    self.current_container.image.width
-                    - scaling.scale_width(button_size + 5),
-                    self.current_container.image.height
-                    - scaling.scale_height(button_size + 5),
-                ),
-                "width": scaling.scale_width(button_size),
-                "height": scaling.scale_height(button_size),
-                "parent_collection": self.current_container,
-                "init_type": constants.CLOSE_WORKFLOW_BUTTON,
-                "image_id": "buttons/minimize_button.png",
             }
         elif init_type == constants.WORKFLOW_CONTAINER:
             x_size, y_size = 0.4, 0.4
@@ -86,6 +71,7 @@ class design_building_workflow(workflow):
     """
     Workflow for designing a building to be constructed at a zone
     """
+
     def __init__(self):
         """
         Description:
@@ -126,6 +112,7 @@ class open_workflow_button(buttons.button):
     """
     Button configured by a workflow to open it when clicked
     """
+
     def __init__(self, input_dict: Dict[str, Any]) -> None:
         """
         Description:
@@ -161,12 +148,26 @@ class close_workflow_button(buttons.button):
     """
     Button configured by a workflow to close it when clicked
     """
+
+    def __init__(self, input_dict: Dict[str, Any]) -> None:
+        """
+        Description:
+            Initializes this object
+        Input:
+            dictionary input_dict: Keys corresponding to the values needed to initialize this object. Same as superclass, except,
+                workflow workflow: Workflow that this button is configured by, which this button closes
+        Output:
+            None
+        """
+        super().__init__(input_dict)
+        self.workflow: workflow = input_dict["workflow"]
+
     def on_click(self):
         """
         Controls this button's behavior when clicked. This button closes its attached workflow's container, and
             performs any required confirmation or cleanup steps
         """
-        self.parent_collection.remove()
+        self.workflow.current_container.remove()
 
     @property
     def tooltip_text(self) -> List[str]:

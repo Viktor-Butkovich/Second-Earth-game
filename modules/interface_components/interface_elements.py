@@ -6,6 +6,7 @@ from modules.constructs import images
 from modules.util import scaling, utility, dummy_utility, actor_utility, world_utility
 from modules.constructs.actor_types import actors
 from modules.constants import constants, status, flags
+from typing import List, Dict, Any
 
 
 class interface_element:
@@ -37,6 +38,7 @@ class interface_element:
         self.Rect = pygame.Rect(
             0, constants.display_height - (self.height), self.width, self.height
         )
+        self.draw_priority: int = constants.DRAW_PRIORITY_DEFAULT
         self.showing = False
         self.parent_collection = input_dict.get("parent_collection", None)
         self.has_parent_collection = self.parent_collection != None
@@ -236,10 +238,10 @@ class interface_element:
 
             self.parent_collection.remove_member(self)
 
-        new_parent_collection = constants.ActorCreationManager.create_interface_element(
-            input_dict
+        new_parent_collection: interface_collection = (
+            constants.ActorCreationManager.create_interface_element(input_dict)
         )
-
+        new_parent_collection.draw_priority = self.draw_priority
         new_parent_collection.add_member(self, {})
 
         return new_parent_collection
@@ -310,7 +312,7 @@ class interface_collection(interface_element):
         self.description = input_dict.get("description", "window")
         self.move_with_mouse_config = {"moving": False}
         customize_button_x_offset = 0
-        customize_button_size = 20
+        customize_button_size = 50
         if input_dict.get("allow_minimize", False) or input_dict.get(
             "allow_move", False
         ):
@@ -389,7 +391,7 @@ class interface_collection(interface_element):
         if self.is_info_display:
             setattr(status, f"displayed_{self.actor_type}", new_actor)
 
-    def yield_tooltip_drawer(self):
+    def yield_tooltip_drawer(self) -> interface_element:
         """
         Description:
             Given the precondition that self.can_show_tooltip(), returns which object in this collection's hierarchy
@@ -411,7 +413,9 @@ class interface_collection(interface_element):
                 return tooltip_drawer
         return None
 
-    def add_member(self, new_member, member_config=None):
+    def add_member(
+        self, new_member: interface_element, member_config: Dict[str, Any] = None
+    ) -> None:
         """
         Description:
             Adds an existing interface element as a member of this collection and sets its origin coordinates relative to this collection's origin coordinates
@@ -447,8 +451,9 @@ class interface_collection(interface_element):
 
         if member_config["calibrate_exempt"] and hasattr(self, "calibrate_exempt_list"):
             self.calibrate_exempt_list.append(new_member)
+        new_member.draw_priority = self.draw_priority
 
-    def remove_member(self, removed_member):
+    def remove_member(self, removed_member: interface_element) -> None:
         """
         Description:
             Removes a member from this collection
@@ -466,7 +471,7 @@ class interface_collection(interface_element):
         status.independent_interface_elements.append(removed_member)
         self.members.remove(removed_member)
 
-    def remove_recursive(self):
+    def remove_recursive(self) -> None:
         """
         Recursively removes a collection and its members
         """
@@ -475,13 +480,13 @@ class interface_collection(interface_element):
             current_member.remove_recursive()
         super().remove()
 
-    def remove(self):
+    def remove(self) -> None:
         """
         Removes this object from relevant lists and prevents it from further appearing in or affecting the program
         """
         self.remove_recursive()
 
-    def set_origin(self, new_x, new_y):
+    def set_origin(self, new_x: int, new_y: int) -> None:
         """
         Description:
             Sets this interface element's location and those of its members to the inputted coordinates
@@ -499,7 +504,7 @@ class interface_collection(interface_element):
         ):  # members will retain their relative positions with the collection while shifting to be centered around the new collection origin
             member.set_origin(new_x + member.x_offset, new_y + member.y_offset)
 
-    def set_modes(self, new_modes):
+    def set_modes(self, new_modes: List[str]) -> None:
         """
         Description:
             Sets this interface element's active modes and those of its members to the inputted list
@@ -512,7 +517,7 @@ class interface_collection(interface_element):
         for member in self.members:
             member.set_modes(new_modes)
 
-    def allow_show(self, member):
+    def allow_show(self, member: interface_element) -> bool:
         """
         Description:
             Returns whether this collection would allow the inputted member to be shown - allows collection to have control over whether
@@ -526,7 +531,7 @@ class interface_collection(interface_element):
         """
         return self.showing
 
-    def can_show(self, skip_parent_collection=False):
+    def can_show(self, skip_parent_collection: bool = False) -> bool:
         """
         Description:
             Returns whether this collection can be shown
@@ -958,8 +963,8 @@ class ordered_collection(interface_collection):
 
                         if not member in self.order_overlap_list:
                             current_x += (
-                                self.separation + member.width * self.reverse_multiplier
-                            )
+                                self.separation + member.width
+                            ) * self.reverse_multiplier
 
     def calibrate(self, new_actor: actors.actor, override_exempt: bool = False) -> None:
         """

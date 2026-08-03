@@ -38,7 +38,7 @@ class choice_notification(action_notifications.action_notification):
         """
         button_height = scaling.scale_height(50)
         super().__init__(input_dict)
-        self.choice_buttons = []
+        self.choice_buttons: List[choice_button] = []
         self.choice_info_dict = input_dict["choice_info_dict"]
         button_types = input_dict["button_types"]
         for current_button_type_index in range(len(button_types)):
@@ -72,6 +72,7 @@ class choice_notification(action_notifications.action_notification):
                     }
                 )
             )
+            self.choice_buttons[-1].draw_priority = self.draw_priority
 
     def on_click(self, choice_button_override=False):
         """

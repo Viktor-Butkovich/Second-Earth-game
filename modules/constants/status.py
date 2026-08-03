@@ -17,6 +17,7 @@ from modules.constructs.world_handler_types import (
     full_world_handler,
 )
 from modules.interface_components.interface_elements import (
+    interface_element,
     interface_collection,
     tabbed_collection,
     ordered_collection,
@@ -125,7 +126,7 @@ enemy_turn_queue: List[npmob] = []
 player_turn_queue: List[pmob] = []
 independent_interface_elements: List[Any] = []
 dice_list: List[die] = []
-draw_list: List[Any] = []
+draw_list_prioritized: Dict[int, List[interface_element]] = {}
 same_location_icon_list: List[same_location_icon] = []
 directional_indicator_image_list: List[directional_indicator_image] = []
 logistics_incident_list: List[Dict[str, Any]] = []

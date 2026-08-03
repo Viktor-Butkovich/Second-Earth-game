@@ -114,6 +114,7 @@ class actor_creation_manager:
             constants.TABBED_COLLECTION: interface_elements.tabbed_collection,
             constants.CONTAINER: containers.container,
             constants.WORKFLOW_CONTAINER: containers.workflow_container,
+            constants.REPOSITION_CONTAINER_BUTTON: containers.reposition_container_button,
             constants.CLOSE_WORKFLOW_BUTTON: workflows.close_workflow_button,
             constants.OPEN_WORKFLOW_BUTTON: workflows.open_workflow_button,
             constants.END_TURN_BUTTON: buttons.end_turn_button,

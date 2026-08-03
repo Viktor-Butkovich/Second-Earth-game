@@ -674,6 +674,7 @@ class free_image(image):
         Output:
             None
         """
+        self.draw_priority: int = constants.DRAW_PRIORITY_DEFAULT
         self.image_type = "free"
         self.showing = False
         self.has_parent_collection = False
@@ -895,6 +896,7 @@ class background_image(free_image):
         input_dict["height"] = constants.display_height
         super().__init__(input_dict)
         self.previous_safe_click_area_showing = False
+        self.draw_priority = constants.DRAW_PRIORITY_BACKGROUND_IMAGE
 
     def can_show(self) -> bool:
         """

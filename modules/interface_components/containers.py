@@ -36,6 +36,7 @@ class container(interface_elements.interface_collection):
         if self.has_outline:
             assert "outline_color" in self.outline_config
             assert "outline_width" in self.outline_config
+        self.draw_priority: int = constants.DRAW_PRIORITY_CONTAINER
 
     def remove(self):
         """
@@ -115,11 +116,20 @@ class container(interface_elements.interface_collection):
                 self.outline_config["outline_width"],
             )
 
+    def add_member(
+        self,
+        new_member: interface_elements.interface_element,
+        member_config: Dict[str, Any] = None,
+    ) -> None:
+        super().add_member(new_member, member_config)
+        new_member.draw_priority = constants.DRAW_PRIORITY_CONTAINER_MEMBER
+
 
 class workflow_container(container):
     """
     Container attached to opening a workflow
     """
+
     def __init__(self, input_dict: Dict[str, Any]) -> None:
         """
         Description:
@@ -133,6 +143,52 @@ class workflow_container(container):
         super().__init__(input_dict)
         self.workflow: workflows.workflow = input_dict["workflow"]
         self.workflow.current_container = self
+        top_right_menu_button_size = 40
+        top_right_menu_separation = 10
+        self.top_right_menu: interface_elements.ordered_collection = (
+            constants.ActorCreationManager.create_interface_element(
+                {
+                    "init_type": constants.ORDERED_COLLECTION,
+                    "coordinates": (
+                        self.image.width
+                        - scaling.scale_width(
+                            top_right_menu_button_size + top_right_menu_separation
+                        ),
+                        self.image.height
+                        - scaling.scale_height(
+                            top_right_menu_button_size + top_right_menu_separation
+                        ),
+                    ),
+                    "parent_collection": self,
+                    "direction": "horizontal",
+                    "reversed": True,
+                    "separation": scaling.scale_width(top_right_menu_separation),
+                }
+            )
+        )
+        self.reposition_button: reposition_container_button = (
+            constants.ActorCreationManager.create_interface_element(
+                {
+                    "init_type": constants.REPOSITION_CONTAINER_BUTTON,
+                    "width": scaling.scale_width(top_right_menu_button_size),
+                    "height": scaling.scale_height(top_right_menu_button_size),
+                    "image_id": "buttons/reposition_button.png",
+                    "parent_collection": self.top_right_menu,
+                }
+            )
+        )
+        self.close_workflow_button: workflows.close_workflow_button = (
+            constants.ActorCreationManager.create_interface_element(
+                {
+                    "init_type": constants.CLOSE_WORKFLOW_BUTTON,
+                    "width": scaling.scale_width(top_right_menu_button_size),
+                    "height": scaling.scale_height(top_right_menu_button_size),
+                    "image_id": "buttons/minimize_button.png",
+                    "parent_collection": self.top_right_menu,
+                    "workflow": self.workflow,
+                }
+            )
+        )
 
     def remove(self):
         """
@@ -140,3 +196,8 @@ class workflow_container(container):
         """
         super().remove()
         self.workflow.current_container = None
+
+
+class reposition_container_button(buttons.button):
+    def __init__(self, input_dict):
+        super().__init__(input_dict)

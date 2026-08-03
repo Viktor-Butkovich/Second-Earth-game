@@ -67,6 +67,7 @@ class notification(multi_line_label):
                 actor_utility.focus_minimap_grids(target)
             elif target.actor_type == constants.MOB_ACTOR_TYPE:
                 target.select()
+        self.draw_priority = constants.DRAW_PRIORITY_NOTIFICATION
 
     def format_message(self):
         """

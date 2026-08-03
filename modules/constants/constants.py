@@ -1186,5 +1186,12 @@ WORKFLOW_CONTAINER: str = "workflow_container"
 CLOSE_WORKFLOW_BUTTON: str = "close_workflow_button"
 OPEN_WORKFLOW_BUTTON: str = "open_workflow_button"
 DESIGN_BUILDING_WORKFLOW: str = "design_building_workflow"
+REPOSITION_CONTAINER_BUTTON: str = "reposition_container_button"
+
+DRAW_PRIORITY_BACKGROUND_IMAGE: int = -1
+DRAW_PRIORITY_DEFAULT: int = 0
+DRAW_PRIORITY_CONTAINER: int = 1
+DRAW_PRIORITY_CONTAINER_MEMBER: int = 2
+DRAW_PRIORITY_NOTIFICATION: int = 3
 
 total_seconds: int = 0
