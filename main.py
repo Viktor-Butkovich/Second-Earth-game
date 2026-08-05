@@ -436,6 +436,67 @@ except Exception:  # Displays error message and records error message in crash l
 # If re-factored, an observer pattern with publish and subscribe events could be useful for syncing data, particularly button presses (click the buttons subscribed to this key)
 
 # Upcoming work queue:
+# Add building design workflow
+"""
+For now, just set up configuring a spaceport building or a warehouse building. The warehouse should have configurable
+
+Design building workflow components:
+Built-in close and reposition buttons
+Building type: Dropdown selector or left/right arrow cycling selector?
+Configurations: Left/right arrow cycling of various building type-specific configurations, if applicable
+Preview icon(s): Image(s) of current zone appearance and its appearance with the finished building overlayed
+    Possibly also an intermediate appearance with the construction site overlayed
+Preview display of estimated building construction cost and time (# successful attempts required, cost per attempt by
+    material type, expected value of cost and # attempts)
+* This would benefit from a re-usable interface component of showing a list of items with quantities as an image, e.g. "3 structural metals (quality >= 2)"
+Confirm button: If the current configuration is valid, closes the workflow and creates the building construction site
+
+Layout:
+                        "Building design"                      (Close button) (Reposition button)
+"Building type: [Spaceport] [v]"                               (Initial zone appearance preview)
+(no configuration required)                                    (Construction site preview)
+"Construction steps: 3"                                        (Final building preview)
+"Cost per step attempt: 0.5 structural metals (quality >= 2), 1.0 structural nonmetals (quality >= 3)"
+[Confirm button]
+
+                        "Building design"                      (Close button) (Reposition button)
+"Building type: [Warehouses] [v]"                              (Initial zone appearance preview)
+"Warehouse scale: [2] [<][> (greyed out- only goes 1 to 2)]    (Construction site preview)
+"Construction steps: 4"                                        (Final building preview)
+"Cost per step attempt: 0.3 structural metals (quality >= 2), 0.3 structural nonmetals (quality >= 3)"
+[Confirm button]
+
+Once the construction site (or building) is made, it should be possible to open up a panel that looks like this
+    one but with the current configuration locked. This could potentially be a good way to handle building
+    upgrades - the editing of an existing building's configurations
+Any changes in building type or configurations could affect the state of the configurations themselves and/or the
+    preview icons
+
+New interface required:
+Hypothetical zone appearance generator - hopefully simpler than the unit reorganization logic
+Left/right arrow cycling selector
+Dropdown selector
+
+Zone appearance generator:
+* Likely slotted into zone image generation as a parameter to add extra hypothetical layers. This can easily get
+    over-complicated or have to be reworked in the future. Should buildings overlay cloud layers? If not, we
+    simply take the zone image and concatenate the building image as a higher-priority layer.
+Dropdown selector:
+* Clicking opens the list of options, which is not yet scrollable but should be bound to the screen edges like a
+    tooltip. It could be implemented as a pop-up ordered collection of selection buttons (with no button
+    selection highlight or borders to blur the distinction between them), clicking any one of which would close
+    the popup and set the dropdown's selected value. Clicking anywhere else would close the dropdown in its
+    current state.
+* Add an extra image layer onto the button with a dropdown arrow to show that it is a dropdown selector - this extra layer
+    should be consistently used for dropdown selectors.
+Left/right arrow selector:
+* This has been implemented ad-hoc too many times throughout the codebase. Create a formal interface collection
+    that can be set up to cycle through an inputted list of options and trigger configured callbacks
+* For easier resizing, probably have the interface as {[left arrow], [right arrow], [current value label]}
+
+If a configuration selector is no longer active for a particular building type, it should be deleted, but the current
+    value should be cached if the configuration becomes active again. This should be tracked by the workflow
+"""
 # Add materials
 # Add blueprint mode for building design, and buttons to enter it for each building type
 # Add construction sites

@@ -27,6 +27,7 @@ from modules.interface_components import (
     grids,
     tables,
     cells,
+    selectors,
 )
 from modules.interface_components.info_display_elements import (
     info_display_buttons,
@@ -117,6 +118,8 @@ class actor_creation_manager:
             constants.REPOSITION_CONTAINER_BUTTON: containers.reposition_container_button,
             constants.CLOSE_WORKFLOW_BUTTON: workflows.close_workflow_button,
             constants.OPEN_WORKFLOW_BUTTON: workflows.open_workflow_button,
+            constants.LEFT_RIGHT_SELECTOR: selectors.left_right_selector,
+            constants.DROPDOWN_SELECTOR: selectors.dropdown_selector,
             constants.END_TURN_BUTTON: buttons.end_turn_button,
             constants.CYCLE_SAME_LOCATION_BUTTON: buttons.cycle_same_location_button,
             constants.FIRE_UNIT_BUTTON: buttons.fire_unit_button,
