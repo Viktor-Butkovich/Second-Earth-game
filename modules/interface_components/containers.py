@@ -6,7 +6,7 @@ from modules.interface_components import interface_elements, buttons
 from modules.workflow_types import workflows
 from modules.util import scaling
 from modules.constants import constants, status, flags
-from typing import List, Dict, Any
+from typing import List, Dict, Tuple, Any
 
 
 class container(interface_elements.interface_collection):
@@ -37,6 +37,9 @@ class container(interface_elements.interface_collection):
             assert "outline_color" in self.outline_config
             assert "outline_width" in self.outline_config
         self.draw_priority: int = constants.DRAW_PRIORITY_CONTAINER
+        self.reposition_origin: Tuple[int, int] = None
+        self.repositioning_mouse_origin: Tuple[int, int] = None
+        self.repositioning: bool = False
 
     def remove(self):
         """
@@ -108,6 +111,44 @@ class container(interface_elements.interface_collection):
         super().add_member(new_member, member_config)
         new_member.draw_priority = constants.DRAW_PRIORITY_CONTAINER_MEMBER
 
+    def on_frame_update(self) -> None:
+        super().on_frame_update()
+        if self.repositioning:
+            mouse_x, mouse_y = pygame.mouse.get_pos()
+            mouse_offset_x, mouse_offset_y = (
+                mouse_x - self.reposition_mouse_origin[0],
+                mouse_y - self.reposition_mouse_origin[1],
+            )
+            x, y = (
+                self.reposition_origin[0] + mouse_offset_x,
+                self.reposition_origin[1] - mouse_offset_y,
+            )
+
+            # Bound to edges
+            x = min(
+                x,
+                constants.display_width
+                - (self.width + self.outline_config["outline_width"]),
+            )
+            x = max(x, self.outline_config["outline_width"])
+            y = min(
+                y,
+                constants.display_height
+                - (self.height + self.outline_config["outline_width"]),
+            )
+            y = max(y, self.outline_config["outline_width"])
+            self.set_origin(x, y)
+
+    def start_reposition(self) -> None:
+        self.repositioning = True
+        self.reposition_origin = (self.x, self.y)
+        self.reposition_mouse_origin = pygame.mouse.get_pos()
+
+    def end_reposition(self) -> None:
+        self.repositioning = False
+        self.reposition_origin = None
+        self.reposition_mouse_origin = None
+
 
 class workflow_container(container):
     """
@@ -158,6 +199,7 @@ class workflow_container(container):
                     "height": scaling.scale_height(top_right_menu_button_size),
                     "image_id": "buttons/reposition_button.png",
                     "parent_collection": self.top_right_menu,
+                    "container": self,
                 }
             )
         )
@@ -183,5 +225,21 @@ class workflow_container(container):
 
 
 class reposition_container_button(buttons.button):
-    def __init__(self, input_dict):
+    def __init__(self, input_dict: Dict[str, Any]) -> None:
         super().__init__(input_dict)
+        self.container: container = input_dict["container"]
+
+    def on_click(self) -> None:
+        super().on_click()
+        (
+            self.container.start_reposition()
+            if not self.container.repositioning
+            else self.container.end_reposition()
+        )
+
+    @property
+    def tooltip_text(self) -> List[str]:
+        if not self.container.repositioning:
+            return ["Click to reposition this panel"]
+        else:
+            return ["Click to stop repositioning this panel"]

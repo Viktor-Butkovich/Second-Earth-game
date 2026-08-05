@@ -126,6 +126,7 @@ class interface_element:
         Output:
             boolean: Returns True if this button can appear during the current game mode, otherwise returns False
         """
+        self.on_frame_update()
         if not self.can_show_override:
             if (not self.has_parent_collection) or skip_parent_collection:
                 if (
@@ -281,6 +282,12 @@ class interface_element:
             return self.parent_collection.get_actor_type()
         else:
             return None
+
+    def on_frame_update(self) -> None:
+        """
+        Handles any logic to update interface state with each frame, such as updating based on mouse position
+        """
+        return
 
 
 class interface_collection(interface_element):

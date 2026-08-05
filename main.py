@@ -436,8 +436,6 @@ except Exception:  # Displays error message and records error message in crash l
 # If re-factored, an observer pattern with publish and subscribe events could be useful for syncing data, particularly button presses (click the buttons subscribed to this key)
 
 # Upcoming work queue:
-# Add container movement - make sure interface elements move with the container. Requires basic click and drag
-#   functionality, respecting boundaries. Also add container closing logic and an automatic `x` out button
 # Add materials
 # Add blueprint mode for building design, and buttons to enter it for each building type
 # Add construction sites

@@ -436,6 +436,7 @@ def action_possible():
         status.displayed_notification
         or (not flags.player_turn)
         or constants.SelectorManager.any_active()
+        or (status.displayed_container and status.displayed_container.repositioning)
     )
 
 

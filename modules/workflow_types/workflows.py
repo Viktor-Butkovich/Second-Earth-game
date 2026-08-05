@@ -174,4 +174,4 @@ class close_workflow_button(buttons.button):
         """
         Provides the tooltip for this object
         """
-        return ["Close container"]
+        return ["Click to close this panel"]
