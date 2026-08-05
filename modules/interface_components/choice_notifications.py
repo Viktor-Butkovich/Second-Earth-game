@@ -41,6 +41,7 @@ class choice_notification(action_notifications.action_notification):
         self.choice_buttons: List[choice_button] = []
         self.choice_info_dict = input_dict["choice_info_dict"]
         button_types = input_dict["button_types"]
+        self.insert_collection_above()
         for current_button_type_index in range(len(button_types)):
             if type(button_types[current_button_type_index]) == dict:
                 init_type = constants.ANONYMOUS_BUTTON
@@ -55,12 +56,9 @@ class choice_notification(action_notifications.action_notification):
                 constants.ActorCreationManager.create_interface_element(
                     {
                         "coordinates": (
-                            self.x
-                            + (
-                                current_button_type_index
-                                * round(self.width / len(button_types))
-                            ),
-                            self.y - button_height,
+                            current_button_type_index
+                            * round(self.width / len(button_types)),
+                            -1 * button_height,
                         ),
                         "width": round(self.width / len(button_types)),
                         "height": button_height,
@@ -69,10 +67,10 @@ class choice_notification(action_notifications.action_notification):
                         "image_id": "misc/paper_label.png",
                         "notification": self,
                         "init_type": init_type,
+                        "parent_collection": self.parent_collection,
                     }
                 )
             )
-            self.choice_buttons[-1].draw_priority = self.draw_priority
 
     def on_click(self, choice_button_override=False):
         """
@@ -88,15 +86,6 @@ class choice_notification(action_notifications.action_notification):
         Provides the tooltip for this object
         """
         return ["Choose an option to close this notification"]
-
-    def remove(self):
-        """
-        Removes this object from relevant lists and prevents it from further appearing in or affecting the program. When a notification is removed, the next notification is shown, if there is one. Choice notifications are removed
-            when one of their choice buttons is clicked
-        """
-        super().remove()
-        for current_choice_button in self.choice_buttons:
-            current_choice_button.remove()
 
 
 class choice_button(buttons.button):
