@@ -436,6 +436,7 @@ except Exception:  # Displays error message and records error message in crash l
 # If re-factored, an observer pattern with publish and subscribe events could be useful for syncing data, particularly button presses (click the buttons subscribed to this key)
 
 # Upcoming work queue:
+# Add option to center-align an ordered collection if it is vertical, such that each item has an x offset to center it at the collection's x position (rather than being left-aligned at the collection's x position)
 # Add building design workflow
 """
 For now, just set up configuring a spaceport building or a warehouse building. The warehouse should have configurable
@@ -461,7 +462,7 @@ Layout:
 
                         "Building design"                      (Close button) (Reposition button)
 "Building type: [Warehouses] [v]"                              (Initial zone appearance preview)
-"Warehouse scale: [2] [<][> (greyed out- only goes 1 to 2)]    (Construction site preview)
+"Warehouse scale: [2] [<][> (greyed out- only goes 1 to 2, unless we cycle back to 1)]    (Construction site preview)
 "Construction steps: 4"                                        (Final building preview)
 "Cost per step attempt: 0.3 structural metals (quality >= 2), 0.3 structural nonmetals (quality >= 3)"
 [Confirm button]

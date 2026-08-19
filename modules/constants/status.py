@@ -33,6 +33,7 @@ from modules.interface_components.grids import (
     abstract_grid,
 )
 from modules.interface_components.panels import safe_click_panel
+from modules.interface_components.selectors import dropdown_selector
 from modules.interface_components.notifications import notification
 from modules.interface_components.buttons import (
     button,
@@ -173,6 +174,7 @@ albedo_free_image: free_image = None
 cursor_image: pygame.image = None
 next_boarded_vehicle: pmob = None
 text_box_destination: callable = None
+active_dropdown: dropdown_selector = None
 
 current_instructions_page: instructions_page = None
 current_ministers: Dict[str, minister] = {}

@@ -3,8 +3,6 @@
 from __future__ import annotations
 import pygame
 from modules.interface_components import interface_elements, buttons
-from modules.workflow_types import workflows
-from modules.util import scaling
 from modules.constants import constants, status, flags
 from typing import List, Dict, Tuple, Any
 
@@ -148,80 +146,6 @@ class container(interface_elements.interface_collection):
         self.repositioning = False
         self.reposition_origin = None
         self.reposition_mouse_origin = None
-
-
-class workflow_container(container):
-    """
-    Container attached to opening a workflow
-    """
-
-    def __init__(self, input_dict: Dict[str, Any]) -> None:
-        """
-        Description:
-            Initializes this object
-        Input:
-            Dict[str, Any] input_dict: Keys corresponding to the values needed to initialize this object. Same as superclass, except,
-                workflow workflow: Workflow that this container is attached to
-        Output:
-            None
-        """
-        super().__init__(input_dict)
-        self.workflow: workflows.workflow = input_dict["workflow"]
-        self.workflow.current_container = self
-        top_right_menu_button_size = 40
-        top_right_menu_separation = 10
-        self.top_right_menu: interface_elements.ordered_collection = (
-            constants.ActorCreationManager.create_interface_element(
-                {
-                    "init_type": constants.ORDERED_COLLECTION,
-                    "coordinates": (
-                        self.image.width
-                        - scaling.scale_width(
-                            top_right_menu_button_size + top_right_menu_separation
-                        ),
-                        self.image.height
-                        - scaling.scale_height(
-                            top_right_menu_button_size + top_right_menu_separation
-                        ),
-                    ),
-                    "parent_collection": self,
-                    "direction": "horizontal",
-                    "reversed": True,
-                    "separation": scaling.scale_width(top_right_menu_separation),
-                }
-            )
-        )
-        self.reposition_button: reposition_container_button = (
-            constants.ActorCreationManager.create_interface_element(
-                {
-                    "init_type": constants.REPOSITION_CONTAINER_BUTTON,
-                    "width": scaling.scale_width(top_right_menu_button_size),
-                    "height": scaling.scale_height(top_right_menu_button_size),
-                    "image_id": "buttons/reposition_button.png",
-                    "parent_collection": self.top_right_menu,
-                    "container": self,
-                }
-            )
-        )
-        self.close_workflow_button: workflows.close_workflow_button = (
-            constants.ActorCreationManager.create_interface_element(
-                {
-                    "init_type": constants.CLOSE_WORKFLOW_BUTTON,
-                    "width": scaling.scale_width(top_right_menu_button_size),
-                    "height": scaling.scale_height(top_right_menu_button_size),
-                    "image_id": "buttons/minimize_button.png",
-                    "parent_collection": self.top_right_menu,
-                    "workflow": self.workflow,
-                }
-            )
-        )
-
-    def remove(self):
-        """
-        Removes this object from relevant lists and prevents it from further appearing in or affecting the program
-        """
-        super().remove()
-        self.workflow.current_container = None
 
 
 class reposition_container_button(buttons.button):

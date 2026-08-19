@@ -256,9 +256,7 @@ class interface_element:
 
             if hasattr(self, "order_y_offset"):
                 input_dict["member_config"]["order_y_offset"] = self.order_y_offset
-
             self.parent_collection.remove_member(self)
-
         new_parent_collection: interface_collection = (
             constants.ActorCreationManager.create_interface_element(input_dict)
         )
@@ -502,11 +500,8 @@ class interface_collection(interface_element):
             None
         """
         super().set_origin(new_x, new_y)
-        for (
-            member
-        ) in (
-            self.members
-        ):  # members will retain their relative positions with the collection while shifting to be centered around the new collection origin
+        # Members will retain their relative positions with the collection while shifting to be centered around the new collection origin
+        for member in self.members:
             member.set_origin(new_x + member.x_offset, new_y + member.y_offset)
 
     def set_modes(self, new_modes: List[str]) -> None:
@@ -774,7 +769,7 @@ class ordered_collection(interface_collection):
 
     def __init__(
         self, input_dict
-    ):  # change inventory display to a collection so that it orders correctly
+    ):  # Change inventory display to a collection so that it orders correctly
         """
         Description:
             Initializes this object
@@ -910,9 +905,11 @@ class ordered_collection(interface_collection):
         return size
 
     def update_collection(self):
-        """n:
+        """
         Changes locations of collection members to put all visible members in order while skipping hidden ones. Each overlapped element follows ordering logic but
             causes no change in the current ordering location (causing next element to appear at its location), while each exempt element ignores ordering logic
+        Note: Can cause incorrect positioning for nested ordered collections, with extra offsets of leaf-level items due to the pre-increment based on the
+            intermediate collection's height
         """
         super().update_collection()
         for key in self.second_dimension_coordinates:
@@ -951,7 +948,7 @@ class ordered_collection(interface_collection):
                             if (
                                 hasattr(member, "order_overlap_list")
                                 and member.is_info_display
-                            ):  # account for ordered collections having coordinates from top left instead of bottom left
+                            ):  # Account for ordered collections having coordinates from top left instead of bottom left
                                 new_y += member.height * self.reverse_multiplier
                             member.set_origin(new_x, new_y)
 

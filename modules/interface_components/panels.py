@@ -62,6 +62,10 @@ class safe_click_panel(panel):
     Panel that prevents selected units/ministers/countries from being deselected when its area is clicked
     """
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.draw_priority = constants.DRAW_PRIORITY_BACKGROUND_PANEL
+
     def can_show(self):
         """
         Description:

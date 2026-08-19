@@ -185,7 +185,7 @@ def generate_random_world() -> Dict[str, Any]:
         ((return_dict["world_dimensions"] ** 2) / (constants.earth_dimensions**2))
         * random.uniform(0.7, 1.3),
         2,
-    )
+    )  # Minimum average is (11 ** 2) / (19 ** 2) = 0.33
     global_parameters[constants.RADIATION] = max(
         random.randrange(0, 5), random.randrange(0, 5)
     )
