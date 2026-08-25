@@ -597,6 +597,7 @@ TERRAIN_CLOUDS_LEVEL: int = 21  # -7
 MAP_MODE_LEVEL: int = -1
 TABLE_TEXT_LEVEL: int = 1
 TABLE_BACKGROUND_IMAGE_LEVEL: int = 0
+DEFAULT_LEVEL: int = 0
 
 ALTITUDE_BRIGHTNESS_MULTIPLIER: float = 0.5
 PIXELLATED_SIZE: int = 2
@@ -958,8 +959,8 @@ RESOURCE_AIR: str = "air"
 
 EQUIPMENT_SPACESUITS: str = "spacesuits"
 
-MATERIAL_STRUCTURAL_METALS: str = "structural_metals"
-MATERIAL_STRUCTURAL_NONMETALS: str = "structural_nonmetals"
+MATERIAL_BASE_METALS: str = "base_metals"
+MATERIAL_BUILDING_MATERIALS: str = "building_materials"
 MATERIAL_ADVANCED_METALS: str = "advanced_metals"
 MATERIAL_FUELS: str = "fuels"
 MATERIAL_CHEMICALS: str = "chemicals"
@@ -1191,6 +1192,7 @@ REPOSITION_CONTAINER_BUTTON: str = "reposition_container_button"
 LEFT_RIGHT_SELECTOR: str = "left_right_selector"
 DROPDOWN_SELECTOR: str = "dropdown_selector"
 DROPDOWN_ITEM: str = "dropdown_item"
+ITEM_COUNT_INDICATOR: str = "item_count_indicator"
 
 DRAW_PRIORITY_BACKGROUND_IMAGE: int = -2
 DRAW_PRIORITY_BACKGROUND_PANEL: int = -1

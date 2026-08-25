@@ -43,4 +43,8 @@ class font:
         Output:
             int: Returns pixel width of resulting message
         """
-        return self.pygame_font.size(message)[0]
+        try:
+            return self.pygame_font.size(message)[0]
+        except Exception as e:
+            print(f"Error calculating size of message: {message}")
+            raise e

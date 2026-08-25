@@ -386,8 +386,18 @@ class bundle_image:
             self.y_size = image_id.get(
                 "y_size", image_id.get("size", 1)
             )  # uses inputted y_size if present, otherwise inputted size, otherwise 1
-            self.x_offset = image_id.get("x_offset", 0)
-            self.y_offset = image_id.get("y_offset", 0)
+            self.x_offset: float = image_id.get(
+                "x_offset", 0
+            )  # Relative x offset, from -0.5 to 0.5
+            self.y_offset: float = image_id.get(
+                "y_offset", 0
+            )  # Relative y offset, from -0.5 to 0.5
+            self.abs_x_offset: float = image_id.get(
+                "abs_x_offset", 0
+            )  # Absolute x offset, in pixels
+            self.abs_y_offset: float = image_id.get(
+                "abs_y_offset", 0
+            )  # Absolute y offset, in pixels
             self.level = image_id.get("level", 0)
             self.alpha = image_id.get("alpha", 255)
             self.detail_level = image_id.get(
@@ -444,12 +454,13 @@ class bundle_image:
             double: Returns final x offset of this member image when blitted to bundle's combined surface
         """
         if hasattr(self, "free") and self.free:
-            return self.bundle.width * self.x_offset
+            return self.bundle.width * self.x_offset + self.abs_x_offset
         else:
             return (
                 (self.bundle.width * self.x_offset)
                 - (self.width / 2)
                 + (self.bundle.width / 2)
+                + self.abs_x_offset
             )
 
     def get_blit_y_offset(self) -> float:
@@ -462,12 +473,13 @@ class bundle_image:
             double: Returns final y offset of this member image when blitted to bundle's combined surface
         """
         if hasattr(self, "free") and self.free:  # hasattr(self, 'override_width'):
-            return self.bundle.height * self.y_offset * -1
+            return (self.bundle.height * self.y_offset * -1) + self.abs_y_offset
         else:
             return (
                 (self.bundle.height * self.y_offset * -1)
                 - (self.height / 2)
                 + (self.bundle.height / 2)
+                + self.abs_y_offset
             )
 
     def scale(self) -> None:

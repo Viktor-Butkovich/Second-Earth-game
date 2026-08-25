@@ -52,6 +52,34 @@ def scale_height(height: int) -> int:
     return scaled_height
 
 
+def unscale_width(scaled_width: int) -> int:
+    """
+    Description:
+        Returns a version of the inputted width reverse-scaled from the player's screen resolution, such that x = unscale_width(scale_width(x))
+    Input:
+        int scaled_width: Scaled pixel width
+    Output:
+        int: Unscaled pixel width
+    """
+    ratio = constants.default_display_width / constants.display_width
+    unscaled_width = round(scaled_width * ratio)
+    return unscaled_width
+
+
+def unscale_height(scaled_height: int) -> int:
+    """
+    Description:
+        Returns a version of the inputted height reverse-scaled from the player's screen resolution, such that x = unscale_height(scale_height(x))
+    Input:
+        int scaled_height: Scaled pixel height
+    Output:
+        int: Unscaled pixel height
+    """
+    ratio = constants.default_display_height / constants.display_height
+    unscaled_height = round(scaled_height * ratio)
+    return unscaled_height
+
+
 def scaled_coordinates_percentage(
     x_percentage: float, y_percentage: float
 ) -> Tuple[int, int]:

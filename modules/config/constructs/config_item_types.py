@@ -18,30 +18,30 @@ def define_materials() -> None:
     """
     item_types.material_type(
         {
-            "key": constants.MATERIAL_STRUCTURAL_METALS,
+            "key": constants.MATERIAL_BASE_METALS,
             "can_purchase": True,
             "can_sell": True,
             "price": 5,
-            "description": ["Placeholder structural metals description"],
-            "item_image": "items/material/structural_metals.png",
+            "description": ["Placeholder base metals description"],
+            "item_image": "items/material/base_metals.png",
             "background_color": constants.color_dict[constants.COLOR_DARKER_GRAY],
             "allow_price_variation": True,
-            "abbreviated_name": "struct. metals",
-            "name": "structural metals",
+            "abbreviated_name": "base metals",
+            "name": "base metals",
         }
     )
     item_types.material_type(
         {
-            "key": constants.MATERIAL_STRUCTURAL_NONMETALS,
+            "key": constants.MATERIAL_BUILDING_MATERIALS,
             "can_purchase": True,
             "can_sell": True,
             "price": 5,
-            "description": ["Placeholder structural nonmetals description"],
-            "item_image": "items/material/structural_nonmetals.png",
+            "description": ["Placeholder building materials description"],
+            "item_image": "items/material/building_materials.png",
             "background_color": constants.color_dict[constants.COLOR_DARK_GRAY],
             "allow_price_variation": True,
-            "abbreviated_name": "struct. nonmetals",
-            "name": "structural nonmetals",
+            "abbreviated_name": "bldg. mats",
+            "name": "building materials",
         }
     )
     item_types.material_type(

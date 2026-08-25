@@ -75,6 +75,13 @@ class button(interface_elements.interface_element):
         self.in_notification = (
             False  # used to prioritize notification buttons in drawing and tooltips
         )
+        self.enable_tooltip: bool = input_dict.get("enable_tooltip", True)
+
+    def set_size(self, width: int = None, height: int = None) -> None:
+        super().set_size(width, height)
+        self.outline.width = self.width + (2 * self.outline_width)
+        self.outline.height = self.height + (self.outline_width * 2)
+        self.image.update_state(self.x, self.y, self.width, self.height)
 
     def calibrate(self, new_actor: actors.actor, override_exempt: bool = False) -> None:
         """
@@ -583,7 +590,7 @@ class button(interface_elements.interface_element):
         """
         Returns whether this button's tooltip can be shown. By default, its tooltip can be shown when it is visible and colliding with the mouse
         """
-        if self.touching_mouse() and self.showing:
+        if self.touching_mouse() and self.showing and self.enable_tooltip:
             return True
         else:
             return False

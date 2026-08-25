@@ -15,6 +15,7 @@ from modules.util import (
 )
 from modules.interface_components import interface_elements
 from modules.constants import constants, status, flags
+from typing import Iterable
 
 
 def main_loop():
@@ -162,11 +163,17 @@ def main_loop():
             manage_mouse_down(lmb=True)
 
         if flags.lmb_down or flags.rmb_down:
-            for current_button in status.button_list:
-                if current_button.touching_mouse() and current_button.showing:
-                    current_button.showing_outline = True
-                elif not current_button.being_pressed:
-                    current_button.showing_outline = False
+            showed_outline = False
+            for current_interface_element in draw_priority_iterator():
+                if hasattr(current_interface_element, "button_type"):
+                    if (
+                        current_interface_element.touching_mouse()
+                        and not showed_outline
+                    ):
+                        current_interface_element.showing_outline = True
+                        showed_outline = True  # Only show the first button outline
+                    elif not current_interface_element.being_pressed:
+                        current_interface_element.showing_outline = False
         else:
             for current_button in status.button_list:
                 if current_button.has_released:
@@ -198,6 +205,25 @@ def main_loop():
     pygame.quit()
 
 
+def close_active_dropdown() -> None:
+    if status.active_dropdown:
+        status.active_dropdown.close_dropdown()
+
+
+def draw_priority_iterator() -> Iterable[interface_elements.interface_element]:
+    """
+    Description:
+        Returns an iterator that yields interface elements in order of their draw priority, from highest to lowest
+    Input:
+        None
+    Output:
+        Iterable[interface_element]: An iterator that yields interface elements in order of their draw priority, from highest to lowest
+    """
+    for draw_priority in reversed(sorted(status.draw_list_prioritized.keys())):
+        for current_interface_element in status.draw_list_prioritized[draw_priority]:
+            yield current_interface_element
+
+
 def manage_mouse_down(lmb: bool) -> None:
     """
     Description:
@@ -209,25 +235,29 @@ def manage_mouse_down(lmb: bool) -> None:
     Output:
         None
     """
+    initial_active_dropdown = status.active_dropdown
     clicked_button = False
-    for draw_priority in reversed(sorted(status.draw_list_prioritized.keys())):
-        for current_interface_element in status.draw_list_prioritized[draw_priority]:
+    for current_interface_element in draw_priority_iterator():
+        if (
+            hasattr(current_interface_element, "on_click")
+            and current_interface_element.touching_mouse()
+        ):
+            click_result = None
+            clicked_button = True
+            if lmb:
+                click_result = current_interface_element.on_click()
+                current_interface_element.on_release()
+            else:
+                click_result = current_interface_element.on_rmb_click()
+                current_interface_element.on_rmb_release()
             if (
-                hasattr(current_interface_element, "on_click")
-                and current_interface_element.touching_mouse()
-            ):
-                click_result = None
-                clicked_button = True
-                if lmb:
-                    click_result = current_interface_element.on_click()
-                    current_interface_element.on_release()
-                else:
-                    click_result = current_interface_element.on_rmb_click()
-                    current_interface_element.on_rmb_release()
-                if click_result != True:
-                    # When on_click returns True, it indicates that it should still allow other buttons to be clicked
-                    #   This is utilized by safe click panel to prevent deselecting units while allowing other buttons to be clicked
-                    return
+                initial_active_dropdown == status.active_dropdown
+            ):  # Don't close a dropdown that just opened
+                close_active_dropdown()
+            if click_result != True:
+                # When on_click returns True, it indicates that it should still allow other buttons to be clicked
+                #   This is utilized by safe click panel to prevent deselecting units while allowing other buttons to be clicked
+                return
 
     if (
         action_possible() or constants.SelectorManager.any_active()
@@ -255,6 +285,10 @@ def manage_mouse_down(lmb: bool) -> None:
                     actor_utility.click_move_minimap(None)
         else:
             constants.SelectorManager.on_click(lmb)
+    if (
+        initial_active_dropdown == status.active_dropdown
+    ):  # Don't close a dropdown that just opened
+        close_active_dropdown()
 
 
 def complete_globe_projection_rotation():
@@ -416,10 +450,9 @@ def detect_tooltip_drawer() -> interface_elements.interface_element:
     Output:
         interface_element: Returns the highest priority object that can show a tooltip, otherwise returns None
     """
-    for draw_priority in reversed(sorted(status.draw_list_prioritized.keys())):
-        for current_interface_element in status.draw_list_prioritized[draw_priority]:
-            if current_interface_element.can_show_tooltip():
-                return current_interface_element
+    for current_interface_element in draw_priority_iterator():
+        if current_interface_element.can_show_tooltip():
+            return current_interface_element
     return None
 
 

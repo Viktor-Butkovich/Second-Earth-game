@@ -183,15 +183,14 @@ class design_building_workflow(workflow):
     def select_building_type(
         self, selected_building_type: building_types.building_type
     ) -> None:
-        print(f"Selected building type: {selected_building_type.name}")
-        raise Exception("Placeholder")
+        return
 
     def populate_container(self) -> None:
         super().populate_container()
         building_type_options = [
             selectors.dropdown_option(
-                text=current_building_type.name,
-                value=current_building_type,
+                option_text=current_building_type.name,
+                option=current_building_type,
                 tooltip_text=[
                     [f"Build a {current_building_type.name} in this zone"],
                     current_building_type.description,
@@ -204,13 +203,24 @@ class design_building_workflow(workflow):
                 {
                     "init_type": constants.DROPDOWN_SELECTOR,
                     "dropdown_options": building_type_options,
-                    "width": scaling.scale_width(100),
+                    "prefix": "Building Type: ",
+                    "width": scaling.scale_width(120),
                     "height": scaling.scale_height(30),
                     "on_select": self.select_building_type,
                     "parent_collection": self.current_container.central_menu,
-                    "image_id": "buttons/default_button.png",
                 }
             )
+        )
+
+        constants.ActorCreationManager.create_interface_element(
+            {
+                "init_type": constants.ITEM_COUNT_INDICATOR,
+                "item_count": 4.5,
+                "item_type": status.item_types[constants.MATERIAL_BASE_METALS],
+                "width": scaling.scale_width(100),
+                "height": scaling.scale_height(50),
+                "parent_collection": self.current_container.central_menu,
+            }
         )
         # Rethink how to handle the container population process. Should there be a workflow container subclass for each workflow type, where the subclass defines its own interface?
         # This allows easy attribute references and cleanup, but splits the interface creation logic between workflow

@@ -184,6 +184,21 @@ class interface_element:
             self.x_offset = self.x - self.parent_collection.x
             self.y_offset = self.y - self.parent_collection.y
 
+    def set_size(self, width: int, height: int) -> None:
+        """
+        Description:
+            Sets this interface element's size to the inputted width and height
+        Input:
+            int width: New pixel width for this element
+            int height: New pixel height for this element
+        Output:
+            None
+        """
+        self.width = width
+        self.height = height
+        self.Rect.width = self.width
+        self.Rect.height = self.height
+
     def set_modes(self, new_modes):
         """
         Description:
@@ -856,7 +871,12 @@ class ordered_collection(interface_collection):
             member_config["second_dimension_coordinate"] = coordinate
         key = str(member_config["second_dimension_coordinate"])
         if key in self.second_dimension_coordinates:
-            self.second_dimension_coordinates[key].append(new_member)
+            if "index" in member_config:
+                self.second_dimension_coordinates[key].insert(
+                    member_config["index"], new_member
+                )
+            else:
+                self.second_dimension_coordinates[key].append(new_member)
         else:
             self.second_dimension_coordinates[key] = [new_member]
 

@@ -28,6 +28,7 @@ from modules.interface_components import (
     tables,
     cells,
     selectors,
+    misc,
 )
 from modules.interface_components.info_display_elements import (
     info_display_buttons,
@@ -122,6 +123,7 @@ class actor_creation_manager:
             constants.LEFT_RIGHT_SELECTOR: selectors.left_right_selector,
             constants.DROPDOWN_SELECTOR: selectors.dropdown_selector,
             constants.DROPDOWN_ITEM: selectors.dropdown_item,
+            constants.ITEM_COUNT_INDICATOR: misc.item_count_indicator,
             constants.END_TURN_BUTTON: buttons.end_turn_button,
             constants.CYCLE_SAME_LOCATION_BUTTON: buttons.cycle_same_location_button,
             constants.FIRE_UNIT_BUTTON: buttons.fire_unit_button,

@@ -90,7 +90,9 @@ def remove_underscores(message):
     return message.replace("_", " ")
 
 
-def prepare_render(message, font=None, override_input_dict=None):
+def prepare_render(
+    message, font=None, override_input_dict=None, target_width=None, alignment="center"
+):
     """
     Description:
         Prepares a dictionary that can be passed to as an image id to render the inputted message in the desired font
@@ -109,6 +111,18 @@ def prepare_render(message, font=None, override_input_dict=None):
         "override_height": height,
         "font": font,
     }
+    if alignment == "center":
+        pass
+    elif alignment == "left":
+        if target_width:
+            return_dict["abs_x_offset"] = -target_width / 2 + width / 2
+        else:
+            return_dict["abs_x_offset"] = -width / 2
+    elif alignment == "right":
+        if target_width:
+            return_dict["abs_x_offset"] = target_width / 2 - width / 2
+        else:
+            return_dict["abs_x_offset"] = width / 2
     if override_input_dict:
         for value in override_input_dict:
             return_dict[value] = override_input_dict[value]
