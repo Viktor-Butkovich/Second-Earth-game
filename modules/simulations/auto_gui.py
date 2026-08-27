@@ -41,13 +41,21 @@ def wait_for_window(title, timeout=30) -> gw.Win32Window:
     raise Exception(f"Wait for window {title} timed out after {timeout} seconds.")
 
 
-def await_signal(message: str) -> None:
+def await_signal(message: str, process: subprocess.Popen = None) -> None:
+    """Reads lines from the pipe. Exits automatically if the game process terminates."""
     with open(pipe_path, "r") as fifo:
         while True:
+            # Check if the process crashed while waiting
+            if process and process.poll() is not None:
+                raise RuntimeError("Game process exited")
+
             line = fifo.readline().strip()
             if line == message:
                 break
-    pipe_path.write_text("")  # Clear the pipe file after reading
+
+            time.sleep(0.05)  # Avoid busy-waiting
+
+    pipe_path.write_text("")
     time.sleep(0.05)
 
 
@@ -60,11 +68,11 @@ def load_and_select_first_unit():
     game_process = start_game_thread()
     window = wait_for_window("SE")
     window.activate()
-    await_signal("loading")
-    await_signal("loaded")
+    await_signal("loading", game_process)
+    await_signal("loaded", game_process)
     press("l")
-    await_signal("loading")
-    await_signal("loaded")
+    await_signal("loading", game_process)
+    await_signal("loaded", game_process)
     press(Key.enter)
     press(Key.tab)
     while game_process.poll() is None:
@@ -75,13 +83,13 @@ def new_game():
     game_process = start_game_thread()
     window = wait_for_window("SE")
     window.activate()
-    await_signal("loading")
-    await_signal("loaded")
+    await_signal("loading", game_process)
+    await_signal("loaded", game_process)
     press("n")
     time.sleep(0.05)
     press("n")
-    await_signal("loading")
-    await_signal("loaded")
+    await_signal("loading", game_process)
+    await_signal("loaded", game_process)
     press(Key.enter)
     while game_process.poll() is None:
         time.sleep(0.1)
