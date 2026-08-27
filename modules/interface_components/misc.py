@@ -3,7 +3,7 @@
 from __future__ import annotations
 from modules.interface_components import interface_elements
 from modules.constants import constants, status, flags
-from modules.util import text_utility, actor_utility
+from modules.util import text_utility, actor_utility, scaling
 from modules.constructs import item_types
 from typing import Dict, List, Any
 
@@ -14,6 +14,12 @@ class item_count_indicator(interface_elements.interface_element):
             raise Exception("item_count_indicator sets image_id automatically.")
         input_dict["image_id"] = "misc/empty.png"
         super().__init__(input_dict)
+        unscaled_width, unscaled_height = scaling.unscale_width(
+            self.width
+        ), scaling.unscale_height(self.height)
+        assert round(unscaled_height) == round(
+            unscaled_width / 2
+        ), f"item_count_indicator must have a 2:1 width to height ratio. Currently, width={unscaled_width:.2f}, height={unscaled_height:.2f}"
         self.item_count: float = input_dict["item_count"]
         self.item_type: item_types.item_type = input_dict["item_type"]
         item_meta = {
@@ -25,11 +31,11 @@ class item_count_indicator(interface_elements.interface_element):
         self.image.set_image(
             [
                 text_utility.prepare_render(
-                    message=f"x{self.item_count:.1f}",
+                    message=f"x{self.format_item_count(self.item_count)}",
                     font=constants.fonts[constants.DEFAULT_NOTIFICATION_FONT],
                     override_input_dict={
                         "level": constants.FRONT_LEVEL,
-                        "x_offset": -0.05,
+                        "x_offset": -0.03,
                     },
                     alignment="left",
                 ),
@@ -51,6 +57,24 @@ class item_count_indicator(interface_elements.interface_element):
                 # },
             ]
         )
+
+    def format_item_count(self, item_count: float) -> str:
+        """
+        Description:
+            Formats the inputted item count as follows:
+                1.0 -> 1
+                1.515 -> 1.52
+                0.5 -> .5
+                0.0 -> 0
+        Input:
+            float item_count: Item count to format
+        Output:
+            str: Formatted item count
+        """
+        if item_count == 0:
+            return "0"
+        partial = f"{item_count:.2f}".rstrip("0").rstrip(".")
+        return partial if not partial.startswith("0") else partial[1:]
 
     @property
     def batch_tooltip_list(self) -> List[List[str]]:

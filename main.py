@@ -498,6 +498,8 @@ Left/right arrow selector:
 If a configuration selector is no longer active for a particular building type, it should be deleted, but the current
     value should be cached if the configuration becomes active again. This should be tracked by the workflow
 """
+
+# Modify item count indicators to adaptively change width based on size of the label component plus the constant size of the icon component
 # Add materials
 # Add blueprint mode for building design, and buttons to enter it for each building type
 # Add construction sites

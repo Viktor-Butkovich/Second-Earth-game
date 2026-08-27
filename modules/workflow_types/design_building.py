@@ -1,6 +1,6 @@
 from __future__ import annotations
 from modules.constants import constants, status, flags
-from modules.interface_components import selectors
+from modules.interface_components import selectors, interface_elements, labels
 from modules.workflow_types import workflows
 from modules.util import scaling, actor_utility
 from modules.constructs import building_types
@@ -47,7 +47,27 @@ class design_building_workflow(workflows.workflow):
     def select_building_type(
         self, selected_building_type: building_types.building_type
     ) -> None:
-        return
+        if self.current_container.total_cost_collection:
+            self.current_container.total_cost_collection.clear()
+            total_cost = selected_building_type.cost_per_attempt.multiply(
+                selected_building_type.required_successes
+            )
+            for material_key, material_amount in total_cost.enumerate().items():
+                constants.ActorCreationManager.create_interface_element(
+                    {
+                        "init_type": constants.ITEM_COUNT_INDICATOR,
+                        "item_count": material_amount,
+                        "item_type": status.item_types[material_key],
+                        "width": self.current_container.total_cost_collection.height
+                        * 2,
+                        "height": self.current_container.total_cost_collection.height,
+                        "parent_collection": self.current_container.total_cost_collection,
+                    }
+                )
+        if self.current_container.successes_required_label:
+            self.current_container.successes_required_label.set_label(
+                f"Successes Required: {selected_building_type.required_successes}"
+            )
 
     def populate_container(self) -> None:
         super().populate_container()
@@ -72,20 +92,55 @@ class design_building_workflow(workflows.workflow):
                     "height": scaling.scale_height(30),
                     "on_select": self.select_building_type,
                     "parent_collection": self.current_container.central_menu,
+                    "delay_finish_init": True,
+                }
+            )
+        )
+        total_cost_label: labels.label = (
+            constants.ActorCreationManager.create_interface_element(
+                {
+                    "init_type": constants.LABEL,
+                    "message": "Total Cost: ",
+                    "parent_collection": self.current_container.central_menu,
+                    "height": scaling.scale_height(30),
+                    "minimum_width": scaling.scale_width(10),
+                    "image_id": "misc/empty.png",
+                    "enable_tooltip": False,
                 }
             )
         )
 
-        constants.ActorCreationManager.create_interface_element(
-            {
-                "init_type": constants.ITEM_COUNT_INDICATOR,
-                "item_count": 4.5,
-                "item_type": status.item_types[constants.MATERIAL_BASE_METALS],
-                "width": scaling.scale_width(100),
-                "height": scaling.scale_height(50),
-                "parent_collection": self.current_container.central_menu,
-            }
+        self.current_container.total_cost_collection = (
+            constants.ActorCreationManager.create_interface_element(
+                {
+                    "init_type": constants.ORDERED_COLLECTION,
+                    "parent_collection": self.current_container.central_menu,
+                    "direction": "horizontal",
+                    "height": scaling.scale_height(50),  # Height used by members
+                    "separation": scaling.scale_width(15),
+                    "member_config": {
+                        "order_y_offset": scaling.scale_height(10),
+                    },
+                }
+            )
         )
+        self.current_container.successes_required_label = (
+            constants.ActorCreationManager.create_interface_element(
+                {
+                    "init_type": constants.LABEL,
+                    "message": "",  # Set when building type is selected
+                    "parent_collection": self.current_container.central_menu,
+                    "height": scaling.scale_height(30),
+                    "minimum_width": scaling.scale_width(10),
+                    "image_id": "misc/empty.png",
+                    "enable_tooltip": False,
+                }
+            )
+        )
+
+        # Must run after total cost collection and successes required inits
+        self.current_container.building_type_selector.finish_init()
+
         # Rethink how to handle the container population process. Should there be a workflow container subclass for each workflow type, where the subclass defines its own interface?
         # This allows easy attribute references and cleanup, but splits the interface creation logic between workflow
         # and container. Alternatively, the workflow could define a populate_container method that returns a list of
@@ -108,5 +163,7 @@ class design_building_workflow(workflows.workflow):
 
 class design_building_container(workflows.workflow_container):
     def __init__(self, input_dict: Dict[str, Any]) -> None:
-        super().__init__(input_dict)
         self.building_type_selector: selectors.dropdown_selector = None
+        self.total_cost_collection: interface_elements.ordered_collection = None
+        self.successes_required_label: labels.label = None
+        super().__init__(input_dict)

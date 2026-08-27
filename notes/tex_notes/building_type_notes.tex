@@ -1,0 +1,93 @@
+% chktex-file 8
+%   Allow dashes
+% chktex-file 17
+%   Don't require matching number of brackets and parentheses
+% chktex-file 11
+%   Allow ellipsis
+% chktex-file 44
+%   Allow regex
+% chktex-file 9
+%   Allow unmatched brackets and parentheses
+% chktex-file 36
+%   ALlow parentheses without spaces in front of them
+% chktex-file 40
+%   Allow factorials
+% chktex-file 12
+%   Don't require inter-word spaces
+% chktex-file 3
+%   Don't require enclosing parentheses with braces
+% chktex-file 13
+%   Don't require intersentence spaces
+% chktex-file 26
+%   Allow spaces in front of punctuation
+\documentclass{article}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage[a4paper, margin=1in]{geometry}
+\usepackage{graphicx}
+\usepackage{hyperref}
+\usepackage{listings}
+\usepackage{cancel}
+\lstset{
+basicstyle=\small\ttfamily,
+columns=flexible,
+breaklines=true
+}
+
+\begin{document}
+
+\section*{Spaceport Notes}
+\begin{itemize}
+    \item Compared to other colony infra, a spaceport is of nontrivial but only moderate complexity.
+    \item It is analogous to a small airport, with components being:
+    \begin{enumerate}
+        \item Landing/launch pad
+        \item Control and navigation facilities
+        \item Refueling equipment
+        \item Loading/unloading facilities
+        \item Blast shielding
+    \end{enumerate}
+    \item Constraints:
+    \begin{enumerate}
+        \item Cannot physically lie within a dome
+    \end{enumerate}
+    \item Materials per attempt: 1.46 total
+    \begin{itemize}
+        \item Base metals: 0.2 T2
+        \begin{itemize}
+            \item Makes up about 1/6 of total materials - steel/aluminum (T2) for structural frames, refueling
+                equipment, etc.
+        \end{itemize}
+        \item Building materials: 1.0 T1, 0.2 T2
+        \begin{itemize}
+            \item Suppose 80\% of materials are simple (T1) and can be based on relatively unprocessed regolith
+            \item Suppose 20\% of materials are more specialized (T2) composites, ceramics, etc.
+        \end{itemize}
+        \item Advanced metals: 0.05 T1, 0.01 T2
+        \begin{itemize}
+            \item Relatively few, but sensors, navigation equipment, electronics, etc. require standard T1 (copper) and T2 (sensor/chip) advanced metals
+        \end{itemize}
+        \item Fuels: N/A (the refueling equipment itself does not require fuel to construct)
+        \item Chemicals:
+        \item Biomaterials: N/A
+        \item Nuclear materials: N/A
+    \end{itemize}
+\end{itemize}
+
+
+\end{document}
+
+% Sample figure
+%\begin{figure}[!ht]
+%    \centering
+%    \includegraphics[width=350px]{screenshot_1.png}
+%    \caption{Sample caption}
+%\end{figure}
+
+% Sample hyperlink
+% \item \href{URL}{Label}
+
+% Sample listing
+% \begin{lstlisting}[language=Python, caption=Sample Python Code]
+% print("Hello World")
+% \end{lstlisting}

@@ -412,6 +412,14 @@ class interface_collection(interface_element):
             initial_member_dict["parent_collection"] = self
             constants.ActorCreationManager.create_interface_element(initial_member_dict)
 
+    def clear(self) -> None:
+        """
+        Deletes all members of this collection
+        """
+        for member in self.members.copy():
+            self.remove_member(member)
+            member.remove_recursive()
+
     def calibrate(self, new_actor: actors.actor, override_exempt: bool = False) -> None:
         """
         Description:

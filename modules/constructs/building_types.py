@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 from typing import Dict, List, Tuple, Any
-from modules.constants import constants, status, flags
+from modules.constants import constants, status, flags, dataclasses
 
 
 class building_type:
@@ -59,7 +59,6 @@ class building_type:
             [{"image_id": f"items/equipment/buildings/buttons/{self.key}.png"}],
         )
         self.attached_settlement: bool = input_dict.get("attached_settlement", False)
-        self.cost: int = input_dict.get("cost", 0)
         self.build_requirements = input_dict.get(
             "build_requirements",
             [constants.GROUP_PERMISSION, constants.CONSTRUCTION_PERMISSION],
@@ -73,6 +72,11 @@ class building_type:
                 "noun": "construction",
             },
         )
+        self.cost_per_attempt: dataclasses.material_cost = input_dict[
+            "cost_per_attempt"
+        ]
+        self.required_successes: int = input_dict["required_successes"]
+
         status.building_types[self.key] = self
 
     def get_string_description(self) -> str:

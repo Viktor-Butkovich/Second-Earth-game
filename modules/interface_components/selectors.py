@@ -57,9 +57,20 @@ class dropdown_selector(buttons.button):
             )
         )
         self.current_selection: dropdown_option = None
+        self.delay_finish_init: bool = input_dict["delay_finish_init"]
+        self.ran_finished_init: bool = False
+        if not self.delay_finish_init:
+            self.finish_init()
+
+    def finish_init(self) -> None:
+        assert not self.ran_finished_init, "Cannot finish initialization twice."
+        self.ran_finished_init = True
         self.update_selection(self.dropdown_options[0])
 
     def update_selection(self, new_selection: dropdown_option) -> None:
+        assert (
+            self.ran_finished_init
+        ), "Cannot update selection before finishing initialization."
         self.current_selection = new_selection
         dropdown_arrow_size = scaling.unscale_height(self.height) * 0.9
         dropdown_arrow_icon = (

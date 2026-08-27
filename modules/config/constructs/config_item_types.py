@@ -50,12 +50,12 @@ def define_materials() -> None:
             "can_purchase": True,
             "can_sell": True,
             "price": 5,
-            "description": ["Placeholder advanced materials description"],
+            "description": ["Placeholder advanced metals description"],
             "item_image": "items/material/advanced_metals.png",
             "background_color": constants.color_dict[constants.COLOR_RED],
             "allow_price_variation": True,
             "abbreviated_name": "adv. metals",
-            "name": "advanced materials",
+            "name": "advanced metals",
         }
     )
     item_types.material_type(

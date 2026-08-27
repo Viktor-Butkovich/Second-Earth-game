@@ -74,19 +74,16 @@ class workflow(ABC):
         top_right_menu_button_size = 40
         top_right_menu_separation = 10
         central_menu_separation = 10
+        top_right_menu_size = top_right_menu_button_size + top_right_menu_separation
         self.current_container.top_right_menu = (
             constants.ActorCreationManager.create_interface_element(
                 {
                     "init_type": constants.ORDERED_COLLECTION,
                     "coordinates": (
                         self.current_container.image.width
-                        - scaling.scale_width(
-                            top_right_menu_button_size + top_right_menu_separation
-                        ),
+                        - scaling.scale_width(top_right_menu_size),
                         self.current_container.image.height
-                        - scaling.scale_height(
-                            top_right_menu_button_size + top_right_menu_separation
-                        ),
+                        - scaling.scale_height(top_right_menu_size),
                     ),
                     "parent_collection": self.current_container,
                     "direction": "horizontal",
@@ -95,20 +92,20 @@ class workflow(ABC):
                 }
             )
         )
-        self.current_container.central_menu = (
-            constants.ActorCreationManager.create_interface_element(
-                {
-                    "init_type": constants.ORDERED_COLLECTION,
-                    "coordinates": (
-                        self.current_container.image.width * 0.2,
-                        self.current_container.image.height * 0.8,
-                    ),
-                    "parent_collection": self.current_container,
-                    "direction": "vertical",
-                    "reversed": False,  # Top-down
-                    "separation": scaling.scale_height(central_menu_separation),
-                }
-            )
+        self.current_container.central_menu = constants.ActorCreationManager.create_interface_element(
+            {
+                "init_type": constants.ORDERED_COLLECTION,
+                "coordinates": (
+                    self.current_container.image.width * 0.05,
+                    self.current_container.image.height
+                    - scaling.scale_height(top_right_menu_size + 5),
+                    # self.current_container.image.height * 0.9,
+                ),
+                "parent_collection": self.current_container,
+                "direction": "vertical",
+                "reversed": False,  # Top-down
+                "separation": scaling.scale_height(central_menu_separation),
+            }
         )
 
         self.current_container.reposition_button = (
@@ -229,8 +226,8 @@ class workflow_container(containers.container):
         super().__init__(input_dict)
         self.workflow: workflow = input_dict["workflow"]
         self.workflow.current_container = self
-        self.top_right_menu: interface_elements.interface_collection = None
-        self.central_menu: interface_elements.interface_collection = None
+        self.top_right_menu: interface_elements.ordered_collection = None
+        self.central_menu: interface_elements.ordered_collection = None
         self.reposition_button: containers.reposition_container_button = None
         self.close_workflow_button: close_workflow_button = None
         self.workflow.populate_container()
