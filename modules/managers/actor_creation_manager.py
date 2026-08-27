@@ -34,7 +34,7 @@ from modules.interface_components.info_display_elements import (
     info_display_buttons,
     info_display_labels,
 )
-from modules.workflow_types import workflows
+from modules.workflow_types import workflows, design_building
 from modules.constructs import (
     buildings,
     hosted_icons,
@@ -116,7 +116,7 @@ class actor_creation_manager:
             constants.TABBED_COLLECTION: interface_elements.tabbed_collection,
             constants.CONTAINER: containers.container,
             constants.WORKFLOW_CONTAINER: workflows.workflow_container,
-            constants.DESIGN_BUILDING_CONTAINER: workflows.design_building_container,
+            constants.DESIGN_BUILDING_CONTAINER: design_building.design_building_container,
             constants.REPOSITION_CONTAINER_BUTTON: containers.reposition_container_button,
             constants.CLOSE_WORKFLOW_BUTTON: workflows.close_workflow_button,
             constants.OPEN_WORKFLOW_BUTTON: workflows.open_workflow_button,
