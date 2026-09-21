@@ -16,9 +16,10 @@ from modules.util import (
 from modules.interface_components import cells, buttons
 from modules.constructs.actor_types import actors
 from modules.constants import constants, status, flags
+from abc import ABC, abstractmethod
 
 
-class image:
+class image(ABC):
     """
     Abstract base image class
     """
@@ -119,6 +120,10 @@ class image:
             image_id_list = self.image_id
         return image_id_list
 
+    @abstractmethod
+    def set_image(self, image_id: List[Dict[str, Any]] | str) -> None:
+        pass
+
 
 class image_bundle(image):
     """
@@ -156,8 +161,13 @@ class image_bundle(image):
                 self.generate_combined_surface()
             )  # Avoid calling generate_combined_surface on each component
         else:
-            if image_id_list.contains_bundle:
-                image_id_list = image_id_list.image
+            try:
+                if image_id_list.contains_bundle:
+                    image_id_list = image_id_list.image
+            except AttributeError as e:
+                raise Exception(
+                    f"Invalid image_id_list of type {type(image_id_list)}", e
+                )
             self.members = image_id_list.members
             self.combined_surface = pygame.transform.scale(
                 image_id_list.combined_surface, (self.width, self.height)
@@ -319,6 +329,9 @@ class image_bundle(image):
             else:
                 return_list.append(current_member.image_id_dict)
         return return_list
+
+    def set_image(self, image_id: List[Dict[str, Any]] | str) -> None:
+        raise Exception("Not implemented")
 
 
 class bundle_image:

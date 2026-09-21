@@ -6,6 +6,7 @@ from modules.interface_components import (
     buttons,
     containers,
     interface_elements,
+    labels,
 )
 from modules.util import scaling, main_loop_utility
 from typing import Dict, List, Any
@@ -71,51 +72,71 @@ class workflow(ABC):
             return {}
 
     def populate_container(self) -> None:
-        top_right_menu_button_size = 40
-        top_right_menu_separation = 10
-        central_menu_separation = 10
-        top_right_menu_size = top_right_menu_button_size + top_right_menu_separation
-        self.current_container.top_right_menu = (
+        right_upper_menu_button_size = 40
+        right_upper_menu_separation = 10
+        left_central_menu_separation = 10
+        central_lower_menu_separation = 10
+        right_upper_menu_size = (
+            right_upper_menu_button_size + right_upper_menu_separation
+        )
+        central_upper_menu_size = 40
+        self.current_container.right_upper_menu = (
             constants.ActorCreationManager.create_interface_element(
                 {
                     "init_type": constants.ORDERED_COLLECTION,
                     "coordinates": (
                         self.current_container.image.width
-                        - scaling.scale_width(top_right_menu_size),
+                        - scaling.scale_width(right_upper_menu_size),
                         self.current_container.image.height
-                        - scaling.scale_height(top_right_menu_size),
+                        - scaling.scale_height(right_upper_menu_size),
                     ),
                     "parent_collection": self.current_container,
                     "direction": "horizontal",
                     "reversed": True,  # Right-left
-                    "separation": scaling.scale_width(top_right_menu_separation),
+                    "separation": scaling.scale_width(right_upper_menu_separation),
                 }
             )
         )
-        self.current_container.central_menu = constants.ActorCreationManager.create_interface_element(
+        self.current_container.left_central_menu = constants.ActorCreationManager.create_interface_element(
             {
                 "init_type": constants.ORDERED_COLLECTION,
                 "coordinates": (
                     self.current_container.image.width * 0.05,
                     self.current_container.image.height
-                    - scaling.scale_height(top_right_menu_size + 5),
+                    - scaling.scale_height(
+                        30
+                    )  # Configure to place approximately about center, vertically
+                    - scaling.scale_height(right_upper_menu_size + 5),
                     # self.current_container.image.height * 0.9,
                 ),
                 "parent_collection": self.current_container,
                 "direction": "vertical",
                 "reversed": False,  # Top-down
-                "separation": scaling.scale_height(central_menu_separation),
+                "separation": scaling.scale_height(left_central_menu_separation),
             }
         )
-
+        self.current_container.central_lower_menu = (
+            constants.ActorCreationManager.create_interface_element(
+                {
+                    "init_type": constants.ORDERED_COLLECTION,
+                    "coordinates": (
+                        self.current_container.image.width * 0.5,
+                        self.current_container.image.height * 0.2,
+                    ),
+                    "parent_collection": self.current_container,
+                    "direction": "vertical",
+                    "separation": scaling.scale_height(central_lower_menu_separation),
+                }
+            )
+        )
         self.current_container.reposition_button = (
             constants.ActorCreationManager.create_interface_element(
                 {
                     "init_type": constants.REPOSITION_CONTAINER_BUTTON,
-                    "width": scaling.scale_width(top_right_menu_button_size),
-                    "height": scaling.scale_height(top_right_menu_button_size),
+                    "width": scaling.scale_width(right_upper_menu_button_size),
+                    "height": scaling.scale_height(right_upper_menu_button_size),
                     "image_id": "buttons/reposition_button.png",
-                    "parent_collection": self.current_container.top_right_menu,
+                    "parent_collection": self.current_container.right_upper_menu,
                     "container": self.current_container,
                 }
             )
@@ -124,14 +145,52 @@ class workflow(ABC):
             constants.ActorCreationManager.create_interface_element(
                 {
                     "init_type": constants.CLOSE_WORKFLOW_BUTTON,
-                    "width": scaling.scale_width(top_right_menu_button_size),
-                    "height": scaling.scale_height(top_right_menu_button_size),
+                    "width": scaling.scale_width(right_upper_menu_button_size),
+                    "height": scaling.scale_height(right_upper_menu_button_size),
                     "image_id": "buttons/minimize_button.png",
-                    "parent_collection": self.current_container.top_right_menu,
+                    "parent_collection": self.current_container.right_upper_menu,
                     "workflow": self,
                 }
             )
         )
+        self.current_container.central_upper_menu = (
+            constants.ActorCreationManager.create_interface_element(
+                {
+                    "init_type": constants.ORDERED_COLLECTION,
+                    "coordinates": (
+                        self.current_container.image.width * 0.5,
+                        self.current_container.image.height
+                        - scaling.scale_height(central_upper_menu_size),
+                    ),
+                    "parent_collection": self.current_container,
+                    "direction": "horizontal",
+                    "separation": scaling.scale_width(10),
+                }
+            )
+        )
+        self.current_container.title_label = (
+            constants.ActorCreationManager.create_interface_element(
+                {
+                    "init_type": constants.LABEL,
+                    "message": self.workflow_title,
+                    "parent_collection": self.current_container.central_upper_menu,
+                    "height": scaling.scale_height(central_upper_menu_size),
+                    "minimum_width": scaling.scale_width(10),
+                    "image_id": "misc/empty.png",
+                    "enable_tooltip": False,
+                    "member_config": {"horizontal_center_align": True},
+                    "font": constants.fonts[constants.LARGE_NOTIFICATION_FONT],
+                }
+            )
+        )
+
+    def close(self) -> None:
+        self.current_container.remove()
+
+    @property
+    @abstractmethod
+    def workflow_title(self) -> str:
+        pass
 
     @property
     @abstractmethod
@@ -198,7 +257,7 @@ class close_workflow_button(buttons.button):
         Controls this button's behavior when clicked. This button closes its attached workflow's container, and
             performs any required confirmation or cleanup steps
         """
-        self.workflow.current_container.remove()
+        self.workflow.close()
 
     @property
     def tooltip_text(self) -> List[str]:
@@ -226,10 +285,13 @@ class workflow_container(containers.container):
         super().__init__(input_dict)
         self.workflow: workflow = input_dict["workflow"]
         self.workflow.current_container = self
-        self.top_right_menu: interface_elements.ordered_collection = None
-        self.central_menu: interface_elements.ordered_collection = None
+        self.right_upper_menu: interface_elements.ordered_collection = None
+        self.left_central_menu: interface_elements.ordered_collection = None
         self.reposition_button: containers.reposition_container_button = None
+        self.central_upper_menu: interface_elements.ordered_collection = None
+        self.central_lower_menu: interface_elements.ordered_collection = None
         self.close_workflow_button: close_workflow_button = None
+        self.title_label: labels.label = None
         self.workflow.populate_container()
 
     def remove(self):

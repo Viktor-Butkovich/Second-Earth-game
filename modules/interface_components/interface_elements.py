@@ -825,6 +825,8 @@ class ordered_collection(interface_collection):
         self.order_exempt_list = []
         if "anchor_coordinate" in input_dict:
             self.anchor_coordinate = input_dict["anchor_coordinate"]
+        self.new_member_order_x_offset: float = 0  # Total of all include_after shifts
+        self.new_member_order_y_offset: float = 0
         super().__init__(input_dict)
 
     def add_member(self, new_member, member_config={}):
@@ -842,13 +844,20 @@ class ordered_collection(interface_collection):
         member_config["order_exempt"] = member_config.get("order_exempt", False)
         member_config["order_x_offset"] = member_config.get("order_x_offset", 0)
         member_config["order_y_offset"] = member_config.get("order_y_offset", 0)
-        if member_config.get("centered", False):
+        if member_config.get("centered", False):  # Applies at initialization
             member_config["order_x_offset"] -= new_member.width / 2
+        new_member.horizontal_center_align = member_config.get(
+            "horizontal_center_align", False
+        )  # Applies dynamically for elements that change width
         member_config["second_dimension_coordinate"] = member_config.get(
             "second_dimension_coordinate", 0
         )
-        new_member.order_x_offset = member_config["order_x_offset"]
-        new_member.order_y_offset = member_config["order_y_offset"]
+        new_member.order_x_offset = (
+            member_config["order_x_offset"] + self.new_member_order_x_offset
+        )
+        new_member.order_y_offset = (
+            member_config["order_y_offset"] + self.new_member_order_y_offset
+        )
         super().add_member(new_member, member_config)
 
         if member_config["order_overlap"] and hasattr(
@@ -887,6 +896,23 @@ class ordered_collection(interface_collection):
                 self.second_dimension_coordinates[key].append(new_member)
         else:
             self.second_dimension_coordinates[key] = [new_member]
+
+    def shift(
+        self,
+        member: interface_element,
+        order_x_offset_increase: float = 0,
+        order_y_offset_increase: float = 0,
+        include_after: bool = False,
+    ):
+        member.order_x_offset += order_x_offset_increase
+        member.order_y_offset += order_y_offset_increase
+        if include_after:
+            idx = self.members.index(member)
+            for member in self.members[idx + 1 :]:
+                member.order_x_offset += order_x_offset_increase
+                member.order_y_offset += order_y_offset_increase
+            self.new_member_order_x_offset += order_x_offset_increase
+            self.new_member_order_y_offset += order_y_offset_increase
 
     def remove_member(self, removed_member):
         """
@@ -988,6 +1014,8 @@ class ordered_collection(interface_collection):
                     elif self.direction == "horizontal":
                         new_x = current_x + member.order_x_offset
                         new_y = current_y + member.order_y_offset
+                        if member.horizontal_center_align:
+                            new_x -= member.width / 2
                         if (member.x, member.y) != (new_x, new_y):
                             member.set_origin(new_x, new_y)
 

@@ -4,6 +4,8 @@ from __future__ import annotations
 import pygame
 from modules.util import scaling
 from modules.constants import constants, status, flags
+from modules.constructs import fonts
+from typing import Dict, Any
 
 
 def text(message, font):
@@ -91,8 +93,12 @@ def remove_underscores(message):
 
 
 def prepare_render(
-    message, font=None, override_input_dict=None, target_width=None, alignment="center"
-):
+    message,
+    font: fonts.font = None,
+    override_input_dict: Dict[str, Any] = None,
+    target_width: int = None,
+    alignment: str = "center",
+) -> Dict[str, Any]:
     """
     Description:
         Prepares a dictionary that can be passed to as an image id to render the inputted message in the desired font
@@ -155,3 +161,23 @@ def generate_table_text_image_id(
             "level": constants.TABLE_TEXT_LEVEL,
         }
     ]
+
+
+def generate_button_label(
+    message: str,
+    target_width: int,
+    font: fonts.font = None,
+    margin_percent: float = 0.05,
+) -> Dict[str, Any]:
+    if font is None:
+        font = constants.fonts[constants.DEFAULT_NOTIFICATION_FONT]
+    return prepare_render(
+        message=message,
+        font=font,
+        override_input_dict={
+            "level": constants.FRONT_LEVEL,
+            "x_offset": margin_percent,  # Left margin
+        },
+        target_width=target_width,
+        alignment="left",
+    )

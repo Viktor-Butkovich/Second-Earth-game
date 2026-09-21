@@ -28,17 +28,37 @@ class item_count_indicator(interface_elements.interface_element):
             "x_offset": 0.25,
             "level": constants.DEFAULT_LEVEL,
         }
+        sample_render = text_utility.prepare_render(
+            message=f"x{self.format_item_count(1.5)}",
+            font=constants.fonts[constants.DEFAULT_NOTIFICATION_FONT],
+            override_input_dict={
+                "level": constants.FRONT_LEVEL,
+                "x_offset": -0.03,
+            },
+            alignment="left",
+        )
+        text_render = text_utility.prepare_render(
+            message=f"x{self.format_item_count(self.item_count)}",
+            font=constants.fonts[constants.DEFAULT_NOTIFICATION_FONT],
+            override_input_dict={
+                "level": constants.FRONT_LEVEL,
+                "x_offset": -0.03,
+            },
+            alignment="left",
+        )
+        assert isinstance(self.parent_collection, interface_elements.ordered_collection)
+        if sample_render["override_width"] > text_render["override_width"]:
+            # If standard text width exceeds text width exceeds standard text width, shift this element and all after it by the width deficit, such that the visible separation between elements remains constant
+            self.parent_collection.shift(
+                self,
+                order_x_offset_increase=text_render["override_width"]
+                - sample_render["override_width"],
+                include_after=True,
+            )
+
         self.image.set_image(
             [
-                text_utility.prepare_render(
-                    message=f"x{self.format_item_count(self.item_count)}",
-                    font=constants.fonts[constants.DEFAULT_NOTIFICATION_FONT],
-                    override_input_dict={
-                        "level": constants.FRONT_LEVEL,
-                        "x_offset": -0.03,
-                    },
-                    alignment="left",
-                ),
+                text_render,
                 {
                     **item_meta,
                     "image_id": "misc/circle.png",
@@ -47,14 +67,7 @@ class item_count_indicator(interface_elements.interface_element):
                 {
                     **item_meta,
                     "image_id": self.item_type.item_image,
-                    # "level": constants.DEFAULT_LEVEL,
-                    # "x_size": 0.5,
-                    # "x_offset": 0.25,
                 },
-                # {
-                #    "image_id": "buttons/default_wide_button.png",
-                #    "level": constants.BACKGROUND_LEVEL,
-                # },
             ]
         )
 

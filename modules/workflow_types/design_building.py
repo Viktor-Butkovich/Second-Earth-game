@@ -1,8 +1,8 @@
 from __future__ import annotations
 from modules.constants import constants, status, flags
-from modules.interface_components import selectors, interface_elements, labels
+from modules.interface_components import selectors, interface_elements, labels, buttons
 from modules.workflow_types import workflows
-from modules.util import scaling, actor_utility
+from modules.util import scaling, actor_utility, text_utility, surface_utility
 from modules.constructs import building_types
 from typing import Dict, Any
 
@@ -20,6 +20,10 @@ class design_building_workflow(workflows.workflow):
         self.container_init_type: str = constants.DESIGN_BUILDING_CONTAINER
         self.description: str = "building design panel"
         self.current_container: design_building_container = None
+
+    @property
+    def workflow_title(self) -> str:
+        return "Design Building"
 
     @property
     def workflow_type(self) -> str:
@@ -82,17 +86,34 @@ class design_building_workflow(workflows.workflow):
             )
             for current_building_type in status.building_types.values()
         ]
+        width, height = scaling.scale_width(120), scaling.scale_height(30)
         self.current_container.building_type_selector = (
             constants.ActorCreationManager.create_interface_element(
                 {
                     "init_type": constants.DROPDOWN_SELECTOR,
                     "dropdown_options": building_type_options,
                     "prefix": "Building Type: ",
-                    "width": scaling.scale_width(120),
-                    "height": scaling.scale_height(30),
+                    "width": width,
+                    "height": height,
                     "on_select": self.select_building_type,
-                    "parent_collection": self.current_container.central_menu,
+                    "parent_collection": self.current_container.left_central_menu,
                     "delay_finish_init": True,
+                    "image_id": [
+                        {
+                            "image_id": "buttons/default_wide_button_frameless.png",
+                            "level": constants.BACKGROUND_LEVEL,
+                        },
+                        {
+                            "image_id": surface_utility.render_outline(
+                                width=width,
+                                height=height,
+                                color=constants.color_dict[
+                                    constants.COLOR_ASTRONAUT_ORANGE
+                                ],
+                                outline_width=2,
+                            )
+                        },
+                    ],
                 }
             )
         )
@@ -101,7 +122,7 @@ class design_building_workflow(workflows.workflow):
                 {
                     "init_type": constants.LABEL,
                     "message": "Total Cost: ",
-                    "parent_collection": self.current_container.central_menu,
+                    "parent_collection": self.current_container.left_central_menu,
                     "height": scaling.scale_height(30),
                     "minimum_width": scaling.scale_width(10),
                     "image_id": "misc/empty.png",
@@ -114,7 +135,7 @@ class design_building_workflow(workflows.workflow):
             constants.ActorCreationManager.create_interface_element(
                 {
                     "init_type": constants.ORDERED_COLLECTION,
-                    "parent_collection": self.current_container.central_menu,
+                    "parent_collection": self.current_container.left_central_menu,
                     "direction": "horizontal",
                     "height": scaling.scale_height(50),  # Height used by members
                     "separation": scaling.scale_width(15),
@@ -129,13 +150,60 @@ class design_building_workflow(workflows.workflow):
                 {
                     "init_type": constants.LABEL,
                     "message": "",  # Set when building type is selected
-                    "parent_collection": self.current_container.central_menu,
+                    "parent_collection": self.current_container.left_central_menu,
                     "height": scaling.scale_height(30),
                     "minimum_width": scaling.scale_width(10),
                     "image_id": "misc/empty.png",
                     "enable_tooltip": False,
                 }
             )
+        )
+
+        message = "Confirm"
+        font = constants.fonts[constants.LARGE_NOTIFICATION_FONT]
+        margin_percent = 0.05
+        width = (
+            font.pygame_font.size(message)[0] * (1 + margin_percent)
+        ) + scaling.scale_width(10)
+        height = scaling.scale_height(40)
+        self.current_container.confirmation_button = constants.ActorCreationManager.create_interface_element(
+            {
+                "init_type": constants.ANONYMOUS_BUTTON,
+                "width": width,
+                "height": height,
+                "button_type": {
+                    "on_click": [(self.finalize, [])],
+                    "tooltip": [
+                        "Confirms these building design plans",
+                        "Building plans can be freely discarded or modified until construction starts",
+                    ],
+                },
+                "image_id": [
+                    text_utility.generate_button_label(
+                        message=message,
+                        target_width=width,
+                        margin_percent=margin_percent,
+                        font=font,
+                    ),
+                    {
+                        "image_id": "buttons/default_wide_button_frameless.png",
+                        "level": constants.BACKGROUND_LEVEL,
+                    },
+                    {
+                        "image_id": surface_utility.render_outline(
+                            width=width,
+                            height=height,
+                            color=constants.color_dict[
+                                constants.COLOR_ASTRONAUT_ORANGE
+                            ],
+                            outline_width=2,
+                        ),
+                        "level": constants.FRONT_LEVEL,
+                    },
+                ],
+                "parent_collection": self.current_container.central_lower_menu,
+                "member_config": {"order_x_offset": -1 * (width / 2)},  # Center-align
+            }
         )
 
         # Must run after total cost collection and successes required inits
@@ -160,10 +228,15 @@ class design_building_workflow(workflows.workflow):
             logic and interface layout.
         """
 
+    def finalize(self) -> None:
+        print("Finalizing")
+        self.close()
+
 
 class design_building_container(workflows.workflow_container):
     def __init__(self, input_dict: Dict[str, Any]) -> None:
         self.building_type_selector: selectors.dropdown_selector = None
         self.total_cost_collection: interface_elements.ordered_collection = None
         self.successes_required_label: labels.label = None
+        self.confirmation_button: buttons.button = None
         super().__init__(input_dict)

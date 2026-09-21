@@ -15,10 +15,10 @@ class left_right_selector(interface_elements.interface_element):
 
 class dropdown_selector(buttons.button):
     def __init__(self, input_dict: Dict[str, Any]) -> None:
-        if "image_id" in input_dict:
-            raise Exception("dropdown_item sets image_id automatically.")
-        input_dict["image_id"] = "misc/empty.png"
         super().__init__(input_dict)
+        self.background_image_id: List[Dict[str, Any]] = self.extract_image_id_list(
+            input_dict["image_id"]
+        )
         self.font: fonts.font = constants.fonts[constants.DEFAULT_NOTIFICATION_FONT]
         self.dropdown_options: List[dropdown_option] = input_dict["dropdown_options"]
         self.prefix: str = input_dict["prefix"]
@@ -62,6 +62,16 @@ class dropdown_selector(buttons.button):
         if not self.delay_finish_init:
             self.finish_init()
 
+    def extract_image_id_list(
+        self, image_id: List[Dict[str, Any]] | str
+    ) -> List[Dict[str, Any]]:
+        if type(image_id) is list:
+            return image_id
+        elif type(image_id) is str:
+            return [{"image_id": image_id}]
+        else:
+            raise ValueError("Invalid image_id type")
+
     def finish_init(self) -> None:
         assert not self.ran_finished_init, "Cannot finish initialization twice."
         self.ran_finished_init = True
@@ -81,9 +91,8 @@ class dropdown_selector(buttons.button):
         message = (
             new_selection.option_text
         )  # f"{self.prefix}{new_selection.option_text}"
-        font = constants.fonts[constants.DEFAULT_NOTIFICATION_FONT]
         self.set_size(
-            width=font.calculate_size(message)
+            width=self.font.calculate_size(message)
             + scaling.scale_width(dropdown_arrow_size + 10),
             height=self.height,
         )
@@ -91,7 +100,7 @@ class dropdown_selector(buttons.button):
             [
                 text_utility.prepare_render(
                     message=message,
-                    font=font,
+                    font=self.font,
                     override_input_dict={
                         "level": constants.FRONT_LEVEL,
                         "x_offset": 0.05,  # Left margin
@@ -107,11 +116,8 @@ class dropdown_selector(buttons.button):
                     "abs_x_offset": (self.width / 2)
                     - scaling.scale_width(dropdown_arrow_size / 2),
                 },
-                {
-                    "image_id": "buttons/default_wide_button.png",
-                    "level": constants.BACKGROUND_LEVEL,
-                },
             ]
+            + self.background_image_id
         )
         self.on_select(new_selection.option)
 
