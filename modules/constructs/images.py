@@ -699,7 +699,9 @@ class free_image(image):
         Output:
             None
         """
-        self.draw_priority: int = constants.DRAW_PRIORITY_DEFAULT
+        self.draw_priority: int = input_dict.get(
+            "draw_priority", constants.DRAW_PRIORITY_DEFAULT
+        )
         self.image_type = "free"
         self.showing = False
         self.has_parent_collection = False

@@ -261,7 +261,7 @@ def manage_mouse_down(lmb: bool) -> None:
 
     if (
         action_possible() or constants.SelectorManager.any_active()
-    ):  # Only executes if no buttons were clicked
+    ) and not clicked_button:  # Only executes if no buttons were clicked
         if constants.SelectorManager.none_active():
             # Do not do selecting operations if user was trying to click a button # and action_possible()
             if constants.current_game_mode == constants.MINISTERS_MODE:

@@ -276,6 +276,7 @@ def config_misc() -> None:
                 "width": scaling.scale_width(constants.zone_grid_pixel_width),
                 "height": scaling.scale_height(constants.zone_grid_pixel_height),
                 "init_type": constants.FREE_IMAGE,
+                "draw_priority": constants.DRAW_PRIORITY_BACKGROUND_IMAGE,
             }
         )
     location_mode_safe_click_area = (

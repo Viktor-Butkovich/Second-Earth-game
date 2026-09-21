@@ -499,6 +499,17 @@ If a configuration selector is no longer active for a particular building type, 
     value should be cached if the configuration becomes active again. This should be tracked by the workflow
 """
 
+# Idea: Possibly explicitly model data processing - maybe giving efficiency improvements, better forecasts, retroactive insights from past actions
+#   (e.g. reanalysis of survey data, simulation grounding). Either by modeling a data resource or just by tracking in a hidden manner. Possibly track the colony's
+#   total experience and data collected for different action types in different environments and use that to gain bonuses in the future.
+#   For example, limited experience with lunar/martian rovers and lunar astronauts have given lots of insights into future mission designs, dust
+#   issues, cosmic radiation disrupting sleep patterns, etc.
+# Refactor anonymous buttons to use a typedict or dataclass, since they have a complex custom interface
+# Figure out - should actions like construction/production happen before or after upkeep and random events? For
+#   example, if a warehouse is built in the construction phase and there were items that were going to disappear
+#   due to insufficient warehouse space, is the warehouse ready in time? Or would missing upkeep penalize the unit
+#   on this turn or the next turn?
+# Update: Actions should resolve immediately after the end-turn
 # Modify item count indicators to adaptively change width based on size of the label component plus the constant size of the icon component
 # Add materials
 # Add blueprint mode for building design, and buttons to enter it for each building type
