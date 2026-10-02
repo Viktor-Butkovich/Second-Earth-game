@@ -43,10 +43,6 @@ class choice_notification(action_notifications.action_notification):
         button_types = input_dict["button_types"]
         self.insert_collection_above()
         for current_button_type_index in range(len(button_types)):
-            print(
-                button_types[current_button_type_index],
-                type(button_types[current_button_type_index]),
-            )
             if (
                 type(button_types[current_button_type_index])
                 == dataclasses.anonymous_button_definition
