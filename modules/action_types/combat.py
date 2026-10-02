@@ -11,7 +11,7 @@ from modules.util import (
     utility,
     turn_management_utility,
 )
-from modules.constants import constants, status, flags
+from modules.constants import constants, status, flags, dataclasses
 
 
 class combat(actions.action):
@@ -373,19 +373,16 @@ class combat(actions.action):
                     "message": action_utility.generate_risk_message(self, unit)
                     + self.generate_notification_text("confirmation"),
                     "choices": [
-                        {
-                            "on_click": [(self.middle, [{"defending": False}])],
-                            "tooltip": ["Starts attack"],
-                            "message": "Attack",
-                        },
-                        {
-                            # "on_click": (
-                            #    self.current_unit.clear_attached_cell_icons,
-                            #    [],
-                            # ),
-                            "tooltip": ["Stop attack"],
-                            "message": "Stop attack",
-                        },
+                        dataclasses.anonymous_button_definition(
+                            on_click=[(self.middle, [{"defending": False}])],
+                            tooltip=["Starts attack"],
+                            message="Attack",
+                        ),
+                        dataclasses.anonymous_button_definition(
+                            on_click=[],
+                            tooltip=["Stop attack"],
+                            message="Stop attack",
+                        ),
                     ],
                 }
             )

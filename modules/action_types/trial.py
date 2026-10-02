@@ -13,7 +13,7 @@ from modules.util import (
     scaling,
     actor_utility,
 )
-from modules.constants import constants, status, flags
+from modules.constants import constants, status, flags, dataclasses
 
 
 class trial(actions.campaign):
@@ -238,12 +238,16 @@ class trial(actions.campaign):
                     "message": self.generate_notification_text("confirmation"),
                     "transfer_interface_elements": True,
                     "choices": [
-                        {
-                            "on_click": [(self.middle, [])],
-                            "tooltip": ["Start trial"],
-                            "message": "Start trial",
-                        },
-                        {"tooltip": ["Cancel"], "message": "Cancel"},
+                        dataclasses.anonymous_button_definition(
+                            on_click=[(self.middle, [])],
+                            tooltip=["Start trial"],
+                            message="Start trial",
+                        ),
+                        dataclasses.anonymous_button_definition(
+                            on_click=[],
+                            tooltip=["Cancel"],
+                            message="Cancel",
+                        ),
                     ],
                 }
             )

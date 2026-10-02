@@ -5,7 +5,7 @@ import pygame
 from typing import List
 from modules.action_types import actions
 from modules.util import action_utility, text_utility, market_utility
-from modules.constants import constants, status, flags
+from modules.constants import constants, status, flags, dataclasses
 
 
 class loan_search(actions.campaign):
@@ -131,14 +131,16 @@ class loan_search(actions.campaign):
                     ),
                     "transfer_interface_elements": True,
                     "choices": [
-                        {
-                            "on_click": [(self.middle, [])],
-                            "tooltip": [
-                                "Starts a search for a low-interest loan offer"
-                            ],
-                            "message": "Find loan",
-                        },
-                        {"tooltip": ["Stop search"], "message": "Stop search"},
+                        dataclasses.anonymous_button_definition(
+                            on_click=[(self.middle, [])],
+                            tooltip=["Starts a search for a low-interest loan offer"],
+                            message="Find loan",
+                        ),
+                        dataclasses.anonymous_button_definition(
+                            on_click=[],
+                            tooltip=["Stop search"],
+                            message="Stop search",
+                        ),
                     ],
                 }
             )
@@ -209,12 +211,16 @@ class loan_search(actions.campaign):
             {
                 "message": self.generate_notification_text(result),
                 "choices": [
-                    {
-                        "on_click": [(self.accept_loan, [])],
-                        "tooltip": ["Accept"],
-                        "message": "Accept",
-                    },
-                    {"tooltip": ["Decline"], "message": "Decline"},
+                    dataclasses.anonymous_button_definition(
+                        on_click=[(self.accept_loan, [])],
+                        tooltip=["Accept"],
+                        message="Accept",
+                    ),
+                    dataclasses.anonymous_button_definition(
+                        on_click=[],
+                        tooltip=["Decline"],
+                        message="Decline",
+                    ),
                 ],
                 "on_remove": [(self.complete, [])],
             }

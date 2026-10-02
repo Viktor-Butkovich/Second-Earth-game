@@ -1,5 +1,5 @@
 from __future__ import annotations
-from modules.constants import constants, status, flags
+from modules.constants import constants, status, flags, dataclasses
 from modules.interface_components import selectors, interface_elements, labels, buttons
 from modules.workflow_types import workflows
 from modules.util import scaling, actor_utility, text_utility, surface_utility
@@ -171,13 +171,13 @@ class design_building_workflow(workflows.workflow):
                 "init_type": constants.ANONYMOUS_BUTTON,
                 "width": width,
                 "height": height,
-                "button_type": {
-                    "on_click": [(self.finalize, [])],
-                    "tooltip": [
+                "button_type": dataclasses.anonymous_button_definition(
+                    on_click=[(self.finalize, [])],
+                    tooltip=[
                         "Confirms these building design plans",
                         "Building plans can be freely discarded or modified until construction starts",
                     ],
-                },
+                ),
                 "image_id": [
                     text_utility.generate_button_label(
                         message=message,

@@ -11,7 +11,7 @@ from modules.util import (
 )
 from modules.constructs import building_types, item_types, zones
 from modules.constructs.actor_types.mob_types import pmobs
-from modules.constants import constants, status, flags
+from modules.constants import constants, status, flags, dataclasses
 
 
 class construction(actions.action):
@@ -211,15 +211,16 @@ class construction(actions.action):
                     "message": action_utility.generate_risk_message(self, unit)
                     + self.generate_notification_text("confirmation"),
                     "choices": [
-                        {
-                            "on_click": [(self.middle, [])],
-                            "tooltip": [f"Start {self.name}"],
-                            "message": f"Start {self.name}",
-                        },
-                        {
-                            "tooltip": [f"Stop {self.name}"],
-                            "message": f"Stop {self.name}",
-                        },
+                        dataclasses.anonymous_button_definition(
+                            on_click=[(self.middle, [])],
+                            tooltip=[f"Start {self.name}"],
+                            message=f"Start {self.name}",
+                        ),
+                        dataclasses.anonymous_button_definition(
+                            on_click=[],
+                            tooltip=[f"Stop {self.name}"],
+                            message=f"Stop {self.name}",
+                        ),
                     ],
                 }
             )

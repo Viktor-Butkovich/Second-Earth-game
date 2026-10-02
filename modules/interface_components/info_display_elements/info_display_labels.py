@@ -6,7 +6,7 @@ from typing import List, Callable
 from modules.constructs.actor_types import actors
 from modules.interface_components import labels
 from modules.util import utility, scaling, actor_utility
-from modules.constants import constants, status, flags
+from modules.constants import constants, status, flags, dataclasses
 
 
 class actor_display_label(labels.label):
@@ -431,45 +431,42 @@ class actor_display_label(labels.label):
         elif self.actor_label_type == constants.INVENTORY_QUANTITY_LABEL:
             self.message_start = "Quantity: "
             if self.actor_type == constants.MOB_ACTOR_TYPE:
-                # constants.DROP_ITEM_BUTTON - helps to find anonymous button without constant type
-                input_dict["init_type"] = constants.ANONYMOUS_BUTTON
-                input_dict["image_id"] = actor_utility.generate_frame(
-                    "buttons/item_drop_button.png",
-                    background="buttons/default_button_frameless.png",
+                self.add_attached_button(
+                    {
+                        **input_dict,
+                        "init_type": constants.ANONYMOUS_BUTTON,
+                        "image_id": actor_utility.generate_frame(
+                            "buttons/item_drop_button.png",
+                            background="buttons/default_button_frameless.png",
+                        ),
+                        "button_type": dataclasses.anonymous_button_definition(
+                            on_click=[
+                                actor_utility.callback,
+                                ["displayed_mob_inventory", "transfer", 1],
+                            ],
+                            tooltip=["Orders the selected unit to drop this item"],
+                        ),
+                    }
                 )
-                input_dict["button_type"] = {
-                    "on_click": [
-                        (
-                            actor_utility.callback,
-                            [
-                                "displayed_mob_inventory",
-                                "transfer",
-                                1,
-                            ],  # item_icon.transfer(
-                        )
-                    ],
-                    "tooltip": ["Orders the selected unit to drop this item"],
-                }
-                self.add_attached_button(input_dict)
-
-                input_dict["image_id"] = actor_utility.generate_frame(
-                    "buttons/item_drop_button.png",
-                    background="buttons/default_button_frameless.png",
+                self.add_attached_button(
+                    {
+                        **input_dict,
+                        "init_type": constants.ANONYMOUS_BUTTON,
+                        "image_id": actor_utility.generate_frame(
+                            "buttons/item_drop_button.png",
+                            background="buttons/default_button_frameless.png",
+                        ),
+                        "button_type": dataclasses.anonymous_button_definition(
+                            on_click=[
+                                actor_utility.callback,
+                                ["displayed_mob_inventory", "transfer", None],
+                            ],
+                            tooltip=[
+                                "Orders the selected unit to drop all of this item"
+                            ],
+                        ),
+                    }
                 )
-                input_dict["button_type"] = {
-                    "on_click": [
-                        (
-                            actor_utility.callback,
-                            [
-                                "displayed_mob_inventory",
-                                "transfer",
-                                None,
-                            ],  # item_icon.transfer(
-                        )
-                    ],
-                    "tooltip": ["Orders the selected unit to drop all of this item"],
-                }
-                self.add_attached_button(input_dict)
 
         elif self.actor_label_type == constants.SETTLEMENT:
             self.message_start = "Name: "

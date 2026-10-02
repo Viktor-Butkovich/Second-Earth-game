@@ -5,7 +5,7 @@ from typing import Dict, List, Tuple
 from modules.util import scaling, text_utility, actor_utility
 from modules.interface_components import cells, grids, buttons
 from modules.constructs.actor_types import actors
-from modules.constants import constants, status, flags
+from modules.constants import constants, status, flags, dataclasses
 
 
 class table_grid(grids.grid):
@@ -142,27 +142,17 @@ class table_grid(grids.grid):
                         background="buttons/default_button_frameless.png",
                     )
                 ),
-                "button_type": {
-                    "on_click": [
-                        (
-                            self.change_pagination,
-                            [change],
-                        )
-                    ],
-                    "can_show": [
-                        (
-                            self.can_show_pagination,
-                            [change],
-                        )
-                    ],
-                    "tooltip": [
+                "button_type": dataclasses.anonymous_button_definition(
+                    on_click=[(self.change_pagination, [change])],
+                    can_show=[(self.can_show_pagination, [change])],
+                    tooltip=[
                         (
                             "Click to navigate to the next page of the table"
                             if change > 0
                             else "Click to navigate to the previous page of the table"
                         )
                     ],
-                },
+                ),
             },
         )
 

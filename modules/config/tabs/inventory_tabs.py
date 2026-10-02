@@ -1,5 +1,5 @@
 from __future__ import annotations
-from modules.constants import constants, status, flags
+from modules.constants import constants, status, flags, dataclasses
 from modules.util import scaling, actor_utility
 
 inventory_cell_height = scaling.scale_height(29)
@@ -443,120 +443,116 @@ def inventory_info_display_interface() -> None:
                 },
             }
         )
-        index = 0
+
         if inventory_info_display.actor_type == constants.LOCATION_INVENTORY_ACTOR_TYPE:
             button_definitions = [
-                (
-                    constants.ANONYMOUS_BUTTON,
-                    {
-                        "on_click": [
+                {
+                    "init_type": constants.ANONYMOUS_BUTTON,
+                    "button_type": dataclasses.anonymous_button_definition(
+                        on_click=[
                             (
                                 actor_utility.callback,
                                 ["displayed_location_inventory", "transfer", 1],
-                            ),  # item_icon.transfer(
+                            )
                         ],
-                        "tooltip": ["Orders the selected unit to pick up this item"],
-                    },
-                    actor_utility.generate_frame(
+                        tooltip=["Orders the selected unit to pick up this item"],
+                    ),
+                    "image_id": actor_utility.generate_frame(
                         "buttons/item_pick_up_button.png",
                         background="buttons/default_button_frameless.png",
                     ),
-                ),
-                (
-                    constants.ANONYMOUS_BUTTON,
-                    {
-                        "on_click": [
+                },
+                {
+                    "init_type": constants.ANONYMOUS_BUTTON,
+                    "button_type": dataclasses.anonymous_button_definition(
+                        on_click=[
                             (
                                 actor_utility.callback,
                                 ["displayed_location_inventory", "transfer", None],
-                            ),  # item_icon.transfer(
+                            )
                         ],
-                        "tooltip": [
+                        tooltip=[
                             "Orders the selected unit to pick up all of this item"
                         ],
-                    },
-                    actor_utility.generate_frame(
+                    ),
+                    "image_id": actor_utility.generate_frame(
                         "buttons/item_pick_up_all_button.png",
                         background="buttons/default_button_frameless.png",
                     ),
-                ),
-                (
-                    constants.SELL_ITEM_BUTTON,
-                    constants.SELL_ITEM_BUTTON,
-                    actor_utility.generate_frame(
+                },
+                {
+                    "init_type": constants.SELL_ITEM_BUTTON,
+                    "button_type": constants.SELL_ITEM_BUTTON,
+                    "image_id": actor_utility.generate_frame(
                         "buttons/item_sell_button.png",
                         background="buttons/default_button_frameless.png",
                     ),
-                ),
-                (
-                    constants.SELL_ALL_ITEM_BUTTON,
-                    constants.SELL_ALL_ITEM_BUTTON,
-                    actor_utility.generate_frame(
+                },
+                {
+                    "init_type": constants.SELL_ALL_ITEM_BUTTON,
+                    "button_type": constants.SELL_ALL_ITEM_BUTTON,
+                    "image_id": actor_utility.generate_frame(
                         "buttons/item_sell_all_button.png",
                         background="buttons/default_button_frameless.png",
                     ),
-                ),
-                (
-                    constants.USE_EQUIPMENT_BUTTON,
-                    constants.USE_EQUIPMENT_BUTTON,
-                    actor_utility.generate_frame(
+                },
+                {
+                    "init_type": constants.USE_EQUIPMENT_BUTTON,
+                    "button_type": constants.USE_EQUIPMENT_BUTTON,
+                    "image_id": actor_utility.generate_frame(
                         "buttons/use_equipment_button.png",
                         background="buttons/default_button_frameless.png",
                     ),
-                ),
+                },
             ]
         elif inventory_info_display.actor_type == constants.MOB_INVENTORY_ACTOR_TYPE:
             button_definitions = [
-                (
-                    constants.ANONYMOUS_BUTTON,
-                    {
-                        "on_click": [
+                {
+                    "init_type": constants.ANONYMOUS_BUTTON,
+                    "button_type": dataclasses.anonymous_button_definition(
+                        on_click=[
                             (
                                 actor_utility.callback,
                                 ["displayed_mob_inventory", "transfer", 1],
-                            ),  # item_icon.transfer(
+                            )
                         ],
-                        "tooltip": ["Orders the selected unit to drop this item"],
-                    },
-                    actor_utility.generate_frame(
+                        tooltip=["Orders the selected unit to drop this item"],
+                    ),
+                    "image_id": actor_utility.generate_frame(
                         "buttons/item_drop_button.png",
                         background="buttons/default_button_frameless.png",
                     ),
-                ),
-                (
-                    constants.ANONYMOUS_BUTTON,
-                    {
-                        "on_click": [
+                },
+                {
+                    "init_type": constants.ANONYMOUS_BUTTON,
+                    "button_type": dataclasses.anonymous_button_definition(
+                        on_click=[
                             (
                                 actor_utility.callback,
                                 ["displayed_mob_inventory", "transfer", None],
-                            ),  # item_icon.transfer(
+                            )
                         ],
-                        "tooltip": [
-                            "Orders the selected unit to drop all of this item"
-                        ],
-                    },
-                    actor_utility.generate_frame(
+                        tooltip=["Orders the selected unit to drop all of this item"],
+                    ),
+                    "image_id": actor_utility.generate_frame(
                         "buttons/item_drop_all_button.png",
                         background="buttons/default_button_frameless.png",
                     ),
-                ),
-                (
-                    constants.USE_EQUIPMENT_BUTTON,
-                    constants.USE_EQUIPMENT_BUTTON,
-                    actor_utility.generate_frame(
+                },
+                {
+                    "init_type": constants.USE_EQUIPMENT_BUTTON,
+                    "button_type": constants.USE_EQUIPMENT_BUTTON,
+                    "image_id": actor_utility.generate_frame(
                         "buttons/use_equipment_button.png",
                         background="buttons/default_button_frameless.png",
                     ),
-                ),
+                },
             ]
 
-        for init_type, button_type, image_id in button_definitions:
+        for index, button_definition in enumerate(button_definitions):
             constants.ActorCreationManager.create_interface_element(
                 {
-                    "init_type": init_type,
-                    "image_id": image_id,
-                    "button_type": button_type,
+                    **button_definition,
                     "parent_collection": button_grid,
                     "width": scaling.scale_width(35),
                     "height": scaling.scale_height(35),
@@ -565,4 +561,3 @@ def inventory_info_display_interface() -> None:
                     },
                 }
             )
-            index += 1

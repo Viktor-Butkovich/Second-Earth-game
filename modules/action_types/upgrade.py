@@ -5,7 +5,7 @@ from typing import List
 from modules.action_types import actions
 from modules.util import actor_utility, action_utility
 from modules.constructs import building_types
-from modules.constants import constants, status, flags
+from modules.constants import constants, status, flags, dataclasses
 
 
 class upgrade(actions.action):
@@ -203,15 +203,16 @@ class upgrade(actions.action):
                     "message": action_utility.generate_risk_message(self, unit)
                     + self.generate_notification_text("confirmation"),
                     "choices": [
-                        {
-                            "on_click": [(self.middle, [])],
-                            "tooltip": [f"Start {self.name}"],
-                            "message": f"Start {self.name}",
-                        },
-                        {
-                            "tooltip": [f"Stop {self.name}"],
-                            "message": f"Stop {self.name}",
-                        },
+                        dataclasses.anonymous_button_definition(
+                            on_click=[(self.middle, [])],
+                            tooltip=[f"Start {self.name}"],
+                            message=f"Start {self.name}",
+                        ),
+                        dataclasses.anonymous_button_definition(
+                            on_click=[],
+                            tooltip=[f"Stop {self.name}"],
+                            message=f"Stop {self.name}",
+                        ),
                     ],
                 }
             )

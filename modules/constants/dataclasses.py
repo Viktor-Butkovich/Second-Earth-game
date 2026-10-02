@@ -1,7 +1,7 @@
 from __future__ import annotations
 from dataclasses import dataclass
 from modules.constants import constants, status, flags
-from typing import Dict
+from typing import Callable, Dict, List, Tuple, Any
 
 
 @dataclass
@@ -67,3 +67,37 @@ class material_cost:
         Returns a dictionary of material costs with zero-value keys omitted
         """
         return {k: v for k, v in enum.items() if v > 0}
+
+
+@dataclass
+class anonymous_button_definition:
+    on_click: List[Tuple[Callable, List[Any]]] = None  # Actions taken upon button click
+    can_show: List[Tuple[Callable, List[Any]]] = (
+        None  # Series of boolean checks, all of which must be True to show
+    )
+    # A series of tuples that each contain a callback function and its arguments, to be invoked in order
+    tooltip: List[str] = None
+    message: str = ""
+
+    def anonymous_on_click(self) -> None:
+        """
+        Executes the on_click actions
+        """
+        if self.on_click:
+            for func, args in self.on_click:
+                func(*args)
+
+    def anonymous_can_show(self) -> bool:
+        """
+        Executes the can_show checks
+        """
+        return (
+            all(func(*args) for func, args in self.can_show) if self.can_show else True
+        )
+
+    @property
+    def anonymous_tooltip(self) -> List[str]:
+        """
+        Provides the tooltip for this object
+        """
+        return self.tooltip if self.tooltip else []

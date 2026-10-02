@@ -5,7 +5,7 @@ from typing import List
 from modules.action_types import actions
 from modules.util import actor_utility, action_utility
 from modules.constructs import building_types
-from modules.constants import constants, status, flags
+from modules.constants import constants, status, flags, dataclasses
 
 
 class repair(actions.action):
@@ -199,15 +199,16 @@ class repair(actions.action):
                     "message": action_utility.generate_risk_message(self, unit)
                     + self.generate_notification_text("confirmation"),
                     "choices": [
-                        {
-                            "on_click": [(self.middle, [])],
-                            "tooltip": ["Start " + self.name],
-                            "message": "Start " + self.name,
-                        },
-                        {
-                            "tooltip": ["Stop " + self.name],
-                            "message": "Stop " + self.name,
-                        },
+                        dataclasses.anonymous_button_definition(
+                            on_click=[(self.middle, [])],
+                            tooltip=["Start " + self.name],
+                            message="Start " + self.name,
+                        ),
+                        dataclasses.anonymous_button_definition(
+                            on_click=[],
+                            tooltip=["Stop " + self.name],
+                            message="Stop " + self.name,
+                        ),
                     ],
                 }
             )

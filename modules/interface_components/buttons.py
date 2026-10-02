@@ -17,7 +17,7 @@ from modules.util import (
 from modules.constructs import item_types, equipment_types
 from modules.constructs.actor_types import actors
 from modules.interface_components import interface_elements
-from modules.constants import constants, status, flags
+from modules.constants import constants, status, flags, dataclasses
 
 
 class button(interface_elements.interface_element):
@@ -2521,11 +2521,16 @@ class anonymous_button(button):
             None
         """
         self.notification = input_dict.get("notification", None)
-        button_info_dict = input_dict["button_type"]
-        self.on_click_info = button_info_dict.get("on_click", [])
-        self.can_show_info = button_info_dict.get("can_show", [])
-        self.tooltip = button_info_dict["tooltip"]
-        self.message = button_info_dict.get("message")
+        assert (
+            type(input_dict["button_type"]) == dataclasses.anonymous_button_definition
+        )
+        self.anonymous: dataclasses.anonymous_button_definition = input_dict[
+            "button_type"
+        ]
+        # self.on_click_info = button_info_dict.get("on_click", [])
+        # self.can_show_info = button_info_dict.get("can_show", [])
+        # self.tooltip = button_info_dict["tooltip"]
+        # self.message = button_info_dict.get("message")
 
         super().__init__(input_dict)
         self.font = constants.fonts[constants.DEFAULT_NOTIFICATION_FONT]
@@ -2536,30 +2541,29 @@ class anonymous_button(button):
 
     def can_show(self, skip_parent_collection=False):
         """
-        Returns True if all callables in can_show_info return True with their respective arguments and the button can otherwise be shown
+        Returns whether this anonymous button can be shown
         """
-        return all(
-            func(*args) for func, args in self.can_show_info
-        ) and super().can_show(skip_parent_collection=skip_parent_collection)
+        return self.anonymous.anonymous_can_show() and super().can_show(
+            skip_parent_collection=skip_parent_collection
+        )
 
     def on_click(self):
         """
-        Controls this button's behavior when clicked. Choice buttons remove their notifications when clicked, along with the normal behaviors associated with their button_type
+        Controls this anonymous button's behavior when clicked
         """
         super().on_click()
-        for func, args in self.on_click_info:
-            func(*args)
+        self.anonymous.anonymous_on_click()
         if self.in_notification:
             self.notification.on_click(choice_button_override=True)
 
     def draw(self):
         """
-        Draws this button below its choice notification and draws a description of what it does on top of it
+        Draws this button below its notification and draws a description of what it does on top of it
         """
         super().draw()
         if self.showing and self.in_notification:
             constants.game_display.blit(
-                text_utility.text(self.message, self.font),
+                text_utility.text(self.anonymous.message, self.font),
                 (
                     self.x + scaling.scale_width(10),
                     constants.display_height - (self.y + self.height),
@@ -2571,7 +2575,7 @@ class anonymous_button(button):
         """
         Provides the tooltip for this object
         """
-        return self.tooltip
+        return self.anonymous.anonymous_tooltip
 
 
 class map_mode_button(button):

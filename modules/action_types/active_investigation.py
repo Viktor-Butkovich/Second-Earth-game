@@ -5,7 +5,7 @@ import random
 from typing import Tuple, Dict, List
 from modules.util import text_utility, minister_utility, utility
 from modules.action_types import actions
-from modules.constants import constants, status, flags
+from modules.constants import constants, status, flags, dataclasses
 
 
 class active_investigation(actions.campaign):
@@ -132,12 +132,16 @@ class active_investigation(actions.campaign):
                     "message": self.generate_notification_text("confirmation"),
                     "transfer_interface_elements": True,
                     "choices": [
-                        {
-                            "on_click": [(self.middle, [])],
-                            "tooltip": ["Starts an active investigation"],
-                            "message": "Start investigation",
-                        },
-                        {"tooltip": ["Cancel"], "message": "Cancel"},
+                        dataclasses.anonymous_button_definition(
+                            on_click=[(self.middle, [])],
+                            tooltip=["Starts an active investigation"],
+                            message="Start investigation",
+                        ),
+                        dataclasses.anonymous_button_definition(
+                            on_click=[],
+                            tooltip=["Cancel"],
+                            message="Cancel",
+                        ),
                     ],
                 }
             )

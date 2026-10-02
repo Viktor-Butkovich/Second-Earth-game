@@ -5,7 +5,7 @@ from typing import List
 from modules.interface_components import buttons, action_notifications
 from modules.util import utility, text_utility, scaling
 from modules.constructs import unit_types
-from modules.constants import constants, status, flags
+from modules.constants import constants, status, flags, dataclasses
 
 
 class choice_notification(action_notifications.action_notification):
@@ -43,7 +43,14 @@ class choice_notification(action_notifications.action_notification):
         button_types = input_dict["button_types"]
         self.insert_collection_above()
         for current_button_type_index in range(len(button_types)):
-            if type(button_types[current_button_type_index]) == dict:
+            print(
+                button_types[current_button_type_index],
+                type(button_types[current_button_type_index]),
+            )
+            if (
+                type(button_types[current_button_type_index])
+                == dataclasses.anonymous_button_definition
+            ):
                 init_type = constants.ANONYMOUS_BUTTON
             elif (
                 button_types[current_button_type_index]

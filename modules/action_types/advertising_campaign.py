@@ -13,7 +13,7 @@ from modules.util import (
 )
 from modules.constructs import item_types
 from modules.action_types import actions
-from modules.constants import constants, status, flags
+from modules.constants import constants, status, flags, dataclasses
 
 
 class advertising_campaign(actions.campaign):
@@ -271,14 +271,18 @@ class advertising_campaign(actions.campaign):
                     "message": action_utility.generate_risk_message(self, unit)
                     + self.generate_notification_text("confirmation"),
                     "choices": [
-                        {
-                            "on_click": [(self.middle, [])],
-                            "tooltip": [
+                        dataclasses.anonymous_button_definition(
+                            on_click=[(self.middle, [])],
+                            tooltip=[
                                 f"Starts an {self.name} for {self.target_item.name}"
                             ],
-                            "message": "Start campaign",
-                        },
-                        {"tooltip": [f"Stop {self.name}"], "message": "Stop campaign"},
+                            message="Start campaign",
+                        ),
+                        dataclasses.anonymous_button_definition(
+                            on_click=[],
+                            tooltip=[f"Stop {self.name}"],
+                            message="Stop campaign",
+                        ),
                     ],
                 }
             )

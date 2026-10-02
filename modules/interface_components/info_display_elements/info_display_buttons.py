@@ -17,7 +17,7 @@ from modules.util import (
 )
 from modules.constructs import minister_types
 from modules.constructs.actor_types import actors
-from modules.constants import constants, status, flags
+from modules.constants import constants, status, flags, dataclasses
 
 
 class embark_all_passengers_button(buttons.button):
@@ -740,18 +740,18 @@ class embark_vehicle_button(buttons.button):
                                 {
                                     "message": f"There are {len(vehicles)} possible vehicles to embark - click next until you find the vehicle you would like to embark. /n /n",
                                     "choices": [
-                                        {
-                                            "on_click": [
+                                        dataclasses.anonymous_button_definition(
+                                            on_click=[
                                                 (
                                                     self.finish_embark_vehicle,
                                                     [rider, vehicle],
                                                 )
                                             ],
-                                            "tooltip": ["Embarks this vehicle"],
-                                            "message": "Embark",
-                                        },
-                                        {
-                                            "on_click": [
+                                            tooltip=["Embarks this vehicle"],
+                                            message="Embark",
+                                        ),
+                                        dataclasses.anonymous_button_definition(
+                                            on_click=[
                                                 (
                                                     self.skip_embark_vehicle,
                                                     [
@@ -761,11 +761,11 @@ class embark_vehicle_button(buttons.button):
                                                     ],
                                                 )
                                             ],
-                                            "tooltip": [
+                                            tooltip=[
                                                 "Cycles to the next possible vehicle"
                                             ],
-                                            "message": "Next vehicle",
-                                        },
+                                            message="Next vehicle",
+                                        ),
                                     ],
                                 }
                             )
