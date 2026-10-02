@@ -71,6 +71,9 @@ class workflow(ABC):
         else:
             return {}
 
+    def start_workflow(self) -> None:
+        return
+
     def populate_container(self) -> None:
         right_upper_menu_button_size = 40
         right_upper_menu_separation = 10
@@ -292,6 +295,7 @@ class workflow_container(containers.container):
         self.central_lower_menu: interface_elements.ordered_collection = None
         self.close_workflow_button: close_workflow_button = None
         self.title_label: labels.label = None
+        self.workflow.start_workflow()
         self.workflow.populate_container()
 
     def remove(self):

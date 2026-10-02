@@ -3,7 +3,7 @@ from modules.constants import constants, status, flags, dataclasses
 from modules.interface_components import selectors, interface_elements, labels, buttons
 from modules.workflow_types import workflows
 from modules.util import scaling, actor_utility, text_utility, surface_utility
-from modules.constructs import building_types
+from modules.constructs import building_types, zones
 from typing import Dict, Any
 
 
@@ -20,6 +20,8 @@ class design_building_workflow(workflows.workflow):
         self.container_init_type: str = constants.DESIGN_BUILDING_CONTAINER
         self.description: str = "building design panel"
         self.current_container: design_building_container = None
+        self.selected_building_type: building_types.building_type = None
+        self.selected_zone: zones.zone = None
 
     @property
     def workflow_title(self) -> str:
@@ -51,6 +53,7 @@ class design_building_workflow(workflows.workflow):
     def select_building_type(
         self, selected_building_type: building_types.building_type
     ) -> None:
+        self.selected_building_type = selected_building_type
         if self.current_container.total_cost_collection:
             self.current_container.total_cost_collection.clear()
             total_cost = selected_building_type.cost_per_attempt.multiply(
@@ -72,6 +75,12 @@ class design_building_workflow(workflows.workflow):
             self.current_container.successes_required_label.set_label(
                 f"Successes Required: {selected_building_type.required_successes}"
             )
+
+    def start_workflow(self) -> None:
+        super().start_workflow()
+        # Target building type is already set by dropdown selector finish_init()
+        assert status.displayed_zone is not None
+        self.selected_zone = status.displayed_zone
 
     def populate_container(self) -> None:
         super().populate_container()
@@ -229,8 +238,16 @@ class design_building_workflow(workflows.workflow):
         """
 
     def finalize(self) -> None:
-        print("Finalizing")
+        assert self.selected_building_type and self.selected_zone
+        print(
+            f"Finalizing design of {self.selected_building_type.name} in zone {self.selected_zone.within_tile_coordinates}"
+        )
         self.close()
+
+    def close(self) -> None:
+        self.selected_building_type = None
+        self.selected_zone = None
+        super().close()
 
 
 class design_building_container(workflows.workflow_container):

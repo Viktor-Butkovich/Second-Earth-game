@@ -82,6 +82,19 @@ class zone:
         tooltip_message = [f"Placeholder Zone Tooltip ({self.x}, {self.y})"]
         return tooltip_message
 
+    @property
+    def within_tile_coordinates(self) -> Tuple[float, float]:
+        return (
+            round(
+                self.parent_location.x + (self.x / constants.zone_grid_coordinate_size),
+                1,
+            ),
+            round(
+                self.parent_location.y + (self.y / constants.zone_grid_coordinate_size),
+                1,
+            ),
+        )
+
     def add_building(self, building: buildings.building) -> None:
         self.zone_buildings.append(building)
         self.parent_location.zones_with_surfaces.add(self)

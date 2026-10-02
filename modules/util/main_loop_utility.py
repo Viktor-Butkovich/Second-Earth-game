@@ -470,6 +470,7 @@ def action_possible():
         or (not flags.player_turn)
         or constants.SelectorManager.any_active()
         or (status.displayed_container and status.displayed_container.repositioning)
+        or (status.displayed_container and status.displayed_container.lock_actions)
     )
 
 

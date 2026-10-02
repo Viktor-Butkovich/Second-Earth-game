@@ -58,6 +58,29 @@ class container(interface_elements.interface_collection):
         """
         return self.image.touching_mouse()
 
+    def on_click(self) -> None:
+        """
+        Manages this container's behavior when clicked. Having on_click defined absorbs mouse click events rather than
+            clicking whatever is under the container.
+        """
+        return
+
+    def on_release(self) -> None:
+        return
+
+    def on_rmb_click(self) -> None:
+        return
+
+    def on_rmb_release(self) -> None:
+        return
+
+    @property
+    def lock_actions(self) -> bool:
+        """
+        Returns whether this container locks action_possible()
+        """
+        return True
+
     def can_show_tooltip(self) -> bool:
         """
         Returns whether this container's tooltip can currently be shown

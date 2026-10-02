@@ -419,6 +419,8 @@ class interface_collection(interface_element):
         for member in self.members.copy():
             self.remove_member(member)
             member.remove_recursive()
+        self.new_member_order_x_offset = 0
+        self.new_member_order_y_offset = 0
 
     def calibrate(self, new_actor: actors.actor, override_exempt: bool = False) -> None:
         """

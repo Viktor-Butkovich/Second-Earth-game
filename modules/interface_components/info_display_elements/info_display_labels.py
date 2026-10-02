@@ -1220,17 +1220,9 @@ class actor_display_label(labels.label):
                 self.set_label(f"{self.message_start}({new_actor.x}, {new_actor.y})")
 
             elif self.actor_label_type == constants.ZONE_COORDINATES_LABEL:
-                relative_x = round(
-                    new_actor.parent_location.x
-                    + (new_actor.x / constants.zone_grid_coordinate_size),
-                    1,
+                self.set_label(
+                    f"{self.message_start}{new_actor.within_tile_coordinates}"
                 )
-                relative_y = round(
-                    new_actor.parent_location.y
-                    + (new_actor.y / constants.zone_grid_coordinate_size),
-                    1,
-                )
-                self.set_label(f"{self.message_start}({relative_x}, {relative_y})")
 
             elif self.actor_label_type == constants.TERRAIN_LABEL:
                 if not new_actor.is_abstract_location:
