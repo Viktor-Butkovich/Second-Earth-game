@@ -35,31 +35,44 @@ class building:
         )
         self.subscribed_zone: zones.zone = input_dict["zone"]
         self.damaged = False
+        self.build_progress: float = None
         self.upgrade_fields: Dict[str, int] = {}
         for upgrade_field in self.building_type.upgrade_fields:
             self.upgrade_fields[upgrade_field] = input_dict.get(upgrade_field, 1)
         status.building_list.append(self)
-        if self.building_type.warehouse_level > 0:
-            self.location.warehouse_level.set_modifier(
-                self, self.building_type.warehouse_level
-            )
-        if from_save:
-            if self.building_type.can_damage:
-                self.set_damaged(input_dict["damaged"], mid_setup=True)
-
-        if (not from_save) and self.building_type.can_damage:
-            self.set_damaged(False, True)
         self.zone.add_building(self)
+        if from_save:
+            self.build_progress = input_dict["build_progress"]
+            if self.building_type.can_damage:
+                self.set_damaged(input_dict["damaged"])
+            if self.built:
+                if self.building_type.warehouse_level > 0:
+                    self.apply_warehouse_modifier()
+                if (
+                    constants.EffectManager.effect_active("damaged_buildings")
+                    and self.building_type.can_damage
+                ):
+                    self.set_damaged(True)
+        else:
+            self.build_progress = 0.0
+            if self.building_type.can_damage:
+                self.set_damaged(False)
 
-        if (
-            constants.EffectManager.effect_active("damaged_buildings")
-            and self.building_type.can_damage
-        ):
-            self.set_damaged(True, mid_setup=True)
+        # Only do this when the building is actually built. And figure out what to do with the warehouse initialization - probably put it in here and at load-time
 
+    @property
+    def built(self) -> bool:
+        return round(self.build_progress, 2) >= 1.0
+
+    def complete_construction(self) -> None:
+        """
+        Resolves the building switching from unbuilt to built
+        """
+        self.build_progress = 1.0
+        self.apply_warehouse_modifier()
         if (
-            (not from_save)
-            and self.building_type.attached_settlement
+            # (not from_save)
+            self.building_type.attached_settlement
             and not self.location.settlement
         ):
             constants.ActorCreationManager.create(
@@ -69,6 +82,18 @@ class building:
                     "location": self.location,
                 },
             )
+
+    def apply_warehouse_modifier(self) -> None:
+        """
+        Updates the location warehouse modifier for this building
+        """
+        if self.building_type.warehouse_level > 0 and self.built:
+            if self.damaged:
+                self.location.warehouse_level.set_modifier(self, 0)
+            else:
+                self.location.warehouse_level.set_modifier(
+                    self, self.building_type.warehouse_level
+                )
 
     @property
     def zone(self) -> zones.zone:
@@ -106,12 +131,14 @@ class building:
                 'building_type': string value - Type of building, like 'port'
                 'image': string value - File path to the image used by this object
                 'damaged': boolean value - whether this building is currently damaged
+                'build_progress': float value - the progress of the building's construction, ranging from 0.0 to 1.0
         """
         return {
             **self.upgrade_fields,
             "init_type": self.building_type.key,
             "damaged": self.damaged,
             "zone_coordinates": (self.zone.x, self.zone.y),
+            "build_progress": self.build_progress,
         }
 
     def remove(self):
@@ -146,7 +173,7 @@ class building:
             )
         return tooltip_text
 
-    def set_damaged(self, new_value, mid_setup=False):
+    def set_damaged(self, new_value):
         """
         Description:
             Repairs or damages this building based on the inputted value. A damaged building still provides attrition resistance but otherwise loses its specialized capabilities
@@ -158,16 +185,10 @@ class building:
         self.damaged = new_value
         if self.building_type == constants.INFRASTRUCTURE:
             actor_utility.update_roads()
-        if self.building_type.warehouse_level > 0:
-            if new_value == True:
-                self.location.warehouse_level.set_modifier(self, 0)
-            else:
-                self.location.warehouse_level.set_modifier(
-                    self, self.building_type.warehouse_level
-                )
-            # The network of managed modifiers means this temporarily sets the warehouse level contribution from this building to
-            #   0, which then decreases inventory capacity by the correct amount. Upon repair, set the modifier back to the
-            #   building type's warehouse level to restore the original state.
+        self.apply_warehouse_modifier()
+        # The network of managed modifiers means this temporarily sets the warehouse level contribution from this building to
+        #   0, which then decreases inventory capacity by the correct amount. Upon repair, set the modifier back to the
+        #   building type's warehouse level to restore the original state.
         constants.EventBus.publish(self.uuid, constants.BUILDING_SET_DAMAGED_ROUTE)
 
     def get_build_cost(self):
@@ -202,25 +223,34 @@ class building:
         Output:
             list: Returns list of string image file paths, possibly combined with string key dictionaries with extra information for offset images
         """
-        if self.building_type.display_coordinates == (0, 0):
-            modifiers = {
-                "level": constants.BUILDING_LEVEL,
-            }
-        else:  # If not centered, make smaller and move to one of 6 top/bottom slots
-            modifiers = {
-                "size": 0.75 * 0.45,
-                "x_offset": self.building_type.display_coordinates[0] * 0.33,
-                "y_offset": self.building_type.display_coordinates[1] * 0.33,
-                "level": constants.BUILDING_LEVEL,
-            }
+        if False:  # Deprecated logic
+            if self.building_type.display_coordinates == (0, 0):
+                modifiers = {
+                    "level": constants.BUILDING_LEVEL,
+                }
+            else:
+                raise Exception  # Non-origin building coordinates are no longer applicable with the zone building system
+            # else:  # If not centered, make smaller and move to one of 6 top/bottom slots
+            #    modifiers = {
+            #        "size": 0.75 * 0.45,
+            #        "x_offset": self.building_type.display_coordinates[0] * 0.33,
+            #        "y_offset": self.building_type.display_coordinates[1] * 0.33,
+            #        "level": constants.BUILDING_LEVEL,
+            #    }
+        modifiers = {
+            "level": constants.BUILDING_LEVEL,
+        }
         return_list = [
             {
                 **image_id,
                 **modifiers,
             }
-            for image_id in self.building_type.image_id_list
+            for image_id in self.building_type.get_image_id_list(
+                build_progress=self.build_progress
+            )
         ]
         if self.building_type == constants.RESOURCE:
+            raise Exception("Placeholder - resource buildings not yet implemented")
             return_list[0]["green_screen"] = constants.quality_colors[
                 self.upgrade_fields[constants.RESOURCE_EFFICIENCY]
             ]  # Set box to quality color based on efficiency

@@ -61,53 +61,17 @@ class construction(actions.action):
     @property
     def tooltip_text(self) -> List[str]:
         """
-        Provides the tooltip for this object
+        Description:
+            Provides the tooltip for this action
+        Input:
+            None
+        Output:
+            List[str]: Returns the string list tooltip for this action
         """
-        message = []
-        message.append(f"Attempts to build a {self.building_name} in this location")
-        message += self.building_type.description
-        if self.building_type.key == constants.INFRASTRUCTURE:
-            if self.building_name == constants.RAILROAD:
-                message += [
-                    "Upgrades this location's road into a railroad, retaining the benefits of a road"
-                ]
-            elif self.building_name == "railroad bridge":
-                message += [
-                    "Upgrades this location's road bridge into a railroad bridge, retaining the benefits of a road bridge"
-                ]
-            elif self.building_name == "road bridge":
-                message += ["Upgrades this location's ferry into a road bridge"]
-
-        if self.building_type.key == constants.TRAIN:
-            message.append("Can only be assembled at a train station")
-
-        if self.building_type.warehouse_level > 0:
-            message.append(
-                f"Also increases this location's warehouse capacity by {9 * self.building_type.warehouse_level} slots"
-            )
-
-        base_cost = actor_utility.get_building_cost(
-            None, self.building_type.key, self.building_name
-        )
-        cost = actor_utility.get_building_cost(
-            status.displayed_mob, self.building_type.key, self.building_name
-        )
-
-        message.append(
-            f"Attempting to build costs {cost} money and all remaining movement points, at least 1"
-        )
-        if self.building_type.key in [constants.TRAIN]:
-            message.append(
-                "Unlike buildings, the cost of vehicle assembly is not impacted by local terrain"
-            )
-
-        if status.displayed_mob and not status.displayed_mob.location.is_earth_location:
-            terrain_type = status.displayed_mob.location.terrain_type
-            if not self.building_type.key in [constants.TRAIN]:
-                message.append(
-                    f"{utility.generate_capitalized_article(self.building_name)}{self.building_name} {utility.conjugate('cost', 1, self.building_name)} {base_cost} money by default, which is multiplied by {terrain_type.build_cost_multiplier} when built in {terrain_type.name} terrain"
-                )
-        return message
+        return [
+            f"Attempts to build a {self.building_name} in this location",
+            *self.building_type.description,
+        ]
 
     def generate_notification_text(self, subject):
         """

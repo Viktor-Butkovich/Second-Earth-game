@@ -1398,11 +1398,11 @@ class full_world_handler(world_handlers.world_handler):
         )
         # Toxic cloud frequency depends on both toxic gas % and total pressure
 
-        pressure_alpha = max(0, self.get_pressure_ratio() * 7 - 14)
-        toxic_alpha = min(
-            255, math.log(1 + (self.get_pressure_ratio(constants.TOXIC_GASES)), 2) * 255
+        pressure_opacity = max(0, self.get_pressure_ratio() * 7 - 14) * (255 / 100)
+        toxic_opacity = min(
+            100, math.log(1 + (self.get_pressure_ratio(constants.TOXIC_GASES)), 2) * 100
         )
-        self.atmosphere_haze_alpha = min(255, pressure_alpha + toxic_alpha)
+        self.atmosphere_haze_opacity = min(100, pressure_opacity + toxic_opacity)
         # Atmosphere haze depends on total pressure, with toxic gases greatly over-represented
 
     def update_clouds(self) -> None:
@@ -1432,7 +1432,7 @@ class full_world_handler(world_handlers.world_handler):
             1,
             self.cloud_frequency
             + self.toxic_cloud_frequency
-            + (self.atmosphere_haze_alpha / 255),
+            + (self.atmosphere_haze_opacity / 100),
         )
 
         average_brightness = sum(
@@ -1993,14 +1993,16 @@ class full_world_handler(world_handlers.world_handler):
                 if threshold <= 3 or abs(longitude_bulge_factor) > 0.5:
                     sky_effect["x_size"] *= 0.4
 
-                sky_effect["alpha"] = 75
+                sky_effect["opacity"] = 75 * (100 / 255)
                 pressure_ratio = self.get_pressure_ratio()
                 if pressure_ratio <= 1.0:  # More transparent for lower pressure
-                    sky_effect["alpha"] = 50 + int(25 * min(pressure_ratio, 1))
-                else:  # Less transparent for higher pressure
-                    sky_effect["alpha"] = 75 + int(
-                        25 * min((pressure_ratio - 1) / 99, 1)
+                    sky_effect["opacity"] = (50 + int(25 * min(pressure_ratio, 1))) * (
+                        100 / 255
                     )
+                else:  # Less transparent for higher pressure
+                    sky_effect["opacity"] = (
+                        75 + int(25 * min((pressure_ratio - 1) / 99, 1))
+                    ) * (100 / 255)
                 if offset != 0:
                     x_offset_magnitude = 0.02
                     if (

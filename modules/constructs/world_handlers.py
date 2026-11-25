@@ -68,7 +68,9 @@ class world_handler:
             self.toxic_cloud_frequency: float = input_dict.get(
                 "toxic_cloud_frequency", 0.0
             )
-            self.atmosphere_haze_alpha: int = input_dict.get("atmosphere_haze_alpha", 0)
+            self.atmosphere_haze_opacity: int = input_dict.get(
+                "atmosphere_haze_opacity", 0
+            )
 
             self.steam_color = input_dict.get("steam_color", [0, 0, 0])
             self.global_parameters: Dict[str, int] = {}
@@ -345,7 +347,7 @@ class world_handler:
             "albedo_multiplier": self.albedo_multiplier,
             "cloud_frequency": self.cloud_frequency,
             "toxic_cloud_frequency": self.toxic_cloud_frequency,
-            "atmosphere_haze_alpha": self.atmosphere_haze_alpha,
+            "atmosphere_haze_opacity": self.atmosphere_haze_opacity,
         }
 
     def get_green_screen(

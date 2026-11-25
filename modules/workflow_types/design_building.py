@@ -242,6 +242,17 @@ class design_building_workflow(workflows.workflow):
         print(
             f"Finalizing design of {self.selected_building_type.name} in zone {self.selected_zone.within_tile_coordinates}"
         )
+        constants.ActorCreationManager.create(
+            from_save=False,
+            input_dict={
+                "init_type": self.selected_building_type.key,
+                "zone": self.selected_zone,
+            },
+        )
+        status.location_mode_focus.focus_location(force_refresh=True)
+        actor_utility.calibrate_actor_info_display(
+            status.location_info_display, status.displayed_location
+        )
         self.close()
 
     def close(self) -> None:

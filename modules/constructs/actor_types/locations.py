@@ -1252,11 +1252,11 @@ class location(actors.actor):
                     "detail_level": constants.CLOUDS_DETAIL_LEVEL,
                 }
             )
-        if self.world_handler.atmosphere_haze_alpha > 0:
+        if self.world_handler.atmosphere_haze_opacity > 0:
             self.current_clouds.append(
                 {
                     "image_id": f"terrains/clouds_solid_{random.randrange(0, num_solid_cloud_variants)}.png",
-                    "alpha": self.world_handler.atmosphere_haze_alpha,
+                    "opacity": self.world_handler.atmosphere_haze_opacity,
                     "detail_level": constants.CLOUDS_DETAIL_LEVEL,
                     "green_screen": {
                         "clouds": {
@@ -1326,7 +1326,7 @@ class location(actors.actor):
             if (
                 (not allow_mapmodes)
                 or constants.current_map_mode == "terrain"
-                or constants.MAP_MODE_ALPHA
+                or constants.MAP_MODE_OPACITY != 100
             ):
                 image_id_list.append(
                     {
@@ -1449,8 +1449,8 @@ class location(actors.actor):
                         "level": constants.MAP_MODE_LEVEL,
                     }
                 )
-                if constants.MAP_MODE_ALPHA:
-                    image_id_list[-1]["alpha"] = constants.MAP_MODE_ALPHA
+                if constants.MAP_MODE_OPACITY != 100:
+                    image_id_list[-1]["opacity"] = constants.MAP_MODE_OPACITY
         return image_id_list
 
     def get_mob_image_id_list(self):

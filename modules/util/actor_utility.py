@@ -60,6 +60,7 @@ def get_building_cost(builder: mobs.mob, building_type, building_name="n/a") -> 
     Output:
         int: Returns the cost of the inputted unit attempting to construct the inputted building
     """
+    raise Exception("Building money cost deprecated")
     if building_type == constants.INFRASTRUCTURE:
         building_type = building_name.replace(
             " ", "_"

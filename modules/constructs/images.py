@@ -131,7 +131,12 @@ class image_bundle(image):
     An image can be set to an image bundle rather than a string image path
     """
 
-    def __init__(self, parent_image, image_id_list, pixellate_bundle: bool = False):
+    def __init__(
+        self,
+        parent_image,
+        image_id_list,
+        use_per_pixel_alpha: bool = False,
+    ):
         """
         Description:
             Initializes this object
@@ -151,6 +156,7 @@ class image_bundle(image):
         """
         self.image_type = "bundle"
         self.combined_surface = None
+        self.use_per_pixel_alpha = use_per_pixel_alpha
         super().__init__(parent_image.width, parent_image.height)
         self.parent_image = parent_image
         self.members = []
@@ -169,6 +175,9 @@ class image_bundle(image):
                     f"Invalid image_id_list of type {type(image_id_list)}", e
                 )
             self.members = image_id_list.members
+            self.use_per_pixel_alpha = getattr(
+                image_id_list, "use_per_pixel_alpha", use_per_pixel_alpha
+            )
             self.combined_surface = pygame.transform.scale(
                 image_id_list.combined_surface, (self.width, self.height)
             )
@@ -244,6 +253,16 @@ class image_bundle(image):
                     blit_sequence.append((member.image, (0, 0)))
         return blit_sequence
 
+    def requires_per_pixel_alpha(self) -> bool:
+        if self.use_per_pixel_alpha:
+            return True
+        for member in self.members:
+            if type(member) == image_bundle and member.requires_per_pixel_alpha():
+                return True
+            if member.is_offset and (member.opacity != 100 or member.per_pixel_alpha):
+                return True
+        return False
+
     def generate_combined_surface(self):
         """
         Description:
@@ -253,14 +272,19 @@ class image_bundle(image):
         Output:
             pygame.Surface: Returns a Pygame Surface that is a combination of each of this bundle's images
         """
-        # this is running whenever image is set, even if being set to same image as another bundle
-        combined_surface = pygame.Surface(
-            (self.width, self.height), pygame.HWSURFACE | pygame.DOUBLEBUF
-        )  # has strange interaction with smoke effects
-        combined_surface.fill(constants.color_dict[constants.COLOR_TRANSPARENT])
-        combined_surface.set_colorkey(
-            constants.color_dict[constants.COLOR_TRANSPARENT], pygame.RLEACCEL
-        )
+        if self.requires_per_pixel_alpha():
+            combined_surface = pygame.Surface(
+                (self.width, self.height), pygame.SRCALPHA
+            )
+            combined_surface.fill((0, 0, 0, 0))
+        else:
+            combined_surface = pygame.Surface(
+                (self.width, self.height), pygame.HWSURFACE | pygame.DOUBLEBUF
+            )
+            combined_surface.fill(constants.color_dict[constants.COLOR_TRANSPARENT])
+            combined_surface.set_colorkey(
+                constants.color_dict[constants.COLOR_TRANSPARENT], pygame.RLEACCEL
+            )
         blit_sequence = self.get_blit_sequence()
         if blit_sequence:
             combined_surface.blits(blit_sequence)
@@ -412,13 +436,14 @@ class bundle_image:
                 "abs_y_offset", 0
             )  # Absolute y offset, in pixels
             self.level = image_id.get("level", 0)
-            self.alpha = image_id.get("alpha", 255)
+            self.opacity = image_id.get("opacity", 100)
             self.detail_level = image_id.get(
                 "detail_level", constants.BUNDLE_IMAGE_DETAIL_LEVEL
             )
             self.override_green_screen_colors = image_id.get(
                 "override_green_screen_colors", []
             )
+            self.per_pixel_alpha = image_id.get("per_pixel_alpha", False)
             if image_id.get("override_width", None):
                 self.override_width = image_id["override_width"]
             if image_id.get("override_height", None):
@@ -440,6 +465,24 @@ class bundle_image:
                 self.color_filter = image_id["color_filter"]
             else:
                 self.has_color_filter = False
+            self.clip_to_vertical_range: Tuple[int, int] = image_id.get(
+                "clip_to_vertical_range", None
+            )
+            if self.clip_to_vertical_range is not None:
+                assert all(
+                    [
+                        type(self.clip_to_vertical_range) == tuple,
+                        len(self.clip_to_vertical_range) == 2,
+                        type(self.clip_to_vertical_range[0]) == int,
+                        type(self.clip_to_vertical_range[1]) == int,
+                        self.clip_to_vertical_range[0] >= 0,
+                        self.clip_to_vertical_range[1] <= 100,
+                    ]
+                )
+            self.clip_to_image: str = image_id.get("clip_to_image", None)
+            if self.clip_to_image is not None:
+                assert type(self.clip_to_image) == str
+                self.clip_to_image = f"graphics/{self.clip_to_image}"
             self.pixellated = image_id.get("pixellated", False)
             self.light_pixellated = image_id.get("light_pixellated", False)
             if "font" in image_id:
@@ -546,8 +589,12 @@ class bundle_image:
             if self.pixellated:
                 non_pixellated_key = key
                 key += "pixellated"
-            if self.alpha != 255:
-                key += str(self.alpha)
+            if self.opacity != 100:
+                key += str(self.opacity)
+            if self.clip_to_vertical_range is not None:
+                key += str(self.clip_to_vertical_range)
+            if self.clip_to_image is not None:
+                key += str(self.clip_to_image)
         if key in status.cached_images:  # if image already loaded, use it
             self.image = status.cached_images[key]
         else:  # If image not loaded, load it and add it to the loaded images
@@ -555,10 +602,14 @@ class bundle_image:
                 self.text = False
                 if not pathlib.Path(full_image_id).exists():
                     raise FileNotFoundError(f"Image file not found: {full_image_id}")
-                self.image = self.load_image_pil(full_image_id)
+                self.image = self.load_image_pil(full_image_id).convert_alpha()
             else:
                 self.text = True
                 self.image = text_utility.text(self.image_id, self.font)
+                if self.is_offset and self.opacity != 100:
+                    self.image.set_alpha(
+                        round(self.opacity / 100 * 255)
+                    )  # Opacity from 0-100 to 0-255
             if self.is_offset:
                 if self.light_pixellated:
                     self.image = pygame.transform.scale(
@@ -581,14 +632,13 @@ class bundle_image:
                         self.image = pygame.transform.flip(self.image, True, False)
                     if hashed_key % 4 >= 2:
                         self.image = pygame.transform.flip(self.image, False, True)
-            if self.is_offset and self.alpha != 255:
-                self.image.set_alpha(self.alpha)
             status.cached_images[key] = self.image
 
     def load_image_pil(self, path: str) -> pygame.Surface:
         """
         Description:
-            Loads the inputted image via PIL, applies downscaling, green screen, and color filter processing
+            Loads the inputted image via PIL, applies downscaling, clipping,
+            green screen, and color filter processing.
         Input:
             string path: The path to the image file to be loaded.
         Output:
@@ -596,9 +646,8 @@ class bundle_image:
         """
         pil_img = Image.open(path).convert("RGBA")
 
-        if (
-            self.detail_level != 1
-        ):  # Decrease detail of each image before applying mutations to speed processing
+        # Downscale before mutations to speed processing
+        if self.detail_level != 1:
             w, h = pil_img.size
             pil_img = pil_img.resize(
                 (
@@ -611,11 +660,45 @@ class bundle_image:
         arr = np.array(pil_img)  # (H, W, 4)
         r, g, b, a = arr[:, :, 0], arr[:, :, 1], arr[:, :, 2], arr[:, :, 3]
 
+        # Clip to target's image's opaque region
+        if self.is_offset and self.clip_to_image is not None:
+            clip_img = Image.open(self.clip_to_image).convert("RGBA")
+
+            # Downscale clip mask to match
+            if self.detail_level != 1:
+                clip_img = clip_img.resize(
+                    (arr.shape[1], arr.shape[0]),
+                    Image.NEAREST,
+                )
+
+            clip_arr = np.array(clip_img)
+            if clip_arr.shape != arr.shape:
+                raise ValueError(
+                    f"clip_to_image resolution mismatch: {clip_arr.shape} vs {arr.shape}"
+                )
+
+            clip_alpha = clip_arr[:, :, 3].astype(np.uint16)
+            a = ((a.astype(np.uint16) * clip_alpha) // 255).astype(np.uint8)
+
+        # Clip to an integer vertical range, such a (60, 100) to keep the lower 40% of the image
+        if self.is_offset and self.clip_to_vertical_range is not None:
+            y_lo_pct, y_hi_pct = self.clip_to_vertical_range
+            h = a.shape[0]  # Image height
+
+            # Convert percent to pixel index
+            y_lo = int(h * (y_lo_pct / 100.0))
+            y_hi = int(h * (y_hi_pct / 100.0))
+            mask = np.zeros_like(a, dtype=bool)
+            mask[y_lo:y_hi, :] = True
+            a[~mask] = 0
+
+        # Green screen processing
         if self.is_offset and self.has_green_screen:
+            visible = a > 0  # Only mutate visible pixels
             if isinstance(
                 self.green_screen_colors, dict
-            ):  # If tolerance-based replacement
-                unassigned = np.ones(r.shape, dtype=bool)
+            ):  # tolerance-based replacement
+                unassigned = visible.copy()
                 for terrain_type, metadata in self.green_screen_colors.items():
                     base_colors, tolerance, repl = (
                         metadata["base_colors"],
@@ -633,7 +716,7 @@ class bundle_image:
                         if not np.any(mask):
                             continue
 
-                        # difference proportion (clamped to 1.5)
+                        # Difference proportion (clamped to 1.5)
                         dr = np.minimum(r[mask] / base_r, 1.5) if base_r != 0 else 1
                         dg = np.minimum(g[mask] / base_g, 1.5) if base_g != 0 else 1
                         db = np.minimum(b[mask] / base_b, 1.5) if base_b != 0 else 1
@@ -643,7 +726,6 @@ class bundle_image:
                         b[mask] = np.clip(np.round(repl[2] * db), 0, 255)
 
                         unassigned[mask] = False
-
                         if (
                             not unassigned.any()
                         ):  # Stop if all pixels are already assigned
@@ -656,7 +738,7 @@ class bundle_image:
                     replaced_colors = constants.green_screen_colors
 
                 for idx, (gr, gg, gb) in enumerate(replaced_colors):
-                    mask = (r == gr) & (g == gg) & (b == gb)
+                    mask = (r == gr) & (g == gg) & (b == gb) & (a > 0)
                     if np.any(mask):
                         repl = self.green_screen_colors[idx]
                         r[mask] = repl[0]
@@ -664,12 +746,19 @@ class bundle_image:
                         b[mask] = repl[2]
 
         if self.is_offset and self.has_color_filter:
+            visible = a > 0
+
             rf = self.color_filter.get(constants.COLOR_RED, 1)
             gf = self.color_filter.get(constants.COLOR_GREEN, 1)
             bf = self.color_filter.get(constants.COLOR_BLUE, 1)
-            r[:] = np.clip(np.round(r * rf), 0, 255)
-            g[:] = np.clip(np.round(g * gf), 0, 255)
-            b[:] = np.clip(np.round(b * bf), 0, 255)
+
+            r[visible] = np.clip(np.round(r[visible] * rf), 0, 255)
+            g[visible] = np.clip(np.round(g[visible] * gf), 0, 255)
+            b[visible] = np.clip(np.round(b[visible] * bf), 0, 255)
+
+        if self.is_offset and self.opacity != 100:
+            alpha = round(self.opacity / 100 * 255)
+            a = ((a.astype(np.uint16) * int(alpha)) // 255).astype(np.uint8)
 
         arr = np.stack([r, g, b, a], axis=-1).astype(np.uint8)
         pil_img = Image.fromarray(arr, mode="RGBA")

@@ -119,11 +119,6 @@ class action:
                 f"{utility.generate_article(self.name).capitalize()} {self.name} requires all remaining movement points, at least 1."
             )
             return False
-        elif constants.money < self.get_price():
-            text_utility.print_to_screen(
-                f"You do not have the {self.get_price()} money needed for a {self.name}."
-            )
-            return False
         elif (
             self.actor_type == constants.MOB_ACTOR_TYPE
             and not minister_utility.positions_filled()

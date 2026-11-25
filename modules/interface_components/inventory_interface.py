@@ -242,7 +242,7 @@ class item_icon(buttons.button):
                             image_id.append(
                                 {
                                     "image_id": f"misc/fill_meters/{round((stored_amount - math.floor(stored_amount)) * 10)}.png",
-                                    "alpha": 255 // 2,
+                                    "opacity": 50,
                                 }
                             )  # Show fill meter 1-9 depending on tenth's place
                     self.image.set_image(image_id)

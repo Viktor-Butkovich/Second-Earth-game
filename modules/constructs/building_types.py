@@ -1,6 +1,7 @@
 # Contains functionality for building type templates
 
 from __future__ import annotations
+import math
 from typing import Dict, List, Tuple, Any
 from modules.constants import constants, status, flags, dataclasses
 
@@ -28,7 +29,7 @@ class building_type:
                     'name' - str value - Name of this upgrade type
                     'keybind' - pygame.key value - Keybind to attempt this upgrade type
                 'warehouse_level': int value - Level of warehouse automatically created with this building
-                'display_coordinates': Tuple[int, int] value - Coordinates to display this building type at (within 3 x 3 matrix in location)
+                'display_coordinates': Tuple[int, int] value - Coordinates to display this building type at (within 3 x 3 matrix in location). Deprecated
                 'link_to_adjacent': bool value - Whether this building type can be linked to adjacent buildings, like roads
                 'image_id': List[Any] value - List of image ids for this building type
                 'button_image_id_list': List[Any] value - List of image ids for this building type's construction button
@@ -47,13 +48,20 @@ class building_type:
         self.can_damage: bool = input_dict["can_damage"]
         self.upgrade_fields: Dict[Dict[str, Any]] = input_dict.get("upgrade_fields", {})
         self.warehouse_level: int = input_dict.get("warehouse_level", 0)
-        self.display_coordinates: Tuple[int, int] = input_dict.get(
-            "display_coordinates", (0, 0)
-        )
+        assert (
+            "display_coordinates" not in input_dict
+        )  # Non-origin building coordinates are no longer applicable with the zone building system
+        # self.display_coordinates: Tuple[int, int] = input_dict.get(
+        #    "display_coordinates", (0, 0)
+        # )
         self.link_to_adjacent: bool = input_dict.get("link_to_adjacent", False)
-        self.image_id_list: List[Any] = input_dict.get(
-            "image_id", [{"image_id": f"items/equipment/buildings/{self.key}.png"}]
+        # self.image_id_list: List[Any] = input_dict.get(
+        #    "image_id", [{"image_id": f"items/equipment/buildings/{self.key}.png"}]
+        # )
+        self.background_image_id: str = (
+            f"items/equipment/buildings/{self.key}_background.png"
         )
+        self.icon_image_id: str = f"items/equipment/buildings/{self.key}_icon.png"
         self.button_image_id_list: List[Any] = input_dict.get(
             "button_image_id_list",
             [{"image_id": f"items/equipment/buildings/buttons/{self.key}.png"}],
@@ -89,3 +97,29 @@ class building_type:
             str: The string version of this building type's description
         """
         return " /n /n".join(self.description) + " /n /n"
+
+    def get_image_id_list(self, build_progress: float = None) -> List[Any]:
+        build_progress = 1.0 if build_progress is None else round(build_progress, 2)
+        if build_progress >= 1.0:
+            return [
+                {"image_id": self.background_image_id},
+                {"image_id": self.icon_image_id},
+            ]
+        else:
+            assert build_progress >= 0 and build_progress < 1
+            image_id = [
+                {
+                    "image_id": f"items/equipment/buildings/plan_fill.png",
+                    "clip_to_image": self.background_image_id,
+                    "opacity": 50,
+                },
+                {
+                    "image_id": self.background_image_id,
+                    "clip_to_vertical_range": (
+                        100 - math.floor(build_progress * 100),
+                        100,
+                    ),
+                },
+                {"image_id": self.icon_image_id},
+            ]
+            return image_id
