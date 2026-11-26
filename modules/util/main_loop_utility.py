@@ -235,6 +235,10 @@ def manage_mouse_down(lmb: bool) -> None:
     Output:
         None
     """
+    if constants.SelectorManager.any_active():
+        constants.SelectorManager.on_click(lmb)
+        return
+
     initial_active_dropdown = status.active_dropdown
     clicked_button = False
     for current_interface_element in draw_priority_iterator():
@@ -259,32 +263,26 @@ def manage_mouse_down(lmb: bool) -> None:
                 #   This is utilized by safe click panel to prevent deselecting units while allowing other buttons to be clicked
                 return
 
-    if (
-        action_possible() or constants.SelectorManager.any_active()
-    ) and not clicked_button:  # Only executes if no buttons were clicked
-        if constants.SelectorManager.none_active():
-            # Do not do selecting operations if user was trying to click a button # and action_possible()
-            if constants.current_game_mode == constants.MINISTERS_MODE:
-                minister_utility.calibrate_minister_info_display(None)
-            else:
-                current_cell = actor_utility.get_clicked_cell()
-                if (
-                    current_cell
-                    and current_cell.source.actor_type == constants.LOCATION_ACTOR_TYPE
-                ):
-                    if lmb or len(current_cell.source.subscribed_mobs) < 2:
-                        actor_utility.click_move_minimap(current_cell, select_unit=True)
-                    else:  # Rmb on at least 2 units
-                        actor_utility.cycle_units(current_cell)
-                elif (
-                    current_cell
-                    and current_cell.source.actor_type == constants.ZONE_ACTOR_TYPE
-                ):
-                    actor_utility.click_move_minimap(current_cell, select_unit=True)
-                elif not clicked_button:
-                    actor_utility.click_move_minimap(None)
+    if action_possible():
+        if constants.current_game_mode == constants.MINISTERS_MODE:
+            minister_utility.calibrate_minister_info_display(None)
         else:
-            constants.SelectorManager.on_click(lmb)
+            current_cell = actor_utility.get_clicked_cell()
+            if (
+                current_cell
+                and current_cell.source.actor_type == constants.LOCATION_ACTOR_TYPE
+            ):
+                if lmb or len(current_cell.source.subscribed_mobs) < 2:
+                    actor_utility.click_move_minimap(current_cell, select_unit=True)
+                else:  # Rmb on at least 2 units
+                    actor_utility.cycle_units(current_cell)
+            elif (
+                current_cell
+                and current_cell.source.actor_type == constants.ZONE_ACTOR_TYPE
+            ):
+                actor_utility.click_move_minimap(current_cell, select_unit=True)
+            elif not clicked_button:
+                actor_utility.click_move_minimap(None)
     if (
         initial_active_dropdown == status.active_dropdown
     ):  # Don't close a dropdown that just opened
