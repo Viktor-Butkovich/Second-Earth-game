@@ -505,7 +505,7 @@ If a configuration selector is no longer active for a particular building type, 
     value should be cached if the configuration becomes active again. This should be tracked by the workflow
 """
 
-# Bug: When selecting a unit with a cargo tab, like a colony ship, recruiting a new unit without the cargo tab incorrectly fails to deselect the now-inactive cargo tab. The deselection works correctly when selecting a unit normally (rather than by recruiting)
+
 # Make sure to verify correctness of warehouse capacity on construction
 # Figure out - should actions like construction/production happen before or after upkeep and random events? For
 #   example, if a warehouse is built in the construction phase and there were items that were going to disappear

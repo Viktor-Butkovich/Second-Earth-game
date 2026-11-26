@@ -597,17 +597,18 @@ def select_interface_tab(
         and not status.displayed_location
     ):
         return
-    if (
-        tabbed_collection
-        in [status.location_inventory_collection, status.mob_inventory_collection]
-        or not target_tab.showing
-    ):
+    if tabbed_collection in [
+        status.location_inventory_collection,
+        status.mob_inventory_collection,
+    ] or (
+        tabbed_collection.current_tabbed_member != target_tab
+    ):  # Only update tab if it isn't already selected, or if we need to refresh the inventory
         for tab_button in tabbed_collection.tabs_collection.members:
             if (
                 hasattr(tab_button, "linked_element")
                 and tab_button.linked_element == target_tab
             ):
-                tab_button.on_click()
+                tab_button.select_tab()
                 continue
 
 

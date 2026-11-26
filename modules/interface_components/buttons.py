@@ -1038,45 +1038,7 @@ class button(interface_elements.interface_element):
 
         elif self.button_type == constants.TAB_BUTTON:
             if main_loop_utility.action_possible():
-                tabbed_collection = self.parent_collection.parent_collection
-                tabbed_collection.current_tabbed_member = self.linked_element
-                if constants.EffectManager.effect_active("debug_tab_selection"):
-                    print(f"Selecting tab: {self.tab_name}")
-                tabbed_collection.record_mru_tab(self.linked_element)
-                if (
-                    self.identifier == constants.INVENTORY_PANEL
-                    and constants.EffectManager.effect_active("link_inventory_tabs")
-                ):
-                    if tabbed_collection == status.mob_tabbed_collection:
-                        alternate_collection = status.location_tabbed_collection
-                    else:
-                        alternate_collection = status.mob_tabbed_collection
-                    for linked_tab in alternate_collection.tabbed_members:
-                        linked_tab_button = linked_tab.linked_tab_button
-                        if linked_tab_button.identifier == constants.INVENTORY_PANEL:
-                            linked_tab_button.parent_collection.parent_collection.current_tabbed_member = (
-                                linked_tab_button.linked_element
-                            )
-                    if (
-                        alternate_collection == status.mob_tabbed_collection
-                    ):  # Manually calibrate tab name banner label to new tab name
-                        alternate_collection.tabs_collection.members[-1].calibrate(
-                            status.displayed_mob
-                        )
-                    elif alternate_collection == status.location_tabbed_collection:
-                        alternate_collection.tabs_collection.members[-1].calibrate(
-                            status.displayed_location
-                        )
-                if (
-                    tabbed_collection == status.mob_tabbed_collection
-                ):  # Manually calibrate tab name banner label to new tab name
-                    tabbed_collection.tabs_collection.members[-1].calibrate(
-                        status.displayed_mob
-                    )
-                elif tabbed_collection == status.location_tabbed_collection:
-                    tabbed_collection.tabs_collection.members[-1].calibrate(
-                        status.displayed_location
-                    )
+                self.select_tab()
             else:
                 text_utility.print_to_screen("You are busy and cannot switch tabs.")
 
@@ -2043,6 +2005,47 @@ class tab_button(button):
         ]:
             return status.displayed_location.is_abstract_location
         raise ValueError(f"Unknown tab identifier: {self.identifier}")
+
+    def select_tab(self):
+        tabbed_collection = self.parent_collection.parent_collection
+        tabbed_collection.current_tabbed_member = self.linked_element
+        if constants.EffectManager.effect_active("debug_tab_selection"):
+            print(f"Selecting tab: {self.tab_name}")
+        tabbed_collection.record_mru_tab(self.linked_element)
+        if (
+            self.identifier == constants.INVENTORY_PANEL
+            and constants.EffectManager.effect_active("link_inventory_tabs")
+        ):
+            if tabbed_collection == status.mob_tabbed_collection:
+                alternate_collection = status.location_tabbed_collection
+            else:
+                alternate_collection = status.mob_tabbed_collection
+            for linked_tab in alternate_collection.tabbed_members:
+                linked_tab_button = linked_tab.linked_tab_button
+                if linked_tab_button.identifier == constants.INVENTORY_PANEL:
+                    linked_tab_button.parent_collection.parent_collection.current_tabbed_member = (
+                        linked_tab_button.linked_element
+                    )
+            if (
+                alternate_collection == status.mob_tabbed_collection
+            ):  # Manually calibrate tab name banner label to new tab name
+                alternate_collection.tabs_collection.members[-1].calibrate(
+                    status.displayed_mob
+                )
+            elif alternate_collection == status.location_tabbed_collection:
+                alternate_collection.tabs_collection.members[-1].calibrate(
+                    status.displayed_location
+                )
+        if (
+            tabbed_collection == status.mob_tabbed_collection
+        ):  # Manually calibrate tab name banner label to new tab name
+            tabbed_collection.tabs_collection.members[-1].calibrate(
+                status.displayed_mob
+            )
+        elif tabbed_collection == status.location_tabbed_collection:
+            tabbed_collection.tabs_collection.members[-1].calibrate(
+                status.displayed_location
+            )
 
 
 class reorganize_unit_button(button):
