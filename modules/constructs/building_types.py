@@ -107,19 +107,34 @@ class building_type:
             ]
         else:
             assert build_progress >= 0 and build_progress < 1
+            incomplete_opacity = 50
             image_id = [
                 {
                     "image_id": f"items/equipment/buildings/plan_fill.png",
                     "clip_to_image": self.background_image_id,
-                    "opacity": 50,
-                },
+                    "opacity": incomplete_opacity,
+                },  # Semi-transparent, incomplete, upper component of background
                 {
                     "image_id": self.background_image_id,
                     "clip_to_vertical_range": (
                         100 - math.floor(build_progress * 100),
                         100,
                     ),
-                },
-                {"image_id": self.icon_image_id},
+                },  # Opaque, completed, lower component of background
+                {
+                    "image_id": self.icon_image_id,
+                    "clip_to_vertical_range": (
+                        0,
+                        100 - math.floor(build_progress * 100),
+                    ),
+                    "opacity": incomplete_opacity,
+                },  # Semi-transparent, incomplete, upper component of icon
+                {
+                    "image_id": self.icon_image_id,
+                    "clip_to_vertical_range": (
+                        100 - math.floor(build_progress * 100),
+                        100,
+                    ),
+                },  # Opaque, completed, lower component of icon
             ]
             return image_id
