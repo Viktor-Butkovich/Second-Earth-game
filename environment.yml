@@ -5,14 +5,11 @@ dependencies:
   - python=3.11
   - pydub
   - numpy
-  - networkx
-  - plotly
-  - imageio
   - pyinstaller
   - pyautogui
   - scmrepo
   - pynput
-  - opencv
+  - ffmpeg
   - pandas
   - black
   - pip

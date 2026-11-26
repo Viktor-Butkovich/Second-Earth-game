@@ -15,10 +15,11 @@ rm main.spec -force
 rmdir build -force -Recurse
 rmdir sound_editing -force -Recurse
 rmdir scripts -force -Recurse
+rmdir archive -force -Recurse
 rm dist -force -Recurse
 rm modules -force -Recurse
 rm misc -force -Recurse
-rm experiments -force -Recurse
+# rm experiments -force -Recurse
 rm artifacts -force -Recurse
 rm -force main.py
 rm -force simulation.py

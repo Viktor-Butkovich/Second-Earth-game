@@ -22,5 +22,8 @@ elif chosen_simulation == "new_game":
     from modules.simulations.auto_gui import new_game as main
 elif chosen_simulation == "network_analysis":
     from modules.simulations.network_analysis import main
+elif chosen_simulation == "geo":
+    print("Running Geo Simulation...")
+    from modules.simulations.geo.geo import main
 
 main()

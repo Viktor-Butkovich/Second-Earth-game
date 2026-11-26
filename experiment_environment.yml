@@ -1,0 +1,21 @@
+name: second_earth_experiments
+channels:
+  - conda-forge
+dependencies:
+  - python=3.13
+  - pydub
+  - numpy
+  - networkx
+  - rasterio
+  - matplotlib
+  - numpy
+  - scipy
+  - pynput
+  - pyautogui
+  - pandas
+  - black
+  - scmrepo
+
+# Create environment with `mamba env create -f experiment_environment.yml`
+# To add new dependencies, update the `experiment_environment.yml`, then update the environment with `mamba env update -f experiment_environment.yml --prune`
+# Remove env with `conda env remove --name second_earth_experiments`, and clear cache with `conda clean -a`
