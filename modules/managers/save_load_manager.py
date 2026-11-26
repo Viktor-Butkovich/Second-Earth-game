@@ -14,6 +14,7 @@ from modules.util import (
     tutorial_utility,
     world_utility,
 )
+from modules.config import config_grids
 from modules.constructs import unit_types
 from modules.constants import constants, status, flags
 
@@ -68,7 +69,7 @@ class save_load_manager:
 
         world_utility.new_worlds()
 
-        game_transitions.create_grids()
+        config_grids.config_grids()
 
         for current_item in status.item_types.values():
             if current_item.key == constants.RESOURCE_CONSUMER_GOODS:
@@ -232,7 +233,7 @@ class save_load_manager:
         world_utility.load_worlds(saved_worlds)
         # Note that loading in worlds loads locations, which loads settlements, mobs, and buildings
 
-        game_transitions.create_grids()
+        config_grids.config_grids()
 
         game_transitions.set_game_mode(constants.STRATEGIC_MODE)
 
